@@ -1,9 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { generateNotFoundImage } from '@/ai/flows/not-found-image-flow';
 
-const NotFoundPage = async () => {
-  const { url: imageUrl } = await generateNotFoundImage();
+const NotFoundPage = () => {
+  const imageUrl = 'https://placehold.co/1200x900.png';
 
   const EarthIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg
@@ -29,7 +28,7 @@ const NotFoundPage = async () => {
     <div className="flex items-center justify-center min-h-screen bg-[#EAE3D9] p-4 font-body">
       <div className="w-full max-w-5xl bg-black rounded-xl shadow-2xl overflow-hidden aspect-[4/3] relative text-white/90 flex flex-col">
         <Image
-          src={imageUrl || 'https://placehold.co/1200x900.png'}
+          src={imageUrl}
           alt="A person at a computer in a vast landscape, signifying a page not found."
           layout="fill"
           objectFit="cover"
