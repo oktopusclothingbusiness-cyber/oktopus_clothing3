@@ -33,7 +33,7 @@ const generateNotFoundImageFlow = ai.defineFlow(
       The style is reminiscent of a vintage sci-fi book cover with a soft, slightly grainy texture.
       The color palette is natural, with green grass, rocky outcrops, and a blue sky.`,
       config: {
-        responseModalities: ['IMAGE'],
+        responseModalities: ['TEXT', 'IMAGE'],
       },
     });
 
