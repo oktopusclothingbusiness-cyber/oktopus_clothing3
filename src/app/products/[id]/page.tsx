@@ -9,11 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { AddToCartButton } from "@/components/add-to-cart-button";
-import { products } from '@/data/products';
+import { useProduct } from "@/context/product-context";
 
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const { products } = useProduct();
   const product = products.find((p) => p.id === params.id);
 
   if (!product) {

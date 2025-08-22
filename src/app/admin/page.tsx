@@ -8,12 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { products as initialProducts } from '@/data/products';
 import Image from 'next/image';
 import { Trash2, Edit } from 'lucide-react';
+import { useProduct } from '@/context/product-context';
 
 export default function AdminPage() {
-    const [products, setProducts] = React.useState(initialProducts);
+    const { products, addProduct, deleteProduct } = useProduct();
     const [newProduct, setNewProduct] = React.useState({ name: '', description: '', price: '', imageUrl: '' });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -24,21 +24,15 @@ export default function AdminPage() {
     const handleAddProduct = (e: React.FormEvent) => {
         e.preventDefault();
         if (newProduct.name && newProduct.price && newProduct.imageUrl) {
-            const productToAdd = {
-                id: (products.length + 1).toString(),
+            addProduct({
                 ...newProduct,
                 price: parseFloat(newProduct.price),
                 category: 'New',
                 sizes: ['S', 'M', 'L', 'XL'],
                 colors: ['Default'],
-            };
-            setProducts(prev => [...prev, productToAdd]);
+            });
             setNewProduct({ name: '', description: '', price: '', imageUrl: '' });
         }
-    };
-
-    const handleDeleteProduct = (id: string) => {
-        setProducts(prev => prev.filter(p => p.id !== id));
     };
 
   return (
@@ -103,7 +97,7 @@ export default function AdminPage() {
                           <Button variant="ghost" size="icon" className="mr-2">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteProduct(product.id)}>
+                          <Button variant="ghost" size="icon" onClick={() => deleteProduct(product.id)}>
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </TableCell>

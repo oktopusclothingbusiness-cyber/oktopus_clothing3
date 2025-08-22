@@ -1,22 +1,20 @@
+
+'use client';
+
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ShoppingCart, PlayCircle } from "lucide-react";
+import { ArrowRight, ShoppingCart } from "lucide-react";
 import { UixshuvoHeader } from "@/components/uixshuvo-header";
 import { OktopusFooter } from "@/components/oktopus-footer";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Card, CardContent } from "@/components/ui/card";
 import { FlowerIcon } from "@/components/icons/flower-icon";
-
-const featuredProducts = [
-  { id: '1', name: 'Casual Printed Shirt', price: 120.00, imageUrl: 'https://i.ibb.co/9kb95JMV/d06ac3895924a6ec86110b32a978d73c.jpg', category: 'Tops' },
-  { id: '2', name: 'Classic White Shirt', price: 40, imageUrl: 'https://i.ibb.co/bJCQNw1/featured-1.png', category: 'Tops' },
-  { id: '3', name: 'Slim Fit Trousers', price: 50, imageUrl: 'https://i.ibb.co/9kb95JMV/d06ac3895924a6ec86110b32a978d73c.jpg', category: 'Bottoms' },
-  { id: '4', name: 'Minimalist Hoodie', price: 75, imageUrl: 'https://i.ibb.co/bJCQNw1/featured-1.png', category: 'Outerwear' },
-  { id: '5', name: 'Leather Sneakers', price: 120, imageUrl: 'https://i.ibb.co/bJCQNw1/featured-1.png', category: 'Footwear' },
-];
+import { useProduct } from "@/context/product-context";
 
 export default function OktopusStorePage() {
+  const { products } = useProduct();
+  const featuredProducts = products.slice(0, 5);
+
   return (
     <div className="bg-white text-stone-900 font-serif">
       <UixshuvoHeader />
@@ -54,11 +52,15 @@ export default function OktopusStorePage() {
             </div>
           </div>
            <div className="flex justify-center gap-4 mt-8">
-              <Button size="lg" className="bg-stone-900 text-white hover:bg-stone-800 rounded-full px-8 py-6">
-                Shop Now <ArrowRight className="ml-2 h-4 w-4" />
+              <Button size="lg" className="bg-stone-900 text-white hover:bg-stone-800 rounded-full px-8 py-6" asChild>
+                <Link href="/products">
+                  Shop Now <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
               </Button>
-              <Button size="lg" variant="outline" className="rounded-full border-stone-900 text-stone-900 hover:bg-stone-100 px-8 py-6">
-                Explore More Products
+              <Button size="lg" variant="outline" className="rounded-full border-stone-900 text-stone-900 hover:bg-stone-100 px-8 py-6" asChild>
+                 <Link href="/products">
+                  Explore More Products
+                </Link>
               </Button>
             </div>
         </section>
@@ -72,9 +74,9 @@ export default function OktopusStorePage() {
                   key={product.id}
                   className="absolute transition-all duration-300 ease-in-out"
                   style={{
-                     transform: `translateX(${(index - 2) * 50}px) scale(${1 - Math.abs(index-2) * 0.1})`,
-                     zIndex: 5 - Math.abs(index-2),
-                     filter: `brightness(${100 - Math.abs(index - 2) * 15}%)`
+                     transform: `translateX(${(index - Math.floor(featuredProducts.length / 2)) * 50}px) scale(${1 - Math.abs(index - Math.floor(featuredProducts.length / 2)) * 0.1})`,
+                     zIndex: featuredProducts.length - Math.abs(index - Math.floor(featuredProducts.length / 2)),
+                     filter: `brightness(${100 - Math.abs(index - Math.floor(featuredProducts.length / 2)) * 15}%)`
                   }}
                 >
                     <Card className="overflow-hidden group border-2 rounded-2xl w-[300px] shadow-lg">
@@ -87,17 +89,19 @@ export default function OktopusStorePage() {
                           data-ai-hint="product model"
                         />
                       </div>
-                      <CardContent className="p-4 text-center absolute bottom-4 w-full text-white">
+                      <CardContent className="p-4 text-center absolute bottom-4 w-full text-white bg-gradient-to-t from-black/50 to-transparent">
                           <p className="font-bold">{product.name}</p>
-                          <p className="text-sm">{product.price.toFixed(2)} USD</p>
+                          <p className="text-sm">${product.price.toFixed(2)} USD</p>
                       </CardContent>
                     </Card>
                 </div>
               ))}
             </div>
              <div className="text-center mt-8">
-                <Button variant="outline" size="icon" className="rounded-full bg-stone-900 text-white">
-                  <ShoppingCart className="h-5 w-5" />
+                <Button variant="outline" size="icon" className="rounded-full bg-stone-900 text-white" asChild>
+                  <Link href="/cart">
+                    <ShoppingCart className="h-5 w-5" />
+                  </Link>
                 </Button>
              </div>
           </div>
@@ -114,9 +118,6 @@ export default function OktopusStorePage() {
             </div>
             <div className="relative h-80 md:h-96">
                <Image src="https://i.ibb.co/1GZq5Mk/promo-guy.png" alt="Model in a suit" fill objectFit="cover" className="rounded-2xl" data-ai-hint="model suit" />
-               <Button variant="ghost" size="icon" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/50 rounded-full h-16 w-16 backdrop-blur-sm">
-                  
-               </Button>
             </div>
           </div>
         </section>
