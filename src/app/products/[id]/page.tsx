@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { Minus, Plus } from 'lucide-react';
+import { Minus, Plus, ShoppingCart } from 'lucide-react';
 
 import { products } from '@/lib/data';
 import type { Product } from '@/types';
@@ -22,7 +22,7 @@ function ProductClientComponent({ product }: { product: Product }) {
 
   return (
     <div className="grid md:grid-cols-2 gap-12 items-start">
-      <div className="relative aspect-square">
+      <div className="relative aspect-[3/4]">
         <Image
           src={product.imageUrl}
           alt={product.name}
@@ -57,11 +57,12 @@ function ProductClientComponent({ product }: { product: Product }) {
             </Button>
           </div>
           <Button size="lg" onClick={handleAddToCart}>
+            <ShoppingCart className="mr-2 h-5 w-5" />
             Add to Cart
           </Button>
         </div>
         <div className="text-sm text-muted-foreground">
-          Category: {product.category}
+          <span className="font-semibold">Category:</span> {product.category}
         </div>
       </div>
     </div>

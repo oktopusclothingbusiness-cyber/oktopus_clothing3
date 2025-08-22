@@ -40,12 +40,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const removeFromCart = (productId: string) => {
+    const itemToRemove = cart.find(item => item.product.id === productId);
     setCart((prevCart) =>
       prevCart.filter((item) => item.product.id !== productId)
     );
      toast({
         title: "Removed from cart",
-        description: `Product has been removed from your cart.`,
+        description: `${itemToRemove?.product.name} has been removed from your cart.`,
         variant: "destructive"
       });
   };

@@ -74,12 +74,12 @@ export default function CartPage() {
                   size="icon"
                   onClick={() => removeFromCart(item.product.id)}
                 >
-                  <Trash2 className="h-5 w-5 text-red-500" />
+                  <Trash2 className="h-5 w-5 text-destructive" />
                 </Button>
               </div>
             ))}
           </div>
-          <div className="bg-secondary/50 rounded-lg p-6 h-fit">
+          <div className="bg-secondary rounded-lg p-6 h-fit">
             <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
             <div className="flex justify-between mb-2">
               <span>Subtotal</span>

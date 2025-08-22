@@ -9,6 +9,7 @@ import { useState } from 'react';
 const Header = () => {
   const { cart } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const totalQuantity = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   const navLinks = [
     { href: '/', label: 'Home' },
@@ -40,8 +41,10 @@ const Header = () => {
           <Button asChild variant="ghost" size="icon">
             <Link href="/cart">
               <ShoppingBag className="h-5 w-5" />
-              {cart.length > 0 && (
-                <span className="absolute top-2 right-2 block h-2 w-2 rounded-full bg-primary" />
+              {totalQuantity > 0 && (
+                <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                  {totalQuantity}
+                </span>
               )}
               <span className="sr-only">Shopping Cart</span>
             </Link>
