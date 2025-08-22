@@ -3,29 +3,27 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Store } from "lucide-react";
 import { OctopusLogo } from "@/components/icons/octopus-logo";
+import { Eyewear1 } from "@/components/icons/eyewear-1";
+import { Eyewear2 } from "@/components/icons/eyewear-2";
+import { Eyewear3 } from "@/components/icons/eyewear-3";
+import { Eyewear4 } from "@/components/icons/eyewear-4";
+import { Eyewear5 } from "@/components/icons/eyewear-5";
+
 
 const GalleryImage = ({
-  src,
-  alt,
   rotation,
   className,
+  children,
 }: {
-  src: string;
-  alt: string;
   rotation: string;
   className?: string;
+  children: React.ReactNode;
 }) => (
   <div
     className={`absolute transition-transform duration-500 ease-in-out hover:scale-110 ${rotation} ${className}`}
   >
     <div className="relative h-28 w-28 sm:h-32 sm:w-32 md:h-64 md:w-64 rounded-xl overflow-hidden shadow-2xl">
-      <Image
-        src={src}
-        alt={alt}
-        layout="fill"
-        objectFit="cover"
-        data-ai-hint="fashion model sunglasses"
-      />
+      {children}
     </div>
   </div>
 );
@@ -50,35 +48,35 @@ export default function Home() {
             />
           </div>
           <GalleryImage
-            src="https://placehold.co/400x400.png"
-            alt="Model with round glasses"
             rotation="-rotate-12"
             className="z-10 -translate-x-16 sm:-translate-x-24 md:-translate-x-40"
-          />
+          >
+            <Eyewear1 className="h-full w-full" />
+          </GalleryImage>
           <GalleryImage
-            src="https://placehold.co/400x400.png"
-            alt="Model profile in pink light"
             rotation="rotate-0"
             className="z-20 scale-110"
-          />
+          >
+            <Eyewear2 className="h-full w-full" />
+          </GalleryImage>
           <GalleryImage
-            src="https://placehold.co/400x400.png"
-            alt="Model with futuristic glasses"
             rotation="rotate-12"
             className="z-10 translate-x-16 sm:translate-x-24 md:translate-x-40"
-          />
+          >
+            <Eyewear3 className="h-full w-full" />
+          </GalleryImage>
            <GalleryImage
-            src="https://placehold.co/400x400.png"
-            alt="Faded model"
             rotation="-rotate-20"
             className="z-0 -translate-x-32 sm:-translate-x-48 md:-translate-x-72 opacity-50"
-          />
+          >
+            <Eyewear4 className="h-full w-full" />
+          </GalleryImage>
             <GalleryImage
-            src="https://placehold.co/400x400.png"
-            alt="Faded model 2"
             rotation="rotate-20"
             className="z-0 translate-x-32 sm:translate-x-48 md:translate-x-72 opacity-50"
-          />
+          >
+            <Eyewear5 className="h-full w-full" />
+          </GalleryImage>
         </div>
 
         <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-6">
