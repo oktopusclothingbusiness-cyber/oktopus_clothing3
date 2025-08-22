@@ -6,12 +6,135 @@ import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Minus, Plus, Trash2, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/auth-context";
+import { useRouter } from "next/navigation";
+import * as React from "react";
+
+// Add this type definition at the top of the file
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const router = useRouter();
+  const [isProcessing, setIsProcessing] = React.useState(false);
 
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
+  const handleCheckout = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to proceed with the checkout.",
+        variant: "destructive"
+      });
+      router.push('/login');
+      return;
+    }
+    
+    if (subtotal === 0) {
+        toast({
+            title: "Empty Cart",
+            description: "Please add items to your cart before checking out.",
+            variant: "destructive"
+        });
+        return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const response = await fetch('/api/payment/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: subtotal }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create order');
+      }
+      
+      const order = await response.json();
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'VogueVerse',
+        description: 'Test Transaction',
+        order_id: order.id,
+        handler: async function (response: any) {
+            try {
+                const verifyResponse = await fetch('/api/payment/verify-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature
+                    })
+                });
+
+                if (verifyResponse.ok) {
+                    toast({
+                        title: "Payment Successful",
+                        description: "Thank you for your purchase!",
+                    });
+                    clearCart();
+                    router.push('/store');
+                } else {
+                     throw new Error('Payment verification failed');
+                }
+            } catch (error) {
+                 toast({
+                    title: "Payment Verification Failed",
+                    description: "Please contact support for assistance.",
+                    variant: "destructive"
+                });
+            } finally {
+                setIsProcessing(false);
+            }
+        },
+        prefill: {
+          name: `${user.firstName} ${user.lastName}`,
+          email: user.email,
+        },
+        notes: {
+          address: "VogueVerse Corporate Office"
+        },
+        theme: {
+          color: "#000000"
+        }
+      };
+      
+      const rzp1 = new window.Razorpay(options);
+      rzp1.on('payment.failed', function (response: any){
+              toast({
+                title: 'Payment Failed',
+                description: response.error.description,
+                variant: 'destructive',
+              });
+              setIsProcessing(false);
+      });
+      rzp1.open();
+
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong during checkout. Please try again.",
+        variant: "destructive",
+      });
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -71,7 +194,9 @@ export default function CartPage() {
                 <span>Total</span>
                 <span>₹{subtotal.toFixed(2)}</span>
               </div>
-              <Button className="w-full" size="lg">Checkout</Button>
+              <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isProcessing}>
+                 {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : 'Checkout'}
+              </Button>
             </div>
           </div>
         )}

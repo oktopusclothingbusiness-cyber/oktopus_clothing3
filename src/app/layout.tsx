@@ -6,6 +6,7 @@ import { CartProvider } from "@/context/cart-context";
 import { ProductProvider } from "@/context/product-context";
 import { AuthProvider } from "@/context/auth-context";
 import { UserProvider } from "@/context/user-context";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const poppins = Poppins({ 
@@ -37,6 +38,10 @@ export default function RootLayout({
           </UserProvider>
         </AuthProvider>
         <Toaster />
+        <Script
+          id="razorpay-checkout-js"
+          src="https://checkout.razorpay.com/v1/checkout.js"
+        />
       </body>
     </html>
   );
