@@ -4,7 +4,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ShoppingCart, Heart, MapPin, Bell, Search, Settings2, Shirt, Radio, Shoe, Watch, MessageCircle, User, Home, Star } from "lucide-react";
+import { ArrowRight, ShoppingCart, Heart, MapPin, Bell, Search, Settings2, Shirt, Radio, Watch, MessageCircle, User, Home, Star, Footprints } from "lucide-react";
 import { Header } from "@/components/header";
 import { OktopusFooter } from "@/components/oktopus-footer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -100,7 +100,7 @@ export default function OktopusStorePage() {
   const categories = [
       { icon: Shirt, label: 'Clothes'},
       { icon: Radio, label: 'Electronics'},
-      { icon: Shoe, label: 'Shoes'},
+      { icon: Footprints, label: 'Shoes'},
       { icon: Watch, label: 'Watch'},
   ]
 
