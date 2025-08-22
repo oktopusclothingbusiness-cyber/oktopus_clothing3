@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     }
 
     // In a real app, you'd generate a JWT here and return it.
-    // For now, we'll just return a success message.
+    // For now, we'll just return a success message and user data.
     const { password: _, ...userWithoutPassword } = user;
 
     return NextResponse.json({ message: 'Login successful.', user: userWithoutPassword }, { status: 200 });

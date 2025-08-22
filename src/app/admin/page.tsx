@@ -14,6 +14,9 @@ import { useProduct, Product } from '@/context/product-context';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
+import { ShieldAlert } from 'lucide-react';
 
 const emptyProduct = {
     id: '',
@@ -31,6 +34,14 @@ export default function AdminPage() {
     const [formData, setFormData] = React.useState(emptyProduct);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isEditing, setIsEditing] = React.useState(false);
+    const { user, loading: authLoading } = useAuth();
+    const router = useRouter();
+
+    React.useEffect(() => {
+        if (!authLoading && user?.role !== 'admin') {
+            router.push('/login');
+        }
+    }, [user, authLoading, router]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -80,6 +91,40 @@ export default function AdminPage() {
     const resetForm = () => {
         setFormData(emptyProduct);
         setIsEditing(false);
+    }
+
+    if (authLoading) {
+      return (
+        <div className="flex flex-col min-h-screen items-center justify-center">
+            <Loader2 className="h-16 w-16 animate-spin text-primary" />
+            <p className="mt-4 text-muted-foreground">Authenticating...</p>
+        </div>
+      )
+    }
+
+    if (user?.role !== 'admin') {
+      return (
+          <div className="flex flex-col min-h-screen">
+            <Header />
+            <main className="flex-grow container mx-auto p-4 md:p-8 flex items-center justify-center">
+                <Card className="w-full max-w-md text-center">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-center gap-2">
+                      <ShieldAlert className="h-6 w-6 text-destructive" />
+                      Access Denied
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p>You do not have permission to view this page. Please log in as an administrator.</p>
+                  </CardContent>
+                  <CardFooter>
+                     <Button className="w-full" onClick={() => router.push('/login')}>Go to Login</Button>
+                  </CardFooter>
+                </Card>
+            </main>
+            <Footer />
+        </div>
+      )
     }
 
   return (

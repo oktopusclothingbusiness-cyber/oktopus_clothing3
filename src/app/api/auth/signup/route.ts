@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
@@ -20,12 +21,15 @@ export async function POST(request: Request) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    
+    const role = email === 'rbaskeydomi2018@gmail.com' ? 'admin' : 'user';
 
     const result = await db.collection('users').insertOne({
       firstName,
       lastName,
       email,
       password: hashedPassword,
+      role,
       createdAt: new Date(),
     });
 

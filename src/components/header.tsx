@@ -3,11 +3,13 @@
 
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { ShoppingCart, User, Shield } from "lucide-react";
+import { ShoppingCart, User, Shield, LogOut } from "lucide-react";
 import { useCart } from "@/context/cart-context";
+import { useAuth } from "@/context/auth-context";
 
 export function Header() {
   const { cart } = useCart();
+  const { user, logout } = useAuth();
   
   return (
     <header className="bg-background border-b sticky top-0 z-10">
@@ -41,18 +43,27 @@ export function Header() {
               <span className="sr-only">Shopping Cart</span>
             </Link>
           </Button>
-          <Button asChild variant="ghost" size="icon">
-            <Link href="/login">
-              <User className="h-5 w-5" />
-              <span className="sr-only">Login</span>
-            </Link>
-          </Button>
-           <Button asChild variant="ghost" size="icon">
-            <Link href="/admin">
-              <Shield className="h-5 w-5" />
-              <span className="sr-only">Admin</span>
-            </Link>
-          </Button>
+          {user ? (
+            <Button onClick={logout} variant="ghost" size="icon">
+              <LogOut className="h-5 w-5" />
+              <span className="sr-only">Logout</span>
+            </Button>
+          ) : (
+            <Button asChild variant="ghost" size="icon">
+              <Link href="/login">
+                <User className="h-5 w-5" />
+                <span className="sr-only">Login</span>
+              </Link>
+            </Button>
+          )}
+          {user?.role === 'admin' && (
+            <Button asChild variant="ghost" size="icon">
+              <Link href="/admin">
+                <Shield className="h-5 w-5" />
+                <span className="sr-only">Admin</span>
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
     </header>

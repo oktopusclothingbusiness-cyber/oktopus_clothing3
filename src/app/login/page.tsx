@@ -13,16 +13,17 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/auth-context";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(1, { message: "Password is required." }),
 });
 
-
 export default function LoginPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const { login } = useAuth();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -44,11 +45,16 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
+        login(data.user);
         toast({
           title: "Login Successful",
           description: "You have been successfully logged in.",
         });
-        router.push('/store');
+        if (data.user.role === 'admin') {
+            router.push('/admin');
+        } else {
+            router.push('/store');
+        }
       } else {
         toast({
           title: "Error",

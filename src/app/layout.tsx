@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { CartProvider } from "@/context/cart-context";
 import { ProductProvider } from "@/context/product-context";
+import { AuthProvider } from "@/context/auth-context";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const poppins = Poppins({ 
@@ -25,11 +26,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${poppins.variable} font-sans`}>
-        <ProductProvider>
-          <CartProvider>
-            {children}
-          </CartProvider>
-        </ProductProvider>
+        <AuthProvider>
+          <ProductProvider>
+            <CartProvider>
+              {children}
+            </CartProvider>
+          </ProductProvider>
+        </AuthProvider>
         <Toaster />
       </body>
     </html>
