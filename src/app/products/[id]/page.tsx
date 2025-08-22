@@ -11,6 +11,7 @@ import { Footer } from "@/components/footer";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { useProduct, Product } from "@/context/product-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 
 export default function ProductDetailPage() {
@@ -38,14 +39,26 @@ export default function ProductDetailPage() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-          <div className="relative aspect-square">
-            <Image
-              src={product.imageUrl}
-              alt={product.name}
-              fill
-              className="object-cover rounded-lg"
-              data-ai-hint="product image"
-            />
+          <div>
+            <Carousel className="w-full">
+              <CarouselContent>
+                {product.imageUrls.map((url, index) => (
+                  <CarouselItem key={index}>
+                    <div className="relative aspect-square">
+                      <Image
+                        src={url}
+                        alt={`${product.name} image ${index + 1}`}
+                        fill
+                        className="object-cover rounded-lg"
+                        data-ai-hint="product image"
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           </div>
           <div className="space-y-6">
             <h1 className="text-3xl lg:text-4xl font-bold">{product.name}</h1>

@@ -17,7 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminPage() {
     const { products, addProduct, deleteProduct, loading } = useProduct();
-    const [newProduct, setNewProduct] = React.useState({ name: '', description: '', price: '', imageUrl: '' });
+    const [newProduct, setNewProduct] = React.useState({ name: '', description: '', price: '', imageUrls: '' });
     const [isSubmitting, setIsSubmitting] = React.useState(false);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -27,16 +27,17 @@ export default function AdminPage() {
 
     const handleAddProduct = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (newProduct.name && newProduct.price && newProduct.imageUrl) {
+        if (newProduct.name && newProduct.price && newProduct.imageUrls) {
             setIsSubmitting(true);
             await addProduct({
                 ...newProduct,
                 price: parseFloat(newProduct.price),
+                imageUrls: newProduct.imageUrls.split(',').map(url => url.trim()),
                 category: 'New', // You can add a category field to the form
                 sizes: ['S', 'M', 'L', 'XL'], // You can add a sizes field to the form
                 colors: ['Default'], // You can add a colors field to the form
             });
-            setNewProduct({ name: '', description: '', price: '', imageUrl: '' });
+            setNewProduct({ name: '', description: '', price: '', imageUrls: '' });
             setIsSubmitting(false);
         }
     };
@@ -68,8 +69,9 @@ export default function AdminPage() {
                     <Input id="price" name="price" type="number" value={newProduct.price} onChange={handleInputChange} placeholder="e.g., 40.00" required disabled={isSubmitting} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="imageUrl">Image URL</Label>
-                    <Input id="imageUrl" name="imageUrl" value={newProduct.imageUrl} onChange={handleInputChange} placeholder="https://example.com/image.png" required disabled={isSubmitting} />
+                    <Label htmlFor="imageUrls">Image URLs</Label>
+                    <Textarea id="imageUrls" name="imageUrls" value={newProduct.imageUrls} onChange={handleInputChange} placeholder="Comma-separated URLs" required disabled={isSubmitting} />
+                    <p className="text-xs text-muted-foreground">Enter multiple image URLs separated by commas.</p>
                   </div>
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
                     {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Adding...</> : 'Add Product'}
@@ -109,7 +111,7 @@ export default function AdminPage() {
                         products.map((product) => (
                           <TableRow key={product.id}>
                             <TableCell>
-                              <Image src={product.imageUrl} alt={product.name} width={40} height={40} className="rounded-md object-cover" />
+                              <Image src={product.imageUrls[0]} alt={product.name} width={40} height={40} className="rounded-md object-cover" />
                             </TableCell>
                             <TableCell className="font-medium">{product.name}</TableCell>
                             <TableCell>₹{product.price.toFixed(2)}</TableCell>

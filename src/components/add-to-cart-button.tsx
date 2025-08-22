@@ -10,7 +10,7 @@ type Product = {
   id: string;
   name: string;
   price: number;
-  imageUrl: string;
+  imageUrls: string[];
 };
 
 type AddToCartButtonProps = {

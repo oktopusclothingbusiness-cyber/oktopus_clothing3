@@ -10,15 +10,17 @@ export type Product = {
   name: string;
   description: string;
   price: number;
-  imageUrl: string;
+  imageUrls: string[];
   category: string;
   sizes: string[];
   colors: string[];
 };
 
+type AddProduct = Omit<Product, 'id' | '_id'>
+
 type ProductContextType = {
   products: Product[];
-  addProduct: (product: Omit<Product, 'id' | '_id'>) => Promise<void>;
+  addProduct: (product: AddProduct) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   updateProduct: (product: Product) => Promise<void>;
   loading: boolean;
@@ -57,7 +59,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     fetchProducts();
   }, []);
 
-  const addProduct = async (product: Omit<Product, 'id' | '_id'>) => {
+  const addProduct = async (product: AddProduct) => {
      try {
       const response = await fetch('/api/products', {
         method: 'POST',

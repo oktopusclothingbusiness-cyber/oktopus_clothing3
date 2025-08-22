@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const product = await request.json();
     
     // Basic validation
-    if (!product.name || !product.price || !product.imageUrl) {
+    if (!product.name || !product.price || !product.imageUrls || !Array.isArray(product.imageUrls) || product.imageUrls.length === 0) {
       return NextResponse.json({ message: 'Missing required fields.' }, { status: 400 });
     }
 

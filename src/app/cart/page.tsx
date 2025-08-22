@@ -31,7 +31,7 @@ export default function CartPage() {
               {cart.map((item) => (
                 <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-4">
-                    <Image src={item.imageUrl} alt={item.name} width={80} height={80} className="rounded-md" />
+                    <Image src={item.imageUrls[0]} alt={item.name} width={80} height={80} className="rounded-md" />
                     <div>
                       <h2 className="font-semibold">{item.name}</h2>
                       <p className="text-muted-foreground">₹{item.price.toFixed(2)}</p>

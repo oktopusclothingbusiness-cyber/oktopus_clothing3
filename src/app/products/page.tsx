@@ -41,7 +41,7 @@ export default function ProductsPage() {
                 <Link href={`/products/${product.id}`}>
                   <div className="relative aspect-[3/4]">
                     <Image
-                      src={product.imageUrl}
+                      src={product.imageUrls[0]}
                       alt={product.name}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
