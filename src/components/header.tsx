@@ -27,7 +27,7 @@ const Header = () => {
         <nav className="hidden md:flex gap-6 items-center">
           {navLinks.map((link) => (
             <Link
-              key={link.href}
+              key={link.label}
               href={link.href}
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
             >
@@ -62,7 +62,7 @@ const Header = () => {
           <nav className="flex flex-col p-4 gap-4">
             {navLinks.map((link) => (
               <Link
-                key={link.href}
+                key={link.label}
                 href={link.href}
                 className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
                 onClick={() => setIsMenuOpen(false)}
