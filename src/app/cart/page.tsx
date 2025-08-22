@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -11,8 +12,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
-// Add this type definition at the top of the file
 declare global {
   interface Window {
     Razorpay: any;
@@ -25,51 +29,72 @@ export default function CartPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [isProcessing, setIsProcessing] = React.useState(false);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+
+  const [shippingAddress, setShippingAddress] = React.useState({
+      mobile: '',
+      address: '',
+      instructions: ''
+  });
 
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = e.target;
+      setShippingAddress(prev => ({...prev, [name]: value}));
+  }
 
-  const handleCheckout = async () => {
+  const handleProceedToPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to proceed with the checkout.",
-        variant: "destructive"
-      });
+      toast({ title: "Authentication Required", description: "Please log in to proceed.", variant: "destructive" });
       router.push('/login');
       return;
     }
     
-    if (subtotal === 0) {
-        toast({
-            title: "Empty Cart",
-            description: "Please add items to your cart before checking out.",
-            variant: "destructive"
-        });
+    if (!shippingAddress.mobile || !shippingAddress.address) {
+        toast({ title: "Address Required", description: "Please fill in your mobile number and address.", variant: "destructive" });
         return;
     }
-
+    
     setIsProcessing(true);
 
     try {
-      const response = await fetch('/api/payment/create-order', {
+        // 1. Create order in our own DB
+        const internalOrderResponse = await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: user.id,
+                userName: `${user.firstName} ${user.lastName}`,
+                cart,
+                total: subtotal,
+                shippingAddress
+            })
+        });
+
+        if (!internalOrderResponse.ok) throw new Error('Failed to save order details.');
+        const internalOrder = await internalOrderResponse.json();
+        
+      // 2. Create Razorpay order
+      const razorpayOrderResponse = await fetch('/api/payment/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: subtotal }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to create order');
-      }
+      if (!razorpayOrderResponse.ok) throw new Error('Failed to create Razorpay order');
       
-      const order = await response.json();
+      const razorpayOrder = await razorpayOrderResponse.json();
 
+      // 3. Open Razorpay checkout
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
         name: 'VogueVerse',
         description: 'Test Transaction',
-        order_id: order.id,
+        order_id: razorpayOrder.id,
         handler: async function (response: any) {
             try {
                 const verifyResponse = await fetch('/api/payment/verify-payment', {
@@ -78,36 +103,32 @@ export default function CartPage() {
                     body: JSON.stringify({
                         razorpay_order_id: response.razorpay_order_id,
                         razorpay_payment_id: response.razorpay_payment_id,
-                        razorpay_signature: response.razorpay_signature
+                        razorpay_signature: response.razorpay_signature,
+                        internal_order_id: internalOrder.orderId
                     })
                 });
 
                 if (verifyResponse.ok) {
-                    toast({
-                        title: "Payment Successful",
-                        description: "Thank you for your purchase!",
-                    });
+                    toast({ title: "Payment Successful", description: "Thank you for your purchase!" });
                     clearCart();
                     router.push('/store');
                 } else {
                      throw new Error('Payment verification failed');
                 }
             } catch (error) {
-                 toast({
-                    title: "Payment Verification Failed",
-                    description: "Please contact support for assistance.",
-                    variant: "destructive"
-                });
+                 toast({ title: "Payment Verification Failed", description: "Please contact support for assistance.", variant: "destructive" });
             } finally {
                 setIsProcessing(false);
+                setIsDialogOpen(false);
             }
         },
         prefill: {
           name: `${user.firstName} ${user.lastName}`,
           email: user.email,
+          contact: shippingAddress.mobile
         },
         notes: {
-          address: "VogueVerse Corporate Office"
+          address: shippingAddress.address,
         },
         theme: {
           color: "#000000"
@@ -116,25 +137,30 @@ export default function CartPage() {
       
       const rzp1 = new window.Razorpay(options);
       rzp1.on('payment.failed', function (response: any){
-              toast({
-                title: 'Payment Failed',
-                description: response.error.description,
-                variant: 'destructive',
-              });
+              toast({ title: 'Payment Failed', description: response.error.description, variant: 'destructive' });
               setIsProcessing(false);
       });
       rzp1.open();
 
     } catch (error) {
       console.error('Checkout error:', error);
-      toast({
-        title: "Error",
-        description: "Something went wrong during checkout. Please try again.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Something went wrong during checkout. Please try again.", variant: "destructive" });
       setIsProcessing(false);
     }
   };
+
+  const handleCheckoutClick = () => {
+    if (!user) {
+      toast({ title: "Authentication Required", description: "Please log in to proceed.", variant: "destructive" });
+      router.push('/login');
+      return;
+    }
+    if (cart.length === 0) {
+      toast({ title: "Empty Cart", description: "Your cart is empty.", variant: "destructive" });
+      return;
+    }
+    setIsDialogOpen(true);
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -194,9 +220,36 @@ export default function CartPage() {
                 <span>Total</span>
                 <span>₹{subtotal.toFixed(2)}</span>
               </div>
-              <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isProcessing}>
-                 {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : 'Checkout'}
-              </Button>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button className="w-full" size="lg" onClick={handleCheckoutClick}>
+                        Checkout
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Shipping Information</DialogTitle>
+                        <DialogDescription>Please provide your delivery details.</DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleProceedToPayment} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="mobile">Mobile Number</Label>
+                            <Input id="mobile" name="mobile" value={shippingAddress.mobile} onChange={handleAddressChange} required />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="address">Full Address</Label>
+                            <Textarea id="address" name="address" value={shippingAddress.address} onChange={handleAddressChange} required />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="instructions">Any Instructions (Optional)</Label>
+                            <Textarea id="instructions" name="instructions" value={shippingAddress.instructions} onChange={handleAddressChange} />
+                        </div>
+                        <Button type="submit" className="w-full" disabled={isProcessing}>
+                             {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : 'Proceed to Payment'}
+                        </Button>
+                    </form>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         )}

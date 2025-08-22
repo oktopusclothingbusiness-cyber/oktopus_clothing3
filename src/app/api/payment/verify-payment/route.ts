@@ -1,13 +1,19 @@
 
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
+import clientPromise from '@/lib/mongodb';
+import { ObjectId } from 'mongodb';
 
 export async function POST(request: Request) {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await request.json();
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, internal_order_id } = await request.json();
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !internal_order_id) {
        return NextResponse.json({ message: 'Missing payment details.' }, { status: 400 });
+    }
+    
+    if (!ObjectId.isValid(internal_order_id)) {
+        return NextResponse.json({ message: 'Invalid internal order ID.' }, { status: 400 });
     }
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -20,8 +26,24 @@ export async function POST(request: Request) {
     const isAuthentic = expectedSignature === razorpay_signature;
 
     if (isAuthentic) {
-      // Here you would typically save the payment details to your database
-      // For example: await db.collection('payments').insertOne({ razorpay_order_id, razorpay_payment_id, ... });
+      // Payment is authentic, update the order in the database
+      const client = await clientPromise;
+      const db = client.db();
+
+      await db.collection('orders').updateOne(
+        { _id: new ObjectId(internal_order_id) },
+        { 
+          $set: { 
+            status: 'paid',
+            paymentDetails: {
+              razorpay_order_id,
+              razorpay_payment_id,
+              razorpay_signature,
+              verifiedAt: new Date()
+            }
+          }
+        }
+      );
 
       return NextResponse.json({ message: 'Payment verified successfully.' }, { status: 200 });
     } else {
