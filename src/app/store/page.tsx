@@ -10,9 +10,10 @@ import { OktopusFooter } from "@/components/oktopus-footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { FlowerIcon } from "@/components/icons/flower-icon";
 import { useProduct } from "@/context/product-context";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function OktopusStorePage() {
-  const { products } = useProduct();
+  const { products, loading } = useProduct();
   const featuredProducts = products.slice(0, 5);
 
   return (
@@ -69,33 +70,57 @@ export default function OktopusStorePage() {
           <div className="container mx-auto px-4">
             <h2 className="text-4xl font-bold text-center mb-12 font-serif">Featured Collection</h2>
             <div className="relative flex justify-center items-center h-[500px]">
-              {featuredProducts.map((product, index) => (
-                <div 
-                  key={product.id}
-                  className="absolute transition-all duration-300 ease-in-out"
-                  style={{
-                     transform: `translateX(${(index - Math.floor(featuredProducts.length / 2)) * 50}px) scale(${1 - Math.abs(index - Math.floor(featuredProducts.length / 2)) * 0.1})`,
-                     zIndex: featuredProducts.length - Math.abs(index - Math.floor(featuredProducts.length / 2)),
-                     filter: `brightness(${100 - Math.abs(index - Math.floor(featuredProducts.length / 2)) * 15}%)`
-                  }}
-                >
+              {loading ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="absolute transition-all duration-300 ease-in-out"
+                    style={{
+                      transform: `translateX(${(index - 2) * 50}px) scale(${1 - Math.abs(index - 2) * 0.1})`,
+                      zIndex: 5 - Math.abs(index - 2),
+                      filter: `brightness(${100 - Math.abs(index - 2) * 15}%)`
+                    }}
+                  >
                     <Card className="overflow-hidden group border-2 rounded-2xl w-[300px] shadow-lg">
-                      <div className="relative aspect-[3/4] bg-gray-100">
-                        <Image
-                          src={product.imageUrl}
-                          alt={product.name}
-                          fill
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          data-ai-hint="product model"
-                        />
-                      </div>
-                      <CardContent className="p-4 text-center absolute bottom-4 w-full text-white bg-gradient-to-t from-black/50 to-transparent">
-                          <p className="font-bold">{product.name}</p>
-                          <p className="text-sm">${product.price.toFixed(2)} USD</p>
+                      <Skeleton className="relative aspect-[3/4] bg-gray-200" />
+                      <CardContent className="p-4 text-center absolute bottom-4 w-full">
+                          <Skeleton className="h-5 w-3/4 mx-auto mb-2" />
+                          <Skeleton className="h-4 w-1/2 mx-auto" />
                       </CardContent>
                     </Card>
-                </div>
-              ))}
+                  </div>
+                ))
+              ) : (
+                featuredProducts.map((product, index) => (
+                  <div 
+                    key={product.id}
+                    className="absolute transition-all duration-300 ease-in-out"
+                    style={{
+                      transform: `translateX(${(index - Math.floor(featuredProducts.length / 2)) * 50}px) scale(${1 - Math.abs(index - Math.floor(featuredProducts.length / 2)) * 0.1})`,
+                      zIndex: featuredProducts.length - Math.abs(index - Math.floor(featuredProducts.length / 2)),
+                      filter: `brightness(${100 - Math.abs(index - Math.floor(featuredProducts.length / 2)) * 15}%)`
+                    }}
+                  >
+                      <Card className="overflow-hidden group border-2 rounded-2xl w-[300px] shadow-lg">
+                        <Link href={`/products/${product.id}`}>
+                          <div className="relative aspect-[3/4] bg-gray-100">
+                            <Image
+                              src={product.imageUrl}
+                              alt={product.name}
+                              fill
+                              className="object-cover transition-transform duration-300 group-hover:scale-105"
+                              data-ai-hint="product model"
+                            />
+                          </div>
+                          <CardContent className="p-4 text-center absolute bottom-4 w-full text-white bg-gradient-to-t from-black/50 to-transparent">
+                              <p className="font-bold">{product.name}</p>
+                              <p className="text-sm">${product.price.toFixed(2)} USD</p>
+                          </CardContent>
+                        </Link>
+                      </Card>
+                  </div>
+                ))
+              )}
             </div>
              <div className="text-center mt-8">
                 <Button variant="outline" size="icon" className="rounded-full bg-stone-900 text-white" asChild>

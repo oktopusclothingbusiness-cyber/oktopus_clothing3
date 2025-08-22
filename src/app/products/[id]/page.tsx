@@ -9,13 +9,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { AddToCartButton } from "@/components/add-to-cart-button";
-import { useProduct } from "@/context/product-context";
+import { useProduct, Product } from "@/context/product-context";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const { products } = useProduct();
-  const product = products.find((p) => p.id === params.id);
+  const { products, loading } = useProduct();
+  const [product, setProduct] = React.useState<Product | null | undefined>(undefined);
+
+  React.useEffect(() => {
+    if (!loading) {
+      const foundProduct = products.find((p) => p.id === params.id);
+      setProduct(foundProduct);
+    }
+  }, [params.id, products, loading]);
+
+  if (loading || product === undefined) {
+    return <ProductDetailSkeleton />;
+  }
 
   if (!product) {
     notFound();
@@ -70,4 +82,28 @@ export default function ProductDetailPage() {
       <Footer />
     </div>
   );
+}
+
+function ProductDetailSkeleton() {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <main className="flex-grow container mx-auto px-4 py-8">
+        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+          <Skeleton className="relative aspect-square rounded-lg" />
+          <div className="space-y-6">
+            <Skeleton className="h-10 w-3/4" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-10 w-1/4" />
+            <div className="grid grid-cols-2 gap-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <Skeleton className="h-12 w-full" />
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  )
 }
