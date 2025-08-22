@@ -17,7 +17,7 @@ const GalleryImage = ({
   <div
     className={`absolute transition-transform duration-500 ease-in-out hover:scale-110 ${rotation} ${className}`}
   >
-    <div className="relative h-48 w-48 md:h-64 md:w-64 rounded-xl overflow-hidden shadow-2xl">
+    <div className="relative h-28 w-28 sm:h-32 sm:w-32 md:h-64 md:w-64 rounded-xl overflow-hidden shadow-2xl">
       <Image
         src={src}
         alt={alt}
@@ -52,7 +52,7 @@ export default function Home() {
             src="https://placehold.co/400x400.png"
             alt="Model with round glasses"
             rotation="-rotate-12"
-            className="z-10 -translate-x-24 md:-translate-x-40"
+            className="z-10 -translate-x-16 sm:-translate-x-24 md:-translate-x-40"
           />
           <GalleryImage
             src="https://placehold.co/400x400.png"
@@ -64,19 +64,19 @@ export default function Home() {
             src="https://placehold.co/400x400.png"
             alt="Model with futuristic glasses"
             rotation="rotate-12"
-            className="z-10 translate-x-24 md:translate-x-40"
+            className="z-10 translate-x-16 sm:translate-x-24 md:translate-x-40"
           />
            <GalleryImage
             src="https://placehold.co/400x400.png"
             alt="Faded model"
             rotation="-rotate-20"
-            className="z-0 -translate-x-48 md:-translate-x-72 opacity-50"
+            className="z-0 -translate-x-32 sm:-translate-x-48 md:-translate-x-72 opacity-50"
           />
             <GalleryImage
             src="https://placehold.co/400x400.png"
             alt="Faded model 2"
             rotation="rotate-20"
-            className="z-0 translate-x-48 md:translate-x-72 opacity-50"
+            className="z-0 translate-x-32 sm:translate-x-48 md:translate-x-72 opacity-50"
           />
         </div>
 
