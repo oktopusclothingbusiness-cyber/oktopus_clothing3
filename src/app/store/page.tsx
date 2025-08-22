@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ShoppingCart } from "lucide-react";
-import { UixshuvoHeader } from "@/components/uixshuvo-header";
+import { Header } from "@/components/header";
 import { OktopusFooter } from "@/components/oktopus-footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { FlowerIcon } from "@/components/icons/flower-icon";
@@ -17,7 +17,7 @@ export default function OktopusStorePage() {
 
   return (
     <div className="bg-white text-stone-900 font-serif">
-      <UixshuvoHeader />
+      <Header />
       <main>
         <section className="container mx-auto px-4 py-12 md:py-16">
           <div className="text-center mb-12">
