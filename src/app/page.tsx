@@ -3,34 +3,20 @@ import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 
-const GlassesIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="M6 15H4a2 2 0 0 1-2-2 2 2 0 0 1 2-2h2" />
-    <path d="M18 15h2a2 2 0 0 0 2-2 2 2 0 0 0-2-2h-2" />
-    <circle cx="9" cy="15" r="4" />
-    <circle cx="15" cy="15" r="4" />
-  </svg>
-);
-
-
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-black text-white">
       <div className="flex flex-col items-center justify-center flex-grow p-4 overflow-hidden">
         
         <div className="flex-1 flex flex-col justify-center items-center w-full">
-            <GlassesIcon className="w-16 h-16 mb-8" />
+            <Image 
+              src="https://placehold.co/64x64.png"
+              alt="Logo placeholder"
+              width={64}
+              height={64}
+              className="mb-8"
+              data-ai-hint="logo"
+            />
             
             <div className="relative w-full h-[300px] md:h-[500px] flex items-center justify-center mb-12">
               <Image
