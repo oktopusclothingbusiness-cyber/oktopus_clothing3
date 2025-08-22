@@ -1,51 +1,72 @@
-import type { Profile, Experience } from '@/types';
+import type { Product } from '@/types';
 
-export const profileData: Profile = {
-  name: 'Muhammad Zidnal Falah',
-  role: 'Visual/Graphic Designer',
-  bio: 'A graphic designer hailing from Indonesia with ±4 years of experience in the field. My talents encompass crafting editorial designs, creating visuals for live streaming and social media, expertly editing visual content, and analyzing social media insights.',
-  imageUrl: 'https://placehold.co/400x600.png',
-  resumeUrl: '#',
-  socialLinks: {
-    github: 'https://github.com',
-    linkedin: 'https://linkedin.com/in/zidnalfalah',
-    instagram: 'https://instagram.com/zidnalfalah_',
-    twitter: 'https://twitter.com/zidnalfalah_',
-    behance: 'https://www.behance.net/zidnalfalah',
-    pinterest: 'https://s.id/jidsportfolio',
-  },
-  softwareSkills: ['Ps', 'Ai', 'Xd', 'Id', 'figma', 'capcut', 'Pr', 'Ae', 'Wd'],
-};
-
-
-export const experiences: Experience[] = [
+export const products: Product[] = [
   {
-    role: 'Research and Development',
-    company: 'Student Company - SMA Progresif Bumi Shalawat',
-    date: '2021-2022',
-    description: 'Led a team in developing new product ideas.',
-    type: 'Work',
-  },
-  {
-    role: 'Layout Department',
-    company: 'Progresif TV - PP. Progresif Bumi Shalawat',
-    date: '2020-Now',
+    id: '1',
+    name: 'Classic Crewneck Tee',
     description:
-      'Responsible for layout design for various media productions.',
-    type: 'Work',
+      'A timeless crewneck t-shirt made from premium, ultra-soft cotton. Perfect for layering or wearing on its own.',
+    price: 25.0,
+    imageUrl: 'https://placehold.co/600x600.png',
+    category: 'Tops',
   },
   {
-    role: 'SMP Progresif Bumi Shalawat',
-    company: 'Lebo, Sidoarjo',
-    date: '2018-2021',
-    description: 'Junior High School',
-    type: 'Education',
+    id: '2',
+    name: 'Slim-Fit Chinos',
+    description:
+      'Versatile slim-fit chinos crafted from a comfortable stretch-cotton blend. Dress them up or down for any occasion.',
+    price: 60.0,
+    imageUrl: 'https://placehold.co/600x600.png',
+    category: 'Bottoms',
   },
   {
-    role: 'SMA Progresif Bumi Shalawat',
-    company: 'Lebo, Sidoarjo',
-    date: '2021-2024',
-    description: 'Senior High School',
-    type: 'Education',
+    id: '3',
+    name: 'Minimalist Hoodie',
+    description:
+      'A cozy and stylish hoodie with a clean, minimalist design. Made from a soft fleece-back jersey.',
+    price: 75.0,
+    imageUrl: 'https://placehold.co/600x600.png',
+    category: 'Outerwear',
+  },
+  {
+    id: '4',
+    name: 'Leather Sneakers',
+    description:
+      'Sleek and comfortable leather sneakers with a durable rubber sole. The perfect finishing touch to any casual outfit.',
+    price: 120.0,
+    imageUrl: 'https://placehold.co/600x600.png',
+    category: 'Footwear',
+  },
+  {
+    id: '5',
+    name: 'Denim Jacket',
+    description: 'A classic denim jacket with a modern, tailored fit. An essential layering piece for any wardrobe.',
+    price: 90.0,
+    imageUrl: 'https://placehold.co/600x600.png',
+    category: 'Outerwear',
+  },
+  {
+    id: '6',
+    name: 'Linen Button-Down Shirt',
+    description: 'A lightweight and breathable linen shirt, perfect for warm weather. Features a classic button-down collar.',
+    price: 55.0,
+    imageUrl: 'https://placehold.co/600x600.png',
+    category: 'Tops',
+  },
+  {
+    id: '7',
+    name: 'Wool Beanie',
+    description: 'A soft and warm wool beanie to keep you cozy during the colder months. Available in a variety of colors.',
+    price: 30.0,
+    imageUrl: 'https://placehold.co/600x600.png',
+    category: 'Accessories',
+  },
+  {
+    id: '8',
+    name: 'Canvas Tote Bag',
+    description: 'A durable and spacious canvas tote bag, perfect for everyday use. Features an internal pocket for your essentials.',
+    price: 40.0,
+    imageUrl: 'https://placehold.co/600x600.png',
+    category: 'Accessories',
   },
 ];

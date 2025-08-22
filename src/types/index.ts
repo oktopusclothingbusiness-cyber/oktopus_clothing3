@@ -1,24 +1,13 @@
-export type Profile = {
+export type Product = {
+  id: string;
   name: string;
-  role: string;
-  bio: string;
+  description: string;
+  price: number;
   imageUrl: string;
-  resumeUrl: string;
-  socialLinks: {
-    github: string;
-    linkedin: string;
-    instagram: string;
-    twitter: string;
-    behance: string;
-    pinterest: string;
-  };
-  softwareSkills: string[];
+  category: string;
 };
 
-export type Experience = {
-  role: string;
-  company: string;
-  date: string;
-  description: string;
-  type: 'Work' | 'Education';
+export type CartItem = {
+  product: Product;
+  quantity: number;
 };
