@@ -1,8 +1,9 @@
+
 'use client'
 
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { ShoppingCart, User } from "lucide-react";
+import { ShoppingCart, User, Shield } from "lucide-react";
 import { useCart } from "@/context/cart-context";
 
 export function Header() {
@@ -44,6 +45,12 @@ export function Header() {
             <Link href="/login">
               <User className="h-5 w-5" />
               <span className="sr-only">Login</span>
+            </Link>
+          </Button>
+           <Button asChild variant="ghost" size="icon">
+            <Link href="/admin">
+              <Shield className="h-5 w-5" />
+              <span className="sr-only">Admin</span>
             </Link>
           </Button>
         </div>

@@ -9,9 +9,9 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { FlowerIcon } from "@/components/icons/flower-icon";
 
 const featuredProducts = [
-  { id: '1', name: 'Casual Printed Shirt', price: 120.00, imageUrl: 'https://i.ibb.co/bJCQNw1/featured-1.png', category: 'Tops' },
+  { id: '1', name: 'Casual Printed Shirt', price: 120.00, imageUrl: 'https://i.ibb.co/9kb95JMV/d06ac3895924a6ec86110b32a978d73c.jpg', category: 'Tops' },
   { id: '2', name: 'Classic White Shirt', price: 40, imageUrl: 'https://i.ibb.co/bJCQNw1/featured-1.png', category: 'Tops' },
-  { id: '3', name: 'Slim Fit Trousers', price: 50, imageUrl: 'https://i.ibb.co/bJCQNw1/featured-1.png', category: 'Bottoms' },
+  { id: '3', name: 'Slim Fit Trousers', price: 50, imageUrl: 'https://i.ibb.co/9kb95JMV/d06ac3895924a6ec86110b32a978d73c.jpg', category: 'Bottoms' },
   { id: '4', name: 'Minimalist Hoodie', price: 75, imageUrl: 'https://i.ibb.co/bJCQNw1/featured-1.png', category: 'Outerwear' },
   { id: '5', name: 'Leather Sneakers', price: 120, imageUrl: 'https://i.ibb.co/bJCQNw1/featured-1.png', category: 'Footwear' },
 ];
@@ -37,14 +37,14 @@ export default function OktopusStorePage() {
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="relative rounded-2xl overflow-hidden aspect-[4/5]">
-               <Image src="https://i.ibb.co/vYvL1jb/hero-1.png" alt="Fashion model 1" fill objectFit="cover" data-ai-hint="male model" />
+               <Image src="https://i.ibb.co/7tL6SqQ6/e4622d48a767cf92bc65d7ffad4f2009.jpg" alt="Fashion model 1" fill objectFit="cover" data-ai-hint="male model" />
             </div>
             <div className="grid grid-rows-2 gap-6">
               <div className="relative rounded-2xl overflow-hidden aspect-video">
-                 <Image src="https://i.ibb.co/K7gh4a4/hero-3.png" alt="Fashion model 2" fill objectFit="cover" data-ai-hint="male model" />
+                 <Image src="https://i.ibb.co/DPBrq8Cb/9cbfc8f8f4a9d7cd120e2e8324e1986d.jpg" alt="Fashion model 2" fill objectFit="cover" data-ai-hint="male model" />
               </div>
               <div className="relative rounded-2xl overflow-hidden">
-                 <Image src="https://i.ibb.co/1Mj2vYn/hero-2.png" alt="Fashion model 3" fill objectFit="cover" data-ai-hint="male model" />
+                 <Image src="https://i.ibb.co/4RscTdbf/test17-4.png" alt="Fashion model 3" fill objectFit="cover" data-ai-hint="male model" />
                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                  <div className="absolute bottom-4 left-4 text-white">
                     <p className="text-sm">Awesome Collection</p>
@@ -115,7 +115,7 @@ export default function OktopusStorePage() {
             <div className="relative h-80 md:h-96">
                <Image src="https://i.ibb.co/1GZq5Mk/promo-guy.png" alt="Model in a suit" fill objectFit="cover" className="rounded-2xl" data-ai-hint="model suit" />
                <Button variant="ghost" size="icon" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/50 rounded-full h-16 w-16 backdrop-blur-sm">
-                  <PlayCircle className="h-8 w-8 text-white" />
+                  
                </Button>
             </div>
           </div>
