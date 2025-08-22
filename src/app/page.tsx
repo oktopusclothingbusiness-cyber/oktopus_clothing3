@@ -34,7 +34,7 @@ export default function LandingPage() {
             
             <div className="relative w-full h-[300px] md:h-[500px] flex items-center justify-center mb-12">
               <Image
-                src="https://placehold.co/300x400.png"
+                src="https://i.ibb.co/PsgRHxCN/pic-1.png"
                 alt="Eyewear 2"
                 width={180}
                 height={240}
