@@ -10,9 +10,9 @@ export default function LandingPage() {
         
         <div className="flex-1 flex flex-col justify-center items-center w-full">
             <Image 
-              src="https://placehold.co/64x64.png"
+              src="https://i.ibb.co/Fbr0JtCT/new-logo-low-res.png"
               alt="Logo placeholder"
-              width={64}
+              width={144}
               height={64}
               className="mb-8"
               data-ai-hint="logo"
