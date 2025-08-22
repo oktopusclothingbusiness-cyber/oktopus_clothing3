@@ -53,7 +53,7 @@ export default function ProductsPage() {
                   </CardHeader>
                 </Link>
                 <CardContent>
-                  <p className="text-lg font-semibold">${product.price.toFixed(2)}</p>
+                  <p className="text-lg font-semibold">₹{product.price.toFixed(2)}</p>
                 </CardContent>
                 <CardFooter>
                   <AddToCartButton product={product} />

@@ -34,7 +34,7 @@ export default function CartPage() {
                     <Image src={item.imageUrl} alt={item.name} width={80} height={80} className="rounded-md" />
                     <div>
                       <h2 className="font-semibold">{item.name}</h2>
-                      <p className="text-muted-foreground">${item.price.toFixed(2)}</p>
+                      <p className="text-muted-foreground">₹{item.price.toFixed(2)}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -61,7 +61,7 @@ export default function CartPage() {
               <h2 className="text-xl font-bold">Order Summary</h2>
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>₹{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
@@ -69,7 +69,7 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>₹{subtotal.toFixed(2)}</span>
               </div>
               <Button className="w-full" size="lg">Checkout</Button>
             </div>

@@ -112,7 +112,7 @@ export default function AdminPage() {
                               <Image src={product.imageUrl} alt={product.name} width={40} height={40} className="rounded-md object-cover" />
                             </TableCell>
                             <TableCell className="font-medium">{product.name}</TableCell>
-                            <TableCell>${product.price.toFixed(2)}</TableCell>
+                            <TableCell>₹{product.price.toFixed(2)}</TableCell>
                             <TableCell className="text-right">
                               <Button variant="ghost" size="icon" className="mr-2" disabled>
                                 <Edit className="h-4 w-4" />

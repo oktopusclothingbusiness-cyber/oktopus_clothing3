@@ -50,7 +50,7 @@ export default function ProductDetailPage() {
           <div className="space-y-6">
             <h1 className="text-3xl lg:text-4xl font-bold">{product.name}</h1>
             <p className="text-muted-foreground">{product.description}</p>
-            <p className="text-3xl font-bold">${product.price.toFixed(2)}</p>
+            <p className="text-3xl font-bold">₹{product.price.toFixed(2)}</p>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Size</label>

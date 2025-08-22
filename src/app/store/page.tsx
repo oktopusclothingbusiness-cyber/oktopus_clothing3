@@ -114,7 +114,7 @@ export default function OktopusStorePage() {
                           </div>
                           <CardContent className="p-4 text-center absolute bottom-4 w-full text-white bg-gradient-to-t from-black/50 to-transparent">
                               <p className="font-bold">{product.name}</p>
-                              <p className="text-sm">${product.price.toFixed(2)} USD</p>
+                              <p className="text-sm">₹{product.price.toFixed(2)}</p>
                           </CardContent>
                         </Link>
                       </Card>
