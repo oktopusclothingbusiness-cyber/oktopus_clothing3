@@ -7,19 +7,11 @@ import { useCart } from '@/context/cart-context';
 import { notFound } from 'next/navigation';
 import { useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
+import type { Product } from '@/types';
 
-export default function ProductDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+function ProductDetails({ product }: { product: Product }) {
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
-  const product = products.find((p) => p.id === params.id);
-
-  if (!product) {
-    notFound();
-  }
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
@@ -28,8 +20,7 @@ export default function ProductDetailPage({
   };
 
   return (
-    <div className="container mx-auto py-16 md:py-24">
-      <div className="grid md:grid-cols-2 gap-12 items-start">
+    <div className="grid md:grid-cols-2 gap-12 items-start">
         <div className="relative aspect-square">
           <Image
             src={product.imageUrl}
@@ -73,6 +64,24 @@ export default function ProductDetailPage({
           </div>
         </div>
       </div>
+  )
+}
+
+
+export default function ProductDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const product = products.find((p) => p.id === params.id);
+
+  if (!product) {
+    notFound();
+  }
+
+  return (
+    <div className="container mx-auto py-16 md:py-24">
+      <ProductDetails product={product} />
     </div>
   );
 }
