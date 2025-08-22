@@ -9,38 +9,78 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import Image from 'next/image';
-import { Trash2, Edit, Loader2 } from 'lucide-react';
-import { useProduct } from '@/context/product-context';
+import { Trash2, Edit, Loader2, PlusCircle } from 'lucide-react';
+import { useProduct, Product } from '@/context/product-context';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { Skeleton } from '@/components/ui/skeleton';
 
+const emptyProduct = {
+    id: '',
+    name: '',
+    description: '',
+    price: '',
+    imageUrls: '',
+    sizes: '',
+    colors: '',
+    category: ''
+};
+
 export default function AdminPage() {
-    const { products, addProduct, deleteProduct, loading } = useProduct();
-    const [newProduct, setNewProduct] = React.useState({ name: '', description: '', price: '', imageUrls: '' });
+    const { products, addProduct, deleteProduct, updateProduct, loading } = useProduct();
+    const [formData, setFormData] = React.useState(emptyProduct);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [isEditing, setIsEditing] = React.useState(false);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setNewProduct(prev => ({ ...prev, [name]: value }));
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+    
+    const handleEditClick = (product: Product) => {
+        setIsEditing(true);
+        setFormData({
+            id: product.id,
+            name: product.name,
+            description: product.description,
+            price: product.price.toString(),
+            imageUrls: product.imageUrls.join(', '),
+            sizes: product.sizes.join(', '),
+            colors: product.colors.join(', '),
+            category: product.category,
+        });
     };
 
-    const handleAddProduct = async (e: React.FormEvent) => {
+    const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (newProduct.name && newProduct.price && newProduct.imageUrls) {
+        if (formData.name && formData.price && formData.imageUrls) {
             setIsSubmitting(true);
-            await addProduct({
-                ...newProduct,
-                price: parseFloat(newProduct.price),
-                imageUrls: newProduct.imageUrls.split(',').map(url => url.trim()),
-                category: 'New', // You can add a category field to the form
-                sizes: ['S', 'M', 'L', 'XL'], // You can add a sizes field to the form
-                colors: ['Default'], // You can add a colors field to the form
-            });
-            setNewProduct({ name: '', description: '', price: '', imageUrls: '' });
+            
+            const productData = {
+                name: formData.name,
+                description: formData.description,
+                price: parseFloat(formData.price),
+                imageUrls: formData.imageUrls.split(',').map(url => url.trim()),
+                category: formData.category || 'New',
+                sizes: formData.sizes.split(',').map(s => s.trim()),
+                colors: formData.colors.split(',').map(c => c.trim()),
+            };
+
+            if (isEditing) {
+                await updateProduct({ ...productData, id: formData.id, _id: formData.id });
+            } else {
+                await addProduct(productData);
+            }
+            
+            resetForm();
             setIsSubmitting(false);
         }
     };
+    
+    const resetForm = () => {
+        setFormData(emptyProduct);
+        setIsEditing(false);
+    }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -51,31 +91,46 @@ export default function AdminPage() {
           <div className="md:col-span-1">
             <Card>
               <CardHeader>
-                <CardTitle>Add New Product</CardTitle>
-                <CardDescription>Fill out the form to add a new product to your store.</CardDescription>
+                <CardTitle>{isEditing ? 'Edit Product' : 'Add New Product'}</CardTitle>
+                <CardDescription>{isEditing ? 'Update the details of the existing product.' : 'Fill out the form to add a new product.'}</CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleAddProduct} className="space-y-4">
+                <form onSubmit={handleFormSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Product Name</Label>
-                    <Input id="name" name="name" value={newProduct.name} onChange={handleInputChange} placeholder="e.g., Classic White Shirt" required disabled={isSubmitting} />
+                    <Input id="name" name="name" value={formData.name} onChange={handleInputChange} placeholder="e.g., Classic White Shirt" required disabled={isSubmitting} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="description">Description</Label>
-                    <Textarea id="description" name="description" value={newProduct.description} onChange={handleInputChange} placeholder="Product description" disabled={isSubmitting} />
+                    <Textarea id="description" name="description" value={formData.description} onChange={handleInputChange} placeholder="Product description" disabled={isSubmitting} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="price">Price</Label>
-                    <Input id="price" name="price" type="number" value={newProduct.price} onChange={handleInputChange} placeholder="e.g., 40.00" required disabled={isSubmitting} />
+                    <Input id="price" name="price" type="number" value={formData.price} onChange={handleInputChange} placeholder="e.g., 40.00" required disabled={isSubmitting} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="imageUrls">Image URLs</Label>
-                    <Textarea id="imageUrls" name="imageUrls" value={newProduct.imageUrls} onChange={handleInputChange} placeholder="Comma-separated URLs" required disabled={isSubmitting} />
+                    <Textarea id="imageUrls" name="imageUrls" value={formData.imageUrls} onChange={handleInputChange} placeholder="Comma-separated URLs" required disabled={isSubmitting} />
                     <p className="text-xs text-muted-foreground">Enter multiple image URLs separated by commas.</p>
                   </div>
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Adding...</> : 'Add Product'}
-                  </Button>
+                   <div className="space-y-2">
+                    <Label htmlFor="sizes">Sizes</Label>
+                    <Input id="sizes" name="sizes" value={formData.sizes} onChange={handleInputChange} placeholder="e.g., S, M, L, XL" disabled={isSubmitting} />
+                     <p className="text-xs text-muted-foreground">Comma-separated sizes.</p>
+                  </div>
+                   <div className="space-y-2">
+                    <Label htmlFor="colors">Colors</Label>
+                    <Input id="colors" name="colors" value={formData.colors} onChange={handleInputChange} placeholder="e.g., Red, Blue, Black" disabled={isSubmitting} />
+                     <p className="text-xs text-muted-foreground">Comma-separated colors.</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                      {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {isEditing ? 'Updating...' : 'Adding...'}</> : (isEditing ? 'Update Product' : 'Add Product')}
+                    </Button>
+                    {isEditing && (
+                        <Button type="button" variant="outline" onClick={resetForm} disabled={isSubmitting}>Cancel</Button>
+                    )}
+                  </div>
                 </form>
               </CardContent>
             </Card>
@@ -116,7 +171,7 @@ export default function AdminPage() {
                             <TableCell className="font-medium">{product.name}</TableCell>
                             <TableCell>₹{product.price.toFixed(2)}</TableCell>
                             <TableCell className="text-right">
-                              <Button variant="ghost" size="icon" className="mr-2" disabled>
+                              <Button variant="ghost" size="icon" className="mr-2" onClick={() => handleEditClick(product)}>
                                 <Edit className="h-4 w-4" />
                               </Button>
                               <Button variant="ghost" size="icon" onClick={() => deleteProduct(product.id)}>
@@ -127,7 +182,15 @@ export default function AdminPage() {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center h-24">No products found.</TableCell>
+                          <TableCell colSpan={4} className="text-center h-24">
+                            <div className="flex flex-col items-center gap-2">
+                                <p>No products found.</p>
+                                <Button variant="outline" size="sm" onClick={() => document.getElementById('name')?.focus()}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Add New Product
+                                </Button>
+                            </div>
+                          </TableCell>
                         </TableRow>
                       )}
                     </TableBody>
