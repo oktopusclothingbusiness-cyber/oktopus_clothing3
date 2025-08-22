@@ -1,9 +1,9 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
@@ -12,6 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -21,6 +22,7 @@ const formSchema = z.object({
 
 export default function LoginPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -29,12 +31,39 @@ export default function LoginPage() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
-    toast({
-      title: "Login Successful",
-      description: "You have been successfully logged in.",
-    });
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Login Successful",
+          description: "You have been successfully logged in.",
+        });
+        router.push('/store');
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "An error occurred during login.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+       console.error(error);
+       toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
 
@@ -80,7 +109,9 @@ export default function LoginPage() {
                 />
               </CardContent>
               <CardFooter className="flex flex-col">
-                <Button className="w-full" type="submit">Sign in</Button>
+                <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
+                   {form.formState.isSubmitting ? 'Signing In...' : 'Sign in'}
+                </Button>
                 <div className="mt-4 text-center text-sm">
                   Don&apos;t have an account?{" "}
                   <Link href="/signup" className="underline">
