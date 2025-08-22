@@ -3,17 +3,15 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
-import { Header } from '@/components/header';
 
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-black text-white">
-      <Header />
       <div className="flex flex-col items-center justify-center flex-grow p-4 overflow-hidden">
         
         <div className="flex-1 flex flex-col justify-center items-center w-full">
             <Image 
-              src="https://i.ibb.co/Fbr0JtCT/new-logo-low-res.png"
+              src="https://placehold.co/64x64.png"
               alt="Logo placeholder"
               width={144}
               height={64}
