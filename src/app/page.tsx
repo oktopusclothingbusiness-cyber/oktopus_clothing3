@@ -34,7 +34,7 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4 overflow-hidden">
       <header className="absolute top-8">
-        <OctopusLogo className="h-12 w-12 text-white/80" />
+        <OctopusLogo className="h-16 w-16 text-white/80" />
       </header>
 
       <main className="flex flex-col items-center justify-center flex-grow text-center mt-20 md:mt-0">
