@@ -81,7 +81,7 @@ export default function OktopusStorePage() {
                       filter: `brightness(${100 - Math.abs(index - 2) * 15}%)`
                     }}
                   >
-                    <Card className="overflow-hidden group border-2 rounded-2xl w-[400px] shadow-lg">
+                    <Card className="overflow-hidden group border-2 rounded-2xl w-[450px] shadow-lg">
                       <Skeleton className="relative aspect-[3/4] bg-gray-200" />
                       <CardContent className="p-4 text-center absolute bottom-4 w-full">
                           <Skeleton className="h-5 w-3/4 mx-auto mb-2" />
@@ -96,12 +96,12 @@ export default function OktopusStorePage() {
                     key={product.id}
                     className="absolute transition-all duration-300 ease-in-out"
                     style={{
-                      transform: `translateX(${(index - Math.floor(featuredProducts.length / 2)) * 60}px) scale(${1.2 - Math.abs(index - Math.floor(featuredProducts.length / 2)) * 0.15})`,
+                      transform: `translateX(${(index - Math.floor(featuredProducts.length / 2)) * 70}px) scale(${1.2 - Math.abs(index - Math.floor(featuredProducts.length / 2)) * 0.1})`,
                       zIndex: featuredProducts.length - Math.abs(index - Math.floor(featuredProducts.length / 2)),
-                      filter: `brightness(${100 - Math.abs(index - Math.floor(featuredProducts.length / 2)) * 15}%)`
+                      filter: `brightness(${100 - Math.abs(index - Math.floor(featuredProducts.length / 2)) * 10}%)`
                     }}
                   >
-                      <Card className="overflow-hidden group border-2 rounded-2xl w-[400px] shadow-lg">
+                      <Card className="overflow-hidden group border-2 rounded-2xl w-[450px] shadow-lg">
                         <Link href={`/products/${product.id}`}>
                           <div className="relative aspect-[3/4] bg-gray-100">
                             <Image
