@@ -61,13 +61,20 @@ export default function CartPage() {
 
     try {
         // 1. Create order in our own DB
+        const products = cart.map(item => ({
+            productId: item.id,
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price
+        }));
+
         const internalOrderResponse = await fetch('/api/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 userId: user.id,
                 userName: `${user.firstName} ${user.lastName}`,
-                cart,
+                products,
                 total: subtotal,
                 shippingAddress
             })

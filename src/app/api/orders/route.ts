@@ -19,22 +19,15 @@ export async function GET(request: Request) {
 // POST a new order
 export async function POST(request: Request) {
   try {
-    const { userId, userName, cart, total, shippingAddress } = await request.json();
+    const { userId, userName, products, total, shippingAddress } = await request.json();
 
-    if (!userId || !cart || !total || !shippingAddress) {
+    if (!userId || !products || !total || !shippingAddress) {
       return NextResponse.json({ message: 'Missing required fields.' }, { status: 400 });
     }
 
     const client = await clientPromise;
     const db = client.db();
     
-    const products = cart.map((item: any) => ({
-        productId: item.id,
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price
-    }));
-
     const orderData = {
       userId,
       userName,
