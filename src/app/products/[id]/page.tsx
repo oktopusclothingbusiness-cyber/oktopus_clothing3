@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/cart-context';
 import { notFound } from 'next/navigation';
-import { useState, use } from 'react';
+import { useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
 
 export default function ProductDetailPage({
@@ -13,10 +13,9 @@ export default function ProductDetailPage({
 }: {
   params: { id: string };
 }) {
-  const resolvedParams = use(Promise.resolve(params));
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
-  const product = products.find((p) => p.id === resolvedParams.id);
+  const product = products.find((p) => p.id === params.id);
 
   if (!product) {
     notFound();
