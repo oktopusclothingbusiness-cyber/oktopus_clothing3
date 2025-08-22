@@ -69,7 +69,7 @@ export default function OktopusStorePage() {
         <section className="py-20">
           <div className="container mx-auto px-4">
             <h2 className="text-4xl font-bold text-center mb-12 font-serif">Featured Collection</h2>
-            <div className="relative flex justify-center items-center h-[600px]">
+            <div className="relative flex justify-center items-center h-[400px]">
               {loading ? (
                 Array.from({ length: 5 }).map((_, index) => (
                   <div
@@ -81,7 +81,7 @@ export default function OktopusStorePage() {
                       filter: `brightness(${100 - Math.abs(index - 2) * 15}%)`
                     }}
                   >
-                    <Card className="overflow-hidden group border-2 rounded-2xl w-[500px] shadow-lg">
+                    <Card className="overflow-hidden group border-2 rounded-2xl w-[200px] shadow-lg">
                       <Skeleton className="relative aspect-[3/4] bg-gray-200" />
                       <CardContent className="p-4 text-center absolute bottom-4 w-full">
                           <Skeleton className="h-5 w-3/4 mx-auto mb-2" />
@@ -96,12 +96,12 @@ export default function OktopusStorePage() {
                     key={product.id}
                     className="absolute transition-all duration-300 ease-in-out"
                     style={{
-                      transform: `translateX(${(index - Math.floor(featuredProducts.length / 2)) * 80}px) scale(${1.3 - Math.abs(index - Math.floor(featuredProducts.length / 2)) * 0.1})`,
+                      transform: `translateX(${(index - Math.floor(featuredProducts.length / 2)) * 60}px) scale(${1 - Math.abs(index - Math.floor(featuredProducts.length / 2)) * 0.1})`,
                       zIndex: featuredProducts.length - Math.abs(index - Math.floor(featuredProducts.length / 2)),
-                      filter: `brightness(${100 - Math.abs(index - Math.floor(featuredProducts.length / 2)) * 10}%)`
+                      filter: `brightness(${100 - Math.abs(index - Math.floor(featuredProducts.length / 2)) * 15}%)`
                     }}
                   >
-                      <Card className="overflow-hidden group border-2 rounded-2xl w-[500px] shadow-lg">
+                      <Card className="overflow-hidden group border-2 rounded-2xl w-[200px] shadow-lg">
                         <Link href={`/products/${product.id}`}>
                           <div className="relative aspect-[3/4] bg-gray-100">
                             <Image
@@ -113,8 +113,8 @@ export default function OktopusStorePage() {
                             />
                           </div>
                           <CardContent className="p-4 text-center absolute bottom-4 w-full text-white bg-gradient-to-t from-black/50 to-transparent">
-                              <p className="font-bold">{product.name}</p>
-                              <p className="text-sm">₹{product.price.toFixed(2)}</p>
+                              <p className="font-bold text-sm">{product.name}</p>
+                              <p className="text-xs">₹{product.price.toFixed(2)}</p>
                           </CardContent>
                         </Link>
                       </Card>
