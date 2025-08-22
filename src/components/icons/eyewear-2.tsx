@@ -8,7 +8,7 @@ export const Eyewear2 = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 400 400"
     {...props}
     >
-    <g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="sans-serif" font-weight="normal" font-size="12" text-anchor="start" style={{mixBlendMode: "normal"}}>
+    <g fill="none" fillRule="nonzero" stroke="none" strokeWidth="1" strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit="10" strokeDasharray="" strokeDashoffset="0" fontFamily="sans-serif" fontWeight="normal" fontSize="12" textAnchor="start" style={{mixBlendMode: "normal"}}>
     <g>
     <path d="M0,400V0h400v400H0z" fill="#000000" />
     <path d="M199.9,233.1c-32.9,0 -61.2,-19 -75.8,-47.9c0,0 21.6,-36.8 54,-36.8c18.5,0 35.8,9.7 46.5,25.4c18.7,27.5 -2.2,69.3 -24.7,69.3z" fill="#f1c40f" />
