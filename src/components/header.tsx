@@ -2,6 +2,7 @@
 'use client'
 
 import Link from "next/link";
+import * as React from 'react';
 import { Button } from "./ui/button";
 import { ShoppingCart, User, Shield, LogOut } from "lucide-react";
 import { useCart } from "@/context/cart-context";
@@ -9,10 +10,27 @@ import { useAuth } from "@/context/auth-context";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "./theme-toggle";
+import Image from "next/image";
 
 export function Header() {
   const { cart } = useCart();
   const { user, logout } = useAuth();
+  const [logoUrl, setLogoUrl] = React.useState('');
+  
+  React.useEffect(() => {
+    const fetchSettings = async () => {
+        try {
+            const response = await fetch('/api/settings');
+            if (response.ok) {
+                const data = await response.json();
+                setLogoUrl(data.logoUrl || '');
+            }
+        } catch (error) {
+            console.error("Failed to fetch settings for header logo:", error);
+        }
+    };
+    fetchSettings();
+  }, []);
   
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -21,8 +39,12 @@ export function Header() {
   return (
     <header className="bg-background border-b sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <Link href="/store" className="text-2xl font-bold font-serif">
-          VogueVerse
+        <Link href="/store" className="flex items-center gap-2 text-2xl font-bold font-serif">
+          {logoUrl ? (
+            <Image src={logoUrl} alt="VogueVerse Logo" width={140} height={40} className="object-contain" priority />
+          ) : (
+            'VogueVerse'
+          )}
         </Link>
         <nav className="hidden md:flex gap-6">
           <Link href="/store" className="text-sm font-medium hover:text-primary">
