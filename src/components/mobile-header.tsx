@@ -42,14 +42,19 @@ export const MobileHeader = ({ showCart = true, title }: MobileHeaderProps) => {
         )
     }
 
+    const getInitials = (firstName?: string, lastName?: string) => {
+        if (!firstName || !lastName) return 'G';
+        return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    }
+
     return (
         <header className="md:hidden sticky top-0 z-50 bg-background p-4 space-y-4">
             <div className="flex justify-between items-center">
-                <Link href={user ? '#' : '/login'}>
+                <Link href={user ? '/profile' : '/login'}>
                     <div className="flex items-center gap-3">
                         <Avatar>
-                            <AvatarImage src={user ? "https://i.ibb.co/L1L4B1X/avatar.png" : "https://placehold.co/40x40.png"} alt="User" />
-                            <AvatarFallback>{user ? `${user.firstName[0]}${user.lastName[0]}` : 'U'}</AvatarFallback>
+                            <AvatarImage src={user?.profilePictureUrl} alt="User" />
+                            <AvatarFallback>{getInitials(user?.firstName, user?.lastName)}</AvatarFallback>
                         </Avatar>
                         <div>
                             <p className="text-xs text-muted-foreground">Welcome Back</p>
