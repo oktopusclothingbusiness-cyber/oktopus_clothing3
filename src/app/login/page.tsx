@@ -14,6 +14,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
+import { MobileHeader } from "@/components/mobile-header";
+import { MobileFooter } from "@/components/mobile-footer";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -74,62 +76,124 @@ export default function LoginPage() {
 
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-grow flex items-center justify-center bg-secondary">
-        <Card className="w-full max-w-sm">
-          <CardHeader>
-            <CardTitle className="text-2xl">Login</CardTitle>
-            <CardDescription>
-              Enter your email below to login to your account.
-            </CardDescription>
-          </CardHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-              <CardContent className="grid gap-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="m@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-              <CardFooter className="flex flex-col">
-                <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
-                   {form.formState.isSubmitting ? 'Signing In...' : 'Sign in'}
-                </Button>
-                <div className="mt-4 text-center text-sm">
-                  Don&apos;t have an account?{" "}
-                  <Link href="/signup" className="underline">
-                    Sign up
-                  </Link>
-                </div>
-              </CardFooter>
-            </form>
-          </Form>
-        </Card>
-      </main>
-      <Footer />
-    </div>
+    <>
+      {/* Desktop View */}
+      <div className="hidden md:flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-grow flex items-center justify-center bg-secondary">
+          <Card className="w-full max-w-sm">
+            <CardHeader>
+              <CardTitle className="text-2xl">Login</CardTitle>
+              <CardDescription>
+                Enter your email below to login to your account.
+              </CardDescription>
+            </CardHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)}>
+                <CardContent className="grid gap-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="m@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+                <CardFooter className="flex flex-col">
+                  <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
+                     {form.formState.isSubmitting ? 'Signing In...' : 'Sign in'}
+                  </Button>
+                  <div className="mt-4 text-center text-sm">
+                    Don&apos;t have an account?{" "}
+                    <Link href="/signup" className="underline">
+                      Sign up
+                    </Link>
+                  </div>
+                </CardFooter>
+              </form>
+            </Form>
+          </Card>
+        </main>
+        <Footer />
+      </div>
+
+      {/* Mobile View */}
+      <div className="md:hidden">
+        <MobileHeader title="Login" />
+        <main className="flex-grow flex items-center justify-center bg-secondary min-h-screen">
+          <Card className="w-full max-w-sm shadow-none border-none bg-transparent">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl">Welcome Back!</CardTitle>
+              <CardDescription>
+                Login to your account to continue.
+              </CardDescription>
+            </CardHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)}>
+                <CardContent className="grid gap-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="m@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+                <CardFooter className="flex flex-col gap-4">
+                  <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
+                     {form.formState.isSubmitting ? 'Signing In...' : 'Sign in'}
+                  </Button>
+                  <div className="text-center text-sm">
+                    Don&apos;t have an account?{" "}
+                    <Link href="/signup" className="text-primary font-semibold">
+                      Sign up
+                    </Link>
+                  </div>
+                </CardFooter>
+              </form>
+            </Form>
+          </Card>
+        </main>
+        <MobileFooter />
+      </div>
+    </>
   );
 }

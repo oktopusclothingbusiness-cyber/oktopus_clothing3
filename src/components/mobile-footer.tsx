@@ -1,0 +1,41 @@
+
+'use client';
+
+import Link from "next/link";
+import { Home, Box, Heart, User } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+
+const navItems = [
+    { href: '/store', icon: Home, label: 'Home' },
+    { href: '/orders', icon: Box, label: 'Orders' },
+    { href: '/favorites', icon: Heart, label: 'Favorites' },
+    { href: '/login', icon: User, label: 'Profile' },
+];
+
+export const MobileFooter = () => {
+    const pathname = usePathname();
+
+    return (
+        <footer className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.1)] rounded-t-3xl">
+            <div className="flex justify-around items-center p-2">
+                {navItems.map((item) => {
+                    const isActive = pathname === item.href;
+                    return (
+                        <Link 
+                            key={item.label}
+                            href={item.href} 
+                            className={cn(
+                                "flex flex-col items-center gap-1",
+                                isActive ? 'text-primary' : 'text-muted-foreground'
+                            )}
+                        >
+                            <item.icon className={cn("h-6 w-6", isActive && "fill-current")}/>
+                            <span className="text-xs font-bold">{item.label}</span>
+                        </Link>
+                    )
+                })}
+            </div>
+        </footer>
+    )
+}

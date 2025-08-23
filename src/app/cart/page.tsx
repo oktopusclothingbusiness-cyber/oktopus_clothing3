@@ -16,6 +16,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { MobileHeader } from "@/components/mobile-header";
+import { MobileFooter } from "@/components/mobile-footer";
 
 declare global {
   interface Window {
@@ -170,62 +172,143 @@ export default function CartPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
-        {cart.length === 0 ? (
-          <div className="text-center">
-            <p className="mb-4">Your cart is empty.</p>
-            <Button asChild>
-              <Link href="/products">Continue Shopping</Link>
-            </Button>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="md:col-span-2 space-y-4">
-              {cart.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <Image src={item.imageUrls[0]} alt={item.name} width={80} height={80} className="rounded-md" />
-                    <div>
-                      <h2 className="font-semibold">{item.name}</h2>
-                      <p className="text-muted-foreground">₹{item.price.toFixed(2)}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="icon" onClick={() => updateQuantity(item.id, item.quantity - 1)} disabled={item.quantity <= 1}>
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <span>{item.quantity}</span>
-                      <Button variant="outline" size="icon" onClick={() => updateQuantity(item.id, item.quantity + 1)}>
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)}>
-                      <Trash2 className="h-5 w-5 text-destructive" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-               <Button variant="outline" onClick={clearCart} className="mt-4">
-                Clear Cart
+    <>
+      {/* Desktop View */}
+      <div className="hidden md:flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-grow container mx-auto px-4 py-8">
+          <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
+          {cart.length === 0 ? (
+            <div className="text-center">
+              <p className="mb-4">Your cart is empty.</p>
+              <Button asChild>
+                <Link href="/products">Continue Shopping</Link>
               </Button>
             </div>
-            <div className="bg-secondary p-6 rounded-lg space-y-4 h-fit">
-              <h2 className="text-xl font-bold">Order Summary</h2>
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>₹{subtotal.toFixed(2)}</span>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="md:col-span-2 space-y-4">
+                {cart.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <Image src={item.imageUrls[0]} alt={item.name} width={80} height={80} className="rounded-md" />
+                      <div>
+                        <h2 className="font-semibold">{item.name}</h2>
+                        <p className="text-muted-foreground">₹{item.price.toFixed(2)}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="icon" onClick={() => updateQuantity(item.id, item.quantity - 1)} disabled={item.quantity <= 1}>
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <span>{item.quantity}</span>
+                        <Button variant="outline" size="icon" onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)}>
+                        <Trash2 className="h-5 w-5 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                 <Button variant="outline" onClick={clearCart} className="mt-4">
+                  Clear Cart
+                </Button>
               </div>
-              <div className="flex justify-between">
-                <span>Shipping</span>
-                <span>Free</span>
+              <div className="bg-secondary p-6 rounded-lg space-y-4 h-fit">
+                <h2 className="text-xl font-bold">Order Summary</h2>
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>₹{subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Shipping</span>
+                  <span>Free</span>
+                </div>
+                <div className="flex justify-between font-bold text-lg">
+                  <span>Total</span>
+                  <span>₹{subtotal.toFixed(2)}</span>
+                </div>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                      <Button className="w-full" size="lg" onClick={handleCheckoutClick}>
+                          Checkout
+                      </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                      <DialogHeader>
+                          <DialogTitle>Shipping Information</DialogTitle>
+                          <DialogDescription>Please provide your delivery details.</DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handleProceedToPayment} className="space-y-4">
+                          <div className="space-y-2">
+                              <Label htmlFor="mobile">Mobile Number</Label>
+                              <Input id="mobile" name="mobile" value={shippingAddress.mobile} onChange={handleAddressChange} required />
+                          </div>
+                          <div className="space-y-2">
+                              <Label htmlFor="address">Full Address</Label>
+                              <Textarea id="address" name="address" value={shippingAddress.address} onChange={handleAddressChange} required />
+                          </div>
+                          <div className="space-y-2">
+                              <Label htmlFor="instructions">Any Instructions (Optional)</Label>
+                              <Textarea id="instructions" name="instructions" value={shippingAddress.instructions} onChange={handleAddressChange} />
+                          </div>
+                          <Button type="submit" className="w-full" disabled={isProcessing}>
+                               {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : 'Proceed to Payment'}
+                          </Button>
+                      </form>
+                  </DialogContent>
+                </Dialog>
               </div>
-              <div className="flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span>₹{subtotal.toFixed(2)}</span>
+            </div>
+          )}
+        </main>
+        <Footer />
+      </div>
+
+      {/* Mobile View */}
+      <div className="md:hidden">
+        <MobileHeader title="My Cart" />
+        <main className="pb-24 bg-secondary min-h-screen">
+          {cart.length === 0 ? (
+            <div className="text-center pt-20">
+              <p className="mb-4">Your cart is empty.</p>
+              <Button asChild>
+                <Link href="/products">Continue Shopping</Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="p-4 space-y-4">
+              {cart.map((item) => (
+                <div key={item.id} className="flex items-start gap-4 p-4 bg-white rounded-lg shadow-sm">
+                  <Image src={item.imageUrls[0]} alt={item.name} width={80} height={80} className="rounded-md" />
+                  <div className="flex-grow">
+                    <h2 className="font-semibold text-sm">{item.name}</h2>
+                    <p className="text-primary font-bold text-md">₹{item.price.toFixed(2)}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.quantity - 1)} disabled={item.quantity <= 1}>
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="text-sm">{item.quantity}</span>
+                      <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeFromCart(item.id)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+          {cart.length > 0 && (
+            <div className="fixed bottom-16 left-0 right-0 bg-white p-4 border-t shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
+               <div className="flex justify-between items-center mb-4">
+                <span className="text-muted-foreground">Total</span>
+                <span className="text-xl font-bold">₹{subtotal.toFixed(2)}</span>
               </div>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
@@ -238,30 +321,30 @@ export default function CartPage() {
                         <DialogTitle>Shipping Information</DialogTitle>
                         <DialogDescription>Please provide your delivery details.</DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleProceedToPayment} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="mobile">Mobile Number</Label>
-                            <Input id="mobile" name="mobile" value={shippingAddress.mobile} onChange={handleAddressChange} required />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="address">Full Address</Label>
-                            <Textarea id="address" name="address" value={shippingAddress.address} onChange={handleAddressChange} required />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="instructions">Any Instructions (Optional)</Label>
-                            <Textarea id="instructions" name="instructions" value={shippingAddress.instructions} onChange={handleAddressChange} />
-                        </div>
-                        <Button type="submit" className="w-full" disabled={isProcessing}>
-                             {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : 'Proceed to Payment'}
-                        </Button>
-                    </form>
+                     <form onSubmit={handleProceedToPayment} className="space-y-4">
+                          <div className="space-y-2">
+                              <Label htmlFor="mobile-mob">Mobile Number</Label>
+                              <Input id="mobile-mob" name="mobile" value={shippingAddress.mobile} onChange={handleAddressChange} required />
+                          </div>
+                          <div className="space-y-2">
+                              <Label htmlFor="address-mob">Full Address</Label>
+                              <Textarea id="address-mob" name="address" value={shippingAddress.address} onChange={handleAddressChange} required />
+                          </div>
+                          <div className="space-y-2">
+                              <Label htmlFor="instructions-mob">Any Instructions (Optional)</Label>
+                              <Textarea id="instructions-mob" name="instructions" value={shippingAddress.instructions} onChange={handleAddressChange} />
+                          </div>
+                          <Button type="submit" className="w-full" disabled={isProcessing}>
+                               {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : 'Proceed to Payment'}
+                          </Button>
+                      </form>
                 </DialogContent>
               </Dialog>
             </div>
-          </div>
-        )}
-      </main>
-      <Footer />
-    </div>
+          )}
+        </main>
+        <MobileFooter />
+      </div>
+    </>
   );
 }
