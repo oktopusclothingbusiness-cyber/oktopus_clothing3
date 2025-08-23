@@ -15,17 +15,27 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
+import { usePromotion } from "@/context/promotion-context";
 
-const SpecialOfferCard = () => (
+const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
     <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg mr-4 flex-shrink-0 bg-red-500 text-white p-6 flex flex-col justify-between">
-        <div>
-             <h3 className="text-2xl font-bold">#FASHION DAY</h3>
-             <p className="text-4xl font-light leading-tight">80% OFF</p>
+        <Image
+          src={promotion.imageUrl}
+          alt={promotion.title}
+          layout="fill"
+          objectFit="cover"
+          className="z-0"
+        />
+        <div className="absolute inset-0 bg-black/40 z-10" />
+        <div className="relative z-20">
+             <h3 className="text-2xl font-bold">{promotion.title}</h3>
+             <p className="text-4xl font-light leading-tight">{promotion.description}</p>
         </div>
-        <div>
-            <p className="text-sm">Discover fashion that suits to your style</p>
-            <Button className="bg-white text-black rounded-lg h-8 px-4 mt-2 font-semibold">
-                Check this out
+        <div className="relative z-20">
+            <Button asChild className="bg-white text-black rounded-lg h-8 px-4 mt-2 font-semibold">
+                <Link href={promotion.ctaLink}>
+                  {promotion.ctaText}
+                </Link>
             </Button>
         </div>
     </div>
@@ -61,9 +71,14 @@ const CategoryPills = () => {
 }
 
 export default function OktopusStorePage() {
-  const { products, loading } = useProduct();
+  const { products, loading: productsLoading } = useProduct();
+  const { promotions, loading: promotionsLoading } = usePromotion();
+
   const featuredProducts = products.filter(p => p.featured).slice(0, 5);
   const flashSaleProducts = products.slice(0, 4);
+
+  const activePromotions = promotions.filter(p => p.isActive);
+  const loading = productsLoading || promotionsLoading;
 
   return (
     <>
@@ -229,20 +244,31 @@ export default function OktopusStorePage() {
         <main className="p-4 space-y-6 pb-24">
             <section>
                 <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -ml-4 pl-4">
+                  {loading ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="w-[90vw] snap-center">
+                        <Skeleton className="w-full aspect-video rounded-2xl" />
+                      </div>
+                    ))
+                  ) : activePromotions.length > 0 ? (
+                    activePromotions.map((promo) => (
+                       <div key={promo.id} className="w-[90vw] snap-center">
+                          <SpecialOfferCard promotion={promo} />
+                       </div>
+                    ))
+                  ) : (
                     <div className="w-[90vw] snap-center">
-                        <SpecialOfferCard />
+                      <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg mr-4 flex-shrink-0 bg-gray-200 text-gray-600 p-6 flex flex-col justify-center items-center">
+                        <h3 className="text-lg font-bold">No Promotions Available</h3>
+                        <p className="text-sm">Check back later for exciting offers!</p>
+                      </div>
                     </div>
-                     <div className="w-[90vw] snap-center">
-                        <SpecialOfferCard />
-                    </div>
-                     <div className="w-[90vw] snap-center">
-                        <SpecialOfferCard />
-                    </div>
+                  )}
                 </div>
                  <div className="flex justify-center items-center gap-2 mt-4">
-                    <span className="h-2 w-4 rounded-full bg-red-500"></span>
-                    <span className="h-2 w-2 rounded-full bg-gray-300"></span>
-                    <span className="h-2 w-2 rounded-full bg-gray-300"></span>
+                    {activePromotions.map((_, i) => (
+                       <span key={i} className={`h-2 w-2 rounded-full ${i === 0 ? 'bg-red-500 w-4' : 'bg-gray-300'}`}></span>
+                    ))}
                 </div>
             </section>
             

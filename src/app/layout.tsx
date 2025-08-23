@@ -6,6 +6,7 @@ import { CartProvider } from "@/context/cart-context";
 import { ProductProvider } from "@/context/product-context";
 import { AuthProvider } from "@/context/auth-context";
 import { UserProvider } from "@/context/user-context";
+import { PromotionProvider } from "@/context/promotion-context";
 import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -31,9 +32,11 @@ export default function RootLayout({
         <AuthProvider>
           <UserProvider>
             <ProductProvider>
-              <CartProvider>
-                {children}
-              </CartProvider>
+              <PromotionProvider>
+                <CartProvider>
+                  {children}
+                </CartProvider>
+              </PromotionProvider>
             </ProductProvider>
           </UserProvider>
         </AuthProvider>
