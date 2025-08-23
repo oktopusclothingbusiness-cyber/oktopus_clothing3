@@ -254,15 +254,15 @@ export default function OktopusStorePage() {
                 </div>
                 <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -ml-4 pl-4 space-x-4">
                     {loading ? Array.from({length: 4}).map((_, i) => (
-                        <div key={i} className="snap-center flex-shrink-0 w-20">
-                            <Skeleton className="w-20 h-20 rounded-full" />
-                            <Skeleton className="h-4 w-16 mt-2 mx-auto" />
+                        <div key={i} className="snap-center flex-shrink-0 w-16 text-center">
+                            <Skeleton className="w-16 h-16 rounded-full" />
+                            <Skeleton className="h-4 w-12 mt-2 mx-auto" />
                         </div>
                     )) : categories.length > 0 ? (
                         categories.map(category => (
-                            <Link href={`/products?category=${category.id}`} key={category.id} className="snap-center flex-shrink-0 w-20 text-center">
-                                <div className="w-20 h-20 rounded-full overflow-hidden bg-secondary">
-                                    <Image src={category.imageUrl} alt={category.name} width={80} height={80} className="object-cover w-full h-full" />
+                            <Link href={`/products?category=${category.id}`} key={category.id} className="snap-center flex-shrink-0 w-16 text-center">
+                                <div className="w-16 h-16 rounded-full overflow-hidden bg-secondary">
+                                    <Image src={category.imageUrl} alt={category.name} width={64} height={64} className="object-cover w-full h-full" />
                                 </div>
                                 <p className="text-xs font-semibold mt-2 truncate">{category.name}</p>
                             </Link>
