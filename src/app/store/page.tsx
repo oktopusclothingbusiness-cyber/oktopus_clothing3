@@ -254,15 +254,15 @@ export default function OktopusStorePage() {
                 </div>
                 <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -ml-4 pl-4 space-x-4">
                     {loading ? Array.from({length: 4}).map((_, i) => (
-                        <div key={i} className="snap-center flex-shrink-0 w-24">
-                            <Skeleton className="w-24 h-24 rounded-2xl" />
+                        <div key={i} className="snap-center flex-shrink-0 w-20">
+                            <Skeleton className="w-20 h-20 rounded-full" />
                             <Skeleton className="h-4 w-16 mt-2 mx-auto" />
                         </div>
                     )) : categories.length > 0 ? (
                         categories.map(category => (
-                            <Link href={`/products?category=${category.id}`} key={category.id} className="snap-center flex-shrink-0 w-24 text-center">
-                                <div className="w-24 h-24 rounded-2xl overflow-hidden bg-secondary">
-                                    <Image src={category.imageUrl} alt={category.name} width={96} height={96} className="object-cover w-full h-full" />
+                            <Link href={`/products?category=${category.id}`} key={category.id} className="snap-center flex-shrink-0 w-20 text-center">
+                                <div className="w-20 h-20 rounded-full overflow-hidden bg-secondary">
+                                    <Image src={category.imageUrl} alt={category.name} width={80} height={80} className="object-cover w-full h-full" />
                                 </div>
                                 <p className="text-xs font-semibold mt-2 truncate">{category.name}</p>
                             </Link>
