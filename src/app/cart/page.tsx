@@ -7,7 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { Minus, Plus, Trash2, Loader2 } from "lucide-react";
+import { Minus, Plus, Trash2, Loader2, Ticket } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
@@ -26,12 +26,14 @@ declare global {
 }
 
 export default function CartPage() {
-  const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
+  const { cart, removeFromCart, updateQuantity, clearCart, subtotal, discount, total, applyCoupon } = useCart();
   const { toast } = useToast();
   const { user } = useAuth();
   const router = useRouter();
   const [isProcessing, setIsProcessing] = React.useState(false);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [isCouponDialogOpen, setIsCouponDialogOpen] = React.useState(false);
+  const [couponCode, setCouponCode] = React.useState('');
 
   const [shippingAddress, setShippingAddress] = React.useState({
       mobile: '',
@@ -39,11 +41,21 @@ export default function CartPage() {
       instructions: ''
   });
 
-  const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const { name, value } = e.target;
       setShippingAddress(prev => ({...prev, [name]: value}));
+  }
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast({ title: "Coupon code cannot be empty.", variant: 'destructive' });
+      return;
+    }
+    const success = await applyCoupon(couponCode);
+    if(success) {
+      setIsCouponDialogOpen(false);
+      setCouponCode('');
+    }
   }
 
   const handleProceedToPayment = async (e: React.FormEvent) => {
@@ -77,7 +89,7 @@ export default function CartPage() {
                 userId: user._id,
                 userName: `${user.firstName} ${user.lastName}`,
                 products,
-                total: subtotal,
+                total: total,
                 shippingAddress
             })
         });
@@ -89,7 +101,7 @@ export default function CartPage() {
       const razorpayOrderResponse = await fetch('/api/payment/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: subtotal }),
+        body: JSON.stringify({ amount: total }),
       });
 
       if (!razorpayOrderResponse.ok) throw new Error('Failed to create Razorpay order');
@@ -223,13 +235,19 @@ export default function CartPage() {
                   <span>Subtotal</span>
                   <span>₹{subtotal.toFixed(2)}</span>
                 </div>
+                 {discount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount</span>
+                    <span>- ₹{discount.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span>Shipping</span>
                   <span>Free</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span>₹{subtotal.toFixed(2)}</span>
+                  <span>₹{total.toFixed(2)}</span>
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
@@ -259,6 +277,24 @@ export default function CartPage() {
                                {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : 'Proceed to Payment'}
                           </Button>
                       </form>
+                  </DialogContent>
+                </Dialog>
+                 <Dialog open={isCouponDialogOpen} onOpenChange={setIsCouponDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full">
+                      <Ticket className="mr-2 h-4 w-4" />
+                      Apply Coupon
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Apply Coupon</DialogTitle>
+                      <DialogDescription>Enter your coupon code below to get a discount.</DialogDescription>
+                    </DialogHeader>
+                    <div className="flex gap-2 mt-4">
+                      <Input value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} placeholder="COUPONCODE" />
+                      <Button onClick={handleApplyCoupon}>Apply</Button>
+                    </div>
                   </DialogContent>
                 </Dialog>
               </div>
@@ -305,42 +341,69 @@ export default function CartPage() {
             </div>
           )}
           {cart.length > 0 && (
-            <div className="fixed bottom-16 left-0 right-0 bg-background/80 backdrop-blur-lg p-4 border-t shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
-               <div className="flex justify-between items-center mb-4">
-                <span className="text-muted-foreground">Total</span>
-                <span className="text-xl font-bold">₹{subtotal.toFixed(2)}</span>
-              </div>
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                    <Button className="w-full" size="lg" onClick={handleCheckoutClick}>
-                        Checkout
+            <>
+            <div className="fixed bottom-36 right-4 z-40">
+                <Dialog open={isCouponDialogOpen} onOpenChange={setIsCouponDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="rounded-full h-14 w-14 shadow-lg" size="icon">
+                      <Ticket className="h-6 w-6" />
                     </Button>
-                </DialogTrigger>
-                <DialogContent>
+                  </DialogTrigger>
+                  <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Shipping Information</DialogTitle>
-                        <DialogDescription>Please provide your delivery details.</DialogDescription>
+                      <DialogTitle>Apply Coupon</DialogTitle>
+                      <DialogDescription>Enter your coupon code below to get a discount.</DialogDescription>
                     </DialogHeader>
-                     <form onSubmit={handleProceedToPayment} className="space-y-4">
-                          <div className="space-y-2">
-                              <Label htmlFor="mobile-mob">Mobile Number</Label>
-                              <Input id="mobile-mob" name="mobile" value={shippingAddress.mobile} onChange={handleAddressChange} required />
-                          </div>
-                          <div className="space-y-2">
-                              <Label htmlFor="address-mob">Full Address</Label>
-                              <Textarea id="address-mob" name="address" value={shippingAddress.address} onChange={handleAddressChange} required />
-                          </div>
-                          <div className="space-y-2">
-                              <Label htmlFor="instructions-mob">Any Instructions (Optional)</Label>
-                              <Textarea id="instructions-mob" name="instructions" value={shippingAddress.instructions} onChange={handleAddressChange} />
-                          </div>
-                          <Button type="submit" className="w-full" disabled={isProcessing}>
-                               {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : 'Proceed to Payment'}
-                          </Button>
-                      </form>
-                </DialogContent>
-              </Dialog>
-            </div>
+                    <div className="flex gap-2 mt-4">
+                      <Input value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} placeholder="COUPONCODE" />
+                      <Button onClick={handleApplyCoupon}>Apply</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <div className="fixed bottom-16 left-0 right-0 bg-background/80 backdrop-blur-lg p-4 border-t shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
+                {discount > 0 && (
+                  <div className="flex justify-between items-center mb-2 text-sm text-green-600">
+                    <span>Discount Applied!</span>
+                    <span>- ₹{discount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-muted-foreground">Total</span>
+                  <span className="text-xl font-bold">₹{total.toFixed(2)}</span>
+                </div>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                      <Button className="w-full" size="lg" onClick={handleCheckoutClick}>
+                          Checkout
+                      </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                      <DialogHeader>
+                          <DialogTitle>Shipping Information</DialogTitle>
+                          <DialogDescription>Please provide your delivery details.</DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handleProceedToPayment} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="mobile-mob">Mobile Number</Label>
+                                <Input id="mobile-mob" name="mobile" value={shippingAddress.mobile} onChange={handleAddressChange} required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="address-mob">Full Address</Label>
+                                <Textarea id="address-mob" name="address" value={shippingAddress.address} onChange={handleAddressChange} required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="instructions-mob">Any Instructions (Optional)</Label>
+                                <Textarea id="instructions-mob" name="instructions" value={shippingAddress.instructions} onChange={handleAddressChange} />
+                            </div>
+                            <Button type="submit" className="w-full" disabled={isProcessing}>
+                                {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : 'Proceed to Payment'}
+                            </Button>
+                        </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </>
           )}
         </main>
         <MobileFooter />

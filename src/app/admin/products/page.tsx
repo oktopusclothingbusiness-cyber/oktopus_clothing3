@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import Image from 'next/image';
-import { Trash2, Edit, Loader2, PlusCircle } from 'lucide-react';
+import { Trash2, Edit, Loader2, PlusCircle, Star } from 'lucide-react';
 import { useProduct, Product } from '@/context/product-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
@@ -26,10 +26,11 @@ const emptyProduct = {
     colors: '',
     category: '',
     featured: false,
+    isHero: false
 };
 
 export default function AdminProductsPage() {
-    const { products, addProduct, deleteProduct, updateProduct, loading } = useProduct();
+    const { products, addProduct, deleteProduct, updateProduct, setHeroProduct, loading } = useProduct();
     const { categories, loading: categoriesLoading } = useCategory();
     const [formData, setFormData] = React.useState(emptyProduct);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -55,7 +56,8 @@ export default function AdminProductsPage() {
             sizes: product.sizes.join(', '),
             colors: product.colors.join(', '),
             category: product.category,
-            featured: product.featured || false
+            featured: product.featured || false,
+            isHero: product.isHero || false,
         });
     };
 
@@ -72,7 +74,8 @@ export default function AdminProductsPage() {
                 category: formData.category,
                 sizes: formData.sizes.split(',').map(s => s.trim()).filter(s => s),
                 colors: formData.colors.split(',').map(c => c.trim()).filter(c => c),
-                featured: formData.featured
+                featured: formData.featured,
+                isHero: formData.isHero,
             };
 
             if (isEditing) {
@@ -178,6 +181,7 @@ export default function AdminProductsPage() {
                       <TableHead>Image</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Price</TableHead>
+                      <TableHead>Hero</TableHead>
                       <TableHead>Featured</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -189,6 +193,7 @@ export default function AdminProductsPage() {
                             <TableCell><Skeleton className="h-10 w-10 rounded-md" /></TableCell>
                             <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                             <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                            <TableCell><Skeleton className="h-8 w-12" /></TableCell>
                             <TableCell><Skeleton className="h-6 w-12" /></TableCell>
                             <TableCell className="text-right"><Skeleton className="h-8 w-20" /></TableCell>
                           </TableRow>
@@ -201,6 +206,17 @@ export default function AdminProductsPage() {
                           </TableCell>
                           <TableCell className="font-medium">{product.name}</TableCell>
                           <TableCell>₹{product.price.toFixed(2)}</TableCell>
+                          <TableCell>
+                                <Button 
+                                    variant={product.isHero ? "default" : "outline"} 
+                                    size="sm" 
+                                    onClick={() => setHeroProduct(product.id)}
+                                    disabled={product.isHero}
+                                >
+                                    <Star className="mr-2 h-4 w-4" />
+                                    {product.isHero ? "Hero" : "Set Hero"}
+                                </Button>
+                           </TableCell>
                            <TableCell>
                                 <Switch
                                     checked={product.featured}
@@ -220,7 +236,7 @@ export default function AdminProductsPage() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center h-24">
+                        <TableCell colSpan={6} className="text-center h-24">
                           <div className="flex flex-col items-center gap-2">
                               <p>No products found.</p>
                               <Button variant="outline" size="sm" onClick={() => document.getElementById('name')?.focus()}>

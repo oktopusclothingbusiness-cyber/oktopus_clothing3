@@ -15,6 +15,7 @@ export type Product = {
   sizes: string[];
   colors: string[];
   featured?: boolean;
+  isHero?: boolean;
 };
 
 type AddProduct = Omit<Product, 'id' | '_id'>
@@ -24,6 +25,7 @@ type ProductContextType = {
   addProduct: (product: AddProduct) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   updateProduct: (product: Product | (Omit<Product, '_id'> & { _id?: string })) => Promise<void>;
+  setHeroProduct: (productId: string) => Promise<void>;
   loading: boolean;
 };
 
@@ -134,9 +136,34 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const setHeroProduct = async (productId: string) => {
+    try {
+        const response = await fetch(`/api/products/set-hero/${productId}`, {
+            method: 'PUT'
+        });
+        if (!response.ok) {
+            throw new Error('Failed to set hero product');
+        }
+        setProducts(prev => prev.map(p => ({
+            ...p,
+            isHero: p.id === productId
+        })));
+        toast({
+            title: 'Hero Product Set',
+            description: 'The new hero product has been set successfully.'
+        });
+    } catch (error) {
+        console.error(error);
+        toast({
+            title: 'Error',
+            description: 'Failed to set the hero product.',
+            variant: 'destructive'
+        });
+    }
+  };
 
   return (
-    <ProductContext.Provider value={{ products, addProduct, deleteProduct, updateProduct, loading }}>
+    <ProductContext.Provider value={{ products, addProduct, deleteProduct, updateProduct, setHeroProduct, loading }}>
       {children}
     </ProductContext.Provider>
   );

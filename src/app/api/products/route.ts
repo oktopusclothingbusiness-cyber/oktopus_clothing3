@@ -32,6 +32,7 @@ export async function POST(request: Request) {
     const result = await db.collection('products').insertOne({
       ...product,
       featured: product.featured || false, // Default featured to false
+      isHero: product.isHero || false,
       createdAt: new Date(),
     });
 

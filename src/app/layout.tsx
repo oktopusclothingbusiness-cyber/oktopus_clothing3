@@ -12,6 +12,7 @@ import { CategoryProvider } from "@/context/category-context";
 import Script from "next/script";
 import { ThemeProvider } from "@/context/theme-provider";
 import { FloatingCartButton } from "@/components/floating-cart-button";
+import { CouponProvider } from "@/context/coupon-context";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const poppins = Poppins({ 
@@ -44,10 +45,12 @@ export default function RootLayout({
               <CategoryProvider>
                 <ProductProvider>
                   <PromotionProvider>
-                    <CartProvider>
-                      {children}
-                      <FloatingCartButton />
-                    </CartProvider>
+                    <CouponProvider>
+                      <CartProvider>
+                        {children}
+                        <FloatingCartButton />
+                      </CartProvider>
+                    </CouponProvider>
                   </PromotionProvider>
                 </ProductProvider>
               </CategoryProvider>

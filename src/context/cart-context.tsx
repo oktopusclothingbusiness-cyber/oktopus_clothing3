@@ -2,7 +2,9 @@
 "use client";
 
 import { useToast } from "@/hooks/use-toast";
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useMemo } from "react";
+import { useCoupon, Coupon } from "./coupon-context";
+
 
 type Product = {
   id: string;
@@ -22,6 +24,10 @@ type CartContextType = {
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   isAnimating: boolean;
+  subtotal: number;
+  discount: number;
+  total: number;
+  applyCoupon: (code: string) => Promise<boolean>;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -30,6 +36,35 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const { toast } = useToast();
   const [isAnimating, setIsAnimating] = useState(false);
+  const { coupons } = useCoupon();
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+
+  const subtotal = useMemo(() => {
+      return cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  }, [cart]);
+
+  const discount = useMemo(() => {
+    if (!appliedCoupon) return 0;
+    return subtotal * (appliedCoupon.discountPercentage / 100);
+  }, [subtotal, appliedCoupon]);
+
+  const total = useMemo(() => {
+    return subtotal - discount;
+  }, [subtotal, discount]);
+
+
+  const applyCoupon = async (code: string) => {
+    const coupon = coupons.find(c => c.code.toUpperCase() === code.toUpperCase() && c.isActive);
+    if(coupon) {
+      setAppliedCoupon(coupon);
+      toast({ title: "Coupon Applied", description: `You've got a ${coupon.discountPercentage}% discount!` });
+      return true;
+    } else {
+      toast({ title: "Invalid Coupon", description: "The coupon code is invalid or has expired.", variant: 'destructive'});
+      return false;
+    }
+  }
+
 
   const addToCart = (product: Product) => {
     setCart((prevCart) => {
@@ -45,9 +80,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       title: "Added to cart",
       description: `${product.name} has been added to your cart.`,
     });
-     // Trigger animation
     setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 700); // Corresponds to the animation duration in tailwind.config.ts
+    setTimeout(() => setIsAnimating(false), 700);
   };
 
   const removeFromCart = (productId: string) => {
@@ -69,6 +103,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   
   const clearCart = () => {
     setCart([]);
+    setAppliedCoupon(null);
     toast({
       title: "Cart cleared",
       description: "Your cart has been emptied.",
@@ -77,7 +112,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, isAnimating }}>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, isAnimating, subtotal, discount, total, applyCoupon }}>
       {children}
     </CartContext.Provider>
   );

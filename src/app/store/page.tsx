@@ -49,7 +49,7 @@ export default function OktopusStorePage() {
 
   const featuredProducts = products.filter(p => p.featured).slice(0, 5);
   const flashSaleProducts = products.slice(0, 4);
-  const heroProduct = featuredProducts.length > 0 ? featuredProducts[0] : null;
+  const heroProduct = products.find(p => p.isHero);
 
   const activePromotions = promotions.filter(p => p.isActive);
   const loading = productsLoading || promotionsLoading || categoriesLoading;
