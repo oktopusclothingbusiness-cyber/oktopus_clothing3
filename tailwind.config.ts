@@ -72,16 +72,17 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        "sparkle": {
-          "0%": { transform: "scale(1)", boxShadow: "0 0 0 0 rgba(255, 255, 255, 0.7)" },
-          "50%": { transform: "scale(1.2)", boxShadow: "0 0 10px 15px rgba(255, 255, 255, 0)" },
-          "100%": { transform: "scale(1)", boxShadow: "0 0 0 0 rgba(255, 255, 255, 0)" },
+        "jiggle": {
+          "0%, 100%": { transform: "scale(1) rotate(0deg)" },
+          "25%": { transform: "scale(1.1) rotate(-5deg)" },
+          "50%": { transform: "scale(1.1) rotate(5deg)" },
+          "75%": { transform: "scale(1.1) rotate(-5deg)" },
         }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "sparkle": "sparkle 1s ease-in-out",
+        "jiggle": "jiggle 0.7s ease-in-out",
       },
     },
   },

@@ -29,7 +29,7 @@ export function FloatingCartButton() {
   }
 
   return (
-    <div className={cn("md:hidden fixed bottom-20 right-4 z-50", isAnimating && "animate-sparkle")}>
+    <div className={cn("md:hidden fixed bottom-20 right-4 z-50", isAnimating && "animate-jiggle")}>
       <Button asChild size="icon" className="relative h-14 w-14 rounded-full shadow-lg">
         <Link href="/cart">
           <ShoppingCart className="h-6 w-6" />

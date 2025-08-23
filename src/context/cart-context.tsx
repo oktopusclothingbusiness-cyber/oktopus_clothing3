@@ -47,7 +47,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     });
      // Trigger animation
     setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 1000); // Animation duration
+    setTimeout(() => setIsAnimating(false), 700); // Corresponds to the animation duration in tailwind.config.ts
   };
 
   const removeFromCart = (productId: string) => {
