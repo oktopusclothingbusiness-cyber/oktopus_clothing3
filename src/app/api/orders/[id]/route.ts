@@ -2,6 +2,8 @@
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
+import { sendOrderStatusUpdateEmail } from '@/lib/mail';
+import { send } from 'process';
 
 // This file is for a dynamic route segment. For example: /api/orders/123
 
@@ -50,13 +52,27 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const client = await clientPromise;
     const db = client.db();
 
-    const result = await db.collection('orders').updateOne(
+    const result = await db.collection('orders').findOneAndUpdate(
       { _id: new ObjectId(id) },
-      { $set: { status: status } }
+      { $set: { status: status } },
+      { returnDocument: 'after' }
     );
 
-    if (result.matchedCount === 0) {
+    if (!result) {
       return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
+    }
+    
+    const updatedOrder = result;
+    
+    const user = await db.collection('users').findOne({ _id: new ObjectId(updatedOrder.userId) });
+
+    if(user) {
+        await sendOrderStatusUpdateEmail({
+            to: user.email,
+            orderId: updatedOrder._id.toString(),
+            orderStatus: updatedOrder.status,
+            userName: updatedOrder.userName
+        });
     }
 
     return NextResponse.json({ message: `Order status updated to ${status}.` }, { status: 200 });
