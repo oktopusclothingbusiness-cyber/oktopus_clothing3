@@ -282,7 +282,7 @@ export default function CartPage() {
           ) : (
             <div className="p-4 space-y-4">
               {cart.map((item) => (
-                <div key={item.id} className="flex items-start gap-4 p-4 bg-white rounded-lg shadow-sm">
+                <div key={item.id} className="flex items-start gap-4 p-4 card-glass rounded-lg shadow-sm">
                   <Image src={item.imageUrls[0]} alt={item.name} width={80} height={80} className="rounded-md" />
                   <div className="flex-grow">
                     <h2 className="font-semibold text-sm">{item.name}</h2>
@@ -305,7 +305,7 @@ export default function CartPage() {
             </div>
           )}
           {cart.length > 0 && (
-            <div className="fixed bottom-16 left-0 right-0 bg-white p-4 border-t shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
+            <div className="fixed bottom-16 left-0 right-0 bg-background/80 backdrop-blur-lg p-4 border-t shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
                <div className="flex justify-between items-center mb-4">
                 <span className="text-muted-foreground">Total</span>
                 <span className="text-xl font-bold">₹{subtotal.toFixed(2)}</span>

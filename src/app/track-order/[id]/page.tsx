@@ -103,7 +103,7 @@ export default function TrackOrderDetailPage() {
         <div className="md:hidden">
             <MobileHeader title={`Order #${order._id.slice(-6)}`} />
             <main className="bg-secondary min-h-screen pb-24 p-4">
-                <Card className="bg-white">
+                <Card className="card-glass">
                     <CardHeader>
                         <CardTitle>Order Status</CardTitle>
                         <CardDescription>{format(new Date(order.createdAt), 'PPpp')}</CardDescription>

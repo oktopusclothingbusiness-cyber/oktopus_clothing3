@@ -97,7 +97,7 @@ export default function OrdersPage() {
         {orders.length > 0 ? (
           <div className="space-y-4">
             {orders.map((order) => (
-              <Card key={order._id} className="bg-white">
+              <Card key={order._id} className="card-glass">
                 <CardHeader>
                   <CardTitle className="text-base flex justify-between items-center">
                     <span>Order #{order._id.slice(-6)}</span>

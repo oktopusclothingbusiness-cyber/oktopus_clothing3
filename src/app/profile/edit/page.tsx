@@ -100,7 +100,7 @@ export default function EditProfilePage() {
     <div className="md:hidden">
       <MobileHeader title="Edit Profile" />
       <main className="bg-secondary min-h-screen pb-24 p-4">
-        <Card className="bg-white">
+        <Card className="card-glass">
           <CardHeader>
             <CardTitle>Update Your Information</CardTitle>
           </CardHeader>

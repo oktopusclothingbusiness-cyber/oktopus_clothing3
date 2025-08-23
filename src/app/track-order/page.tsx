@@ -47,7 +47,7 @@ export default function TrackOrderPage() {
     <div className="md:hidden">
       <MobileHeader title="Track Your Order" />
       <main className="bg-secondary min-h-screen pb-24 p-4 flex items-center justify-center">
-        <Card className="w-full max-w-sm bg-white">
+        <Card className="w-full max-w-sm card-glass">
           <CardHeader className="text-center">
              <Package className="mx-auto h-12 w-12 text-primary" />
             <CardTitle>Track Your Order</CardTitle>

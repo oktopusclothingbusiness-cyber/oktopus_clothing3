@@ -27,10 +27,12 @@ export const MobileHeader = ({ showCart = true, title }: MobileHeaderProps) => {
             router.push(`/products?q=${encodeURIComponent(searchQuery)}`);
         }
     }
+    
+    const headerClasses = "md:hidden sticky top-0 z-50 p-4 bg-background/80 backdrop-blur-lg border-b";
 
     if (title) {
         return (
-            <header className="md:hidden sticky top-0 z-50 bg-background p-4 border-b">
+            <header className={cn(headerClasses)}>
                 <div className="flex justify-between items-center">
                      <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
@@ -56,7 +58,7 @@ export const MobileHeader = ({ showCart = true, title }: MobileHeaderProps) => {
     }
 
     return (
-        <header className="md:hidden sticky top-0 z-50 bg-background p-4 space-y-4">
+        <header className={cn(headerClasses, "space-y-4")}>
             <div className="flex justify-between items-center">
                 <Link href={user ? '/profile' : '/login'}>
                     <div className="flex items-center gap-3">
