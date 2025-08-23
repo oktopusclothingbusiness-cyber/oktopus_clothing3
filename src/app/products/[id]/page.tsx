@@ -37,7 +37,7 @@ export default function ProductDetailPage() {
                 <ProductDetailSkeleton />
             </div>
             <div className="md:hidden">
-                <MobileHeader title="Product Details" />
+                <MobileHeader title="Product Details" showCart={false} />
                 <ProductDetailSkeleton />
                 <MobileFooter />
             </div>
@@ -113,7 +113,7 @@ export default function ProductDetailPage() {
         </div>
         {/* Mobile View */}
         <div className="md:hidden">
-            <MobileHeader title={product.name} />
+            <MobileHeader title={product.name} showCart={false} />
             <main className="pb-24">
                 <Carousel className="w-full">
                   <CarouselContent>
@@ -160,7 +160,7 @@ export default function ProductDetailPage() {
                         </Select>
                       </div>
                     </div>
-                    {/* The AddToCartButton was here and is now removed for mobile view to rely on the floating cart button. */}
+                    <AddToCartButton product={product} className="w-full" size="lg" />
                 </div>
             </main>
             <MobileFooter/>
