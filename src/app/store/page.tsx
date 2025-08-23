@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ShoppingCart, Heart, ChevronRight, Box } from "lucide-react";
+import { ArrowRight, ShoppingCart, Heart, MapPin, Bell, Search, Settings2, Shirt, Radio, Watch, MessageCircle, User, Home, Star, Footprints } from "lucide-react";
 import { Header } from "@/components/header";
 import { OktopusFooter } from "@/components/oktopus-footer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,29 +17,44 @@ import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
 
 const SpecialOfferCard = () => (
-    <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg mr-4 flex-shrink-0 bg-blue-600 text-white p-4 flex items-center">
-        <div className="flex-1 space-y-2">
-             <h3 className="text-xl font-bold">Get 30% OFF on Swimwear!</h3>
-             <p className="text-xs">Limited time offer. Shop now!</p>
-             <Button className="bg-yellow-400 text-black rounded-full hover:bg-yellow-500 h-8 px-4 mt-2">
-                <ShoppingCart className="mr-2 h-4 w-4"/>
-                Shop Now
-            </Button>
+    <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg mr-4 flex-shrink-0 bg-red-500 text-white p-6 flex flex-col justify-between">
+        <div>
+             <h3 className="text-2xl font-bold">#FASHION DAY</h3>
+             <p className="text-4xl font-light leading-tight">80% OFF</p>
         </div>
-        <div className="relative w-24 h-24">
-            <Image src="https://i.ibb.co/3W6MHTr/trunks.png" alt="Swimwear" layout="fill" objectFit="contain" data-ai-hint="swimwear men" />
+        <div>
+            <p className="text-sm">Discover fashion that suits to your style</p>
+            <Button className="bg-white text-black rounded-lg h-8 px-4 mt-2 font-semibold">
+                Check this out
+            </Button>
         </div>
     </div>
 )
 
 const CategoryPills = () => {
-    const categories = ['All Products', 'Swimming', 'Goggles', 'T-Shirts'];
+    const categories = [
+        {name: 'T-shirt', icon: Shirt},
+        {name: 'Radio', icon: Radio},
+        {name: 'Shoes', icon: Footprints},
+        {name: 'Watch', icon: Watch},
+        {name: 'T-shirt', icon: Shirt},
+        {name: 'Radio', icon: Radio},
+    ];
     return (
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 -ml-4 pl-4">
+        <div className="flex items-center gap-4 overflow-x-auto pb-2 -ml-4 pl-4">
+            <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                <Button variant="secondary" size="icon" className="w-14 h-14 rounded-full bg-red-100 text-red-500">
+                    <Settings2/>
+                </Button>
+                <span className="text-xs font-semibold">All</span>
+            </div>
             {categories.map((cat, index) => (
-                 <Button key={cat} variant={index === 0 ? 'default' : 'secondary'} className="rounded-full h-8 text-sm flex-shrink-0">
-                    {cat}
-                 </Button>
+                 <div key={index} className="flex flex-col items-center gap-2 flex-shrink-0">
+                    <Button variant="secondary" size="icon" className="w-14 h-14 rounded-full bg-gray-100 text-gray-500">
+                        <cat.icon/>
+                    </Button>
+                    <span className="text-xs font-semibold">{cat.name}</span>
+                </div>
             ))}
         </div>
     )
@@ -46,7 +62,7 @@ const CategoryPills = () => {
 
 export default function OktopusStorePage() {
   const { products, loading } = useProduct();
-  const featuredProducts = products.slice(0, 5);
+  const featuredProducts = products.filter(p => p.featured).slice(0, 5);
   const flashSaleProducts = products.slice(0, 4);
 
   return (
@@ -208,11 +224,9 @@ export default function OktopusStorePage() {
     </div>
 
     {/* Mobile View */}
-    <div className="md:hidden bg-background">
+    <div className="md:hidden bg-background font-sans">
         <MobileHeader/>
         <main className="p-4 space-y-6 pb-24">
-            <CategoryPills />
-
             <section>
                 <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -ml-4 pl-4">
                     <div className="w-[90vw] snap-center">
@@ -225,28 +239,35 @@ export default function OktopusStorePage() {
                         <SpecialOfferCard />
                     </div>
                 </div>
-                 <div className="flex justify-center items-center gap-2 mt-2">
-                    <span className="h-2 w-4 rounded-full bg-primary"></span>
+                 <div className="flex justify-center items-center gap-2 mt-4">
+                    <span className="h-2 w-4 rounded-full bg-red-500"></span>
                     <span className="h-2 w-2 rounded-full bg-gray-300"></span>
                     <span className="h-2 w-2 rounded-full bg-gray-300"></span>
                 </div>
             </section>
+            
+            <section>
+                <CategoryPills/>
+            </section>
 
             <section>
-                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="font-bold text-lg">Featured Products</h2>
-                    <Link href="/products" className="text-sm text-primary font-semibold flex items-center gap-1">
-                        See All <ChevronRight className="h-4 w-4" />
+                 <div className="flex justify-between items-center mb-2">
+                    <h2 className="font-bold text-lg">Flash Sale</h2>
+                    <Link href="/products" className="text-sm text-red-500 font-semibold flex items-center gap-1">
+                        See All
                     </Link>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     {loading ? Array.from({length: 4}).map((_, i) => (
                         <Card key={i} className="rounded-2xl overflow-hidden border-none shadow-sm bg-white">
                            <Skeleton className="w-full aspect-square" />
-                           <CardContent className="p-2 space-y-1">
-                               <Skeleton className="h-4 w-1/2"/>
+                           <CardContent className="p-3 space-y-1">
                                <Skeleton className="h-4 w-3/4"/>
-                               <Skeleton className="h-4 w-1/4"/>
+                               <Skeleton className="h-4 w-1/2"/>
+                               <div className="flex justify-between items-center pt-1">
+                                   <Skeleton className="h-5 w-1/3"/>
+                                   <Skeleton className="h-5 w-1/4"/>
+                               </div>
                            </CardContent>
                         </Card>
                     )) : flashSaleProducts.map(product => (
@@ -255,13 +276,18 @@ export default function OktopusStorePage() {
                             <div className="relative aspect-square">
                                 <Image src={product.imageUrls[0]} alt={product.name} layout="fill" objectFit="cover" data-ai-hint="product image" />
                                 <Button size="icon" variant="secondary" className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur-sm">
-                                    <Heart className="h-4 w-4 text-destructive" />
+                                    <Heart className="h-4 w-4 text-gray-500" />
                                 </Button>
-                                <Badge variant="destructive" className="absolute bottom-2 left-2 bg-black/50 text-white border-none backdrop-blur-sm">₹{product.price.toFixed(2)}</Badge>
                             </div>
-                            <CardContent className="p-2">
-                                <p className="text-xs text-muted-foreground">15 Stocks Left</p>
-                                <h3 className="text-sm font-bold truncate mt-1">{product.name}</h3>
+                            <CardContent className="p-3">
+                                <h3 className="text-sm font-semibold truncate">{product.name}</h3>
+                                <div className="flex items-center gap-1 text-xs mt-1">
+                                    <Star className="w-3 h-3 text-yellow-400 fill-yellow-400"/>
+                                    <span className="font-bold">4.9</span>
+                                    <span className="text-gray-400">|</span>
+                                    <span className="text-gray-400">2356 sold</span>
+                                </div>
+                                <p className="text-md font-bold text-red-500 mt-1">₹{product.price.toFixed(2)}</p>
                             </CardContent>
                         </Card>
                         </Link>

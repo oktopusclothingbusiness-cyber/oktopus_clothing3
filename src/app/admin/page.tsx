@@ -13,6 +13,7 @@ import Image from 'next/image';
 import { Trash2, Edit, Loader2, PlusCircle } from 'lucide-react';
 import { useProduct, Product } from '@/context/product-context';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 
 const emptyProduct = {
     id: '',
@@ -22,7 +23,8 @@ const emptyProduct = {
     imageUrls: '',
     sizes: '',
     colors: '',
-    category: ''
+    category: '',
+    featured: false,
 };
 
 export default function AdminDashboardPage() {
@@ -35,6 +37,11 @@ export default function AdminDashboardPage() {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
+
+    const handleCheckedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, checked } = e.target;
+        setFormData(prev => ({ ...prev, [name]: checked }));
+    }
     
     const handleEditClick = (product: Product) => {
         setIsEditing(true);
@@ -47,6 +54,7 @@ export default function AdminDashboardPage() {
             sizes: product.sizes.join(', '),
             colors: product.colors.join(', '),
             category: product.category,
+            featured: product.featured || false
         });
     };
 
@@ -63,6 +71,7 @@ export default function AdminDashboardPage() {
                 category: formData.category || 'New',
                 sizes: formData.sizes.split(',').map(s => s.trim()).filter(s => s),
                 colors: formData.colors.split(',').map(c => c.trim()).filter(c => c),
+                featured: formData.featured
             };
 
             if (isEditing) {
@@ -74,6 +83,11 @@ export default function AdminDashboardPage() {
             resetForm();
             setIsSubmitting(false);
         }
+    };
+
+    const handleFeatureToggle = async (product: Product) => {
+        const updatedProduct = { ...product, featured: !product.featured };
+        await updateProduct(updatedProduct);
     };
     
     const resetForm = () => {
@@ -120,6 +134,10 @@ export default function AdminDashboardPage() {
                   <Input id="colors" name="colors" value={formData.colors} onChange={handleInputChange} placeholder="e.g., Red, Blue, Black" disabled={isSubmitting} />
                     <p className="text-xs text-muted-foreground">Comma-separated colors.</p>
                 </div>
+                <div className="flex items-center space-x-2">
+                    <Switch id="featured" name="featured" checked={formData.featured} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, featured: checked }))} disabled={isSubmitting} />
+                    <Label htmlFor="featured">Featured Product</Label>
+                </div>
                 <div className="flex gap-2">
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
                     {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {isEditing ? 'Updating...' : 'Adding...'}</> : (isEditing ? 'Update Product' : 'Add Product')}
@@ -146,6 +164,7 @@ export default function AdminDashboardPage() {
                       <TableHead>Image</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Price</TableHead>
+                      <TableHead>Featured</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -156,6 +175,7 @@ export default function AdminDashboardPage() {
                             <TableCell><Skeleton className="h-10 w-10 rounded-md" /></TableCell>
                             <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                             <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                            <TableCell><Skeleton className="h-6 w-12" /></TableCell>
                             <TableCell className="text-right"><Skeleton className="h-8 w-20" /></TableCell>
                           </TableRow>
                       ))
@@ -167,6 +187,13 @@ export default function AdminDashboardPage() {
                           </TableCell>
                           <TableCell className="font-medium">{product.name}</TableCell>
                           <TableCell>₹{product.price.toFixed(2)}</TableCell>
+                           <TableCell>
+                                <Switch
+                                    checked={product.featured}
+                                    onCheckedChange={() => handleFeatureToggle(product)}
+                                    aria-label="Toggle featured status"
+                                />
+                           </TableCell>
                           <TableCell className="text-right">
                             <Button variant="ghost" size="icon" className="mr-2" onClick={() => handleEditClick(product)}>
                               <Edit className="h-4 w-4" />
@@ -179,7 +206,7 @@ export default function AdminDashboardPage() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center h-24">
+                        <TableCell colSpan={5} className="text-center h-24">
                           <div className="flex flex-col items-center gap-2">
                               <p>No products found.</p>
                               <Button variant="outline" size="sm" onClick={() => document.getElementById('name')?.focus()}>

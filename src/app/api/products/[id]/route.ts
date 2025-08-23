@@ -36,7 +36,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         }
 
         const productData = await request.json();
-        const { _id, ...updateData } = productData; // Exclude _id from update payload
+        const { _id, id: productId, ...updateData } = productData; // Exclude _id and id from update payload
+
+        if (typeof updateData.featured === 'undefined') {
+            delete updateData.featured;
+        }
 
         const client = await clientPromise;
         const db = client.db();

@@ -14,6 +14,7 @@ export type Product = {
   category: string;
   sizes: string[];
   colors: string[];
+  featured?: boolean;
 };
 
 type AddProduct = Omit<Product, 'id' | '_id'>
@@ -22,7 +23,7 @@ type ProductContextType = {
   products: Product[];
   addProduct: (product: AddProduct) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
-  updateProduct: (product: Product) => Promise<void>;
+  updateProduct: (product: Product | (Omit<Product, '_id'> & { _id?: string })) => Promise<void>;
   loading: boolean;
 };
 
@@ -107,7 +108,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  const updateProduct = async (updatedProduct: Product) => {
+  const updateProduct = async (updatedProduct: Product | (Omit<Product, '_id'> & { _id?: string })) => {
      try {
       const response = await fetch(`/api/products/${updatedProduct.id}`, {
         method: 'PUT',
@@ -117,7 +118,8 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       if (!response.ok) {
         throw new Error('Failed to update product');
       }
-      setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+       // Optimistically update the local state
+      setProducts(prev => prev.map(p => p.id === updatedProduct.id ? { ...p, ...updatedProduct, _id: p._id } as Product : p));
       toast({
         title: "Product Updated",
         description: `${updatedProduct.name} has been updated successfully.`,
