@@ -6,11 +6,13 @@ import { Home, Box, Palette, User, ShoppingBag } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/auth-context";
+import { useThemeManager } from "@/context/theme-provider";
 
 
 export const MobileFooter = () => {
     const pathname = usePathname();
     const { user } = useAuth();
+    const { toggleAccentColor } = useThemeManager();
 
     const navItems = [
         { href: '/store', icon: Home, label: 'Home' },
@@ -18,6 +20,13 @@ export const MobileFooter = () => {
         { href: '/custom-design', icon: Palette, label: 'Custom' },
         { href: user ? '/profile' : '/login', icon: User, label: 'Profile' },
     ];
+
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+        // Prevent color change if navigating to the same page
+        if (pathname !== href) {
+            toggleAccentColor();
+        }
+    };
 
     return (
         <footer className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg rounded-t-3xl border-t">
@@ -28,6 +37,7 @@ export const MobileFooter = () => {
                         <Link 
                             key={item.label}
                             href={item.href} 
+                            onClick={(e) => handleClick(e, item.href)}
                             className={cn(
                                 "flex flex-col items-center gap-1 w-16",
                                 isActive ? 'text-primary' : 'text-muted-foreground'
