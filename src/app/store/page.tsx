@@ -246,8 +246,7 @@ export default function OktopusStorePage() {
             </section>
             
             <section>
-                <div className="flex justify-between items-center mb-2">
-                    <h2 className="font-bold text-lg">Categories</h2>
+                <div className="flex justify-end items-center mb-2">
                     <Link href="/products" className="text-sm text-primary font-semibold flex items-center gap-1">
                         See All
                     </Link>
