@@ -43,9 +43,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = (userData: User) => {
-    setUser(userData);
+    // Ensure the user object has the 'id' property which mirrors '_id'
+    const userToStore = { ...userData, id: userData._id };
+    setUser(userToStore);
     try {
-      sessionStorage.setItem('user', JSON.stringify(userData));
+      sessionStorage.setItem('user', JSON.stringify(userToStore));
     } catch (error) {
         console.error("Failed to save user to session storage", error);
     }
