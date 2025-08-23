@@ -27,24 +27,24 @@
   }
 
   .dark {
-    --background: 240 10% 3.9%;
+    --background: 240 5% 5%;
     --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
+    --card: 240 4% 9%;
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+    --popover: 240 5% 5%;
     --popover-foreground: 0 0% 98%;
     --primary: 35 68% 54%;
     --primary-foreground: 0 0% 98%;
-    --secondary: 240 3.7% 15.9%;
+    --secondary: 240 4% 12%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
+    --muted: 240 4% 12%;
     --muted-foreground: 240 5% 64.9%;
     --accent: 35 68% 54%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
+    --border: 240 4% 15%;
+    --input: 240 4% 15%;
     --ring: 35 68% 54%;
   }
 }
@@ -61,5 +61,9 @@
 @layer components {
   .md\:hidden .card-glass {
     @apply bg-white/60 backdrop-blur-lg border border-white/20;
+  }
+  
+  .dark .md\:hidden .card-glass {
+     @apply bg-background/60 backdrop-blur-lg border border-white/10;
   }
 }
