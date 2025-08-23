@@ -4,7 +4,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ShoppingCart, Heart, MapPin, Bell, Search, Settings2, Shirt, Radio, Watch, MessageCircle, User, Home, Star, Footprints } from "lucide-react";
+import { ArrowRight, ShoppingCart, Heart, MapPin, Bell, Search, Settings2, Shirt, Radio, Watch, MessageCircle, User, Home, Star, Footprints, SlidersHorizontal, Filter, ChevronRight, Box } from "lucide-react";
 import { Header } from "@/components/header";
 import { OktopusFooter } from "@/components/oktopus-footer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,50 +14,52 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 
 const MobileHeader = () => (
-  <header className="md:hidden sticky top-0 z-50 bg-primary text-primary-foreground p-4 rounded-b-3xl">
-    <div className="flex justify-between items-center mb-4">
-      <div className="flex items-center gap-2">
-        <MapPin className="h-5 w-5" />
-        <div>
-          <p className="text-xs">Location</p>
-          <p className="font-bold text-sm">New York, USA</p>
+    <header className="md:hidden sticky top-0 z-50 bg-background p-4">
+        <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-3">
+                <Avatar>
+                    <AvatarImage src="https://i.ibb.co/L1L4B1X/avatar.png" alt="User" />
+                    <AvatarFallback>UV</AvatarFallback>
+                </Avatar>
+                <div>
+                    <p className="text-xs text-muted-foreground">Welcome Back</p>
+                    <p className="font-bold text-sm">uix.vikram</p>
+                </div>
+            </div>
+            <Button variant="ghost" size="icon">
+                <ShoppingCart className="h-6 w-6" />
+            </Button>
         </div>
-      </div>
-      <Button variant="ghost" size="icon">
-        <Bell className="h-6 w-6" />
-      </Button>
-    </div>
-    <div className="relative">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-      <Input placeholder="Search" className="w-full rounded-full pl-10 bg-background text-foreground" />
-      <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2">
-        <Settings2 className="h-5 w-5 text-muted-foreground" />
-      </Button>
-    </div>
-  </header>
+        <div className="flex items-center gap-2">
+            <div className="relative flex-grow">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input placeholder="What's on your list?" className="w-full rounded-full pl-10 bg-secondary border-none" />
+            </div>
+            <Button variant="outline" size="icon" className="bg-secondary border-none">
+                <SlidersHorizontal className="h-5 w-5 text-primary" />
+            </Button>
+        </div>
+    </header>
 );
 
 const MobileFooter = () => (
     <footer className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.1)] rounded-t-3xl">
         <div className="flex justify-around items-center p-2">
             <Link href="/store" className="flex flex-col items-center gap-1 text-primary">
-                <Home className="h-6 w-6"/>
+                <Home className="h-6 w-6 fill-current"/>
                 <span className="text-xs font-bold">Home</span>
             </Link>
             <Link href="#" className="flex flex-col items-center gap-1 text-muted-foreground">
-                <Heart className="h-6 w-6"/>
-                <span className="text-xs">Wishlist</span>
-            </Link>
-            <Link href="/cart" className="flex flex-col items-center gap-1 text-muted-foreground">
-                <ShoppingCart className="h-6 w-6"/>
-                <span className="text-xs">Cart</span>
+                <Box className="h-6 w-6"/>
+                <span className="text-xs">Orders</span>
             </Link>
             <Link href="#" className="flex flex-col items-center gap-1 text-muted-foreground">
-                <MessageCircle className="h-6 w-6"/>
-                <span className="text-xs">Chat</span>
+                <Heart className="h-6 w-6"/>
+                <span className="text-xs">Favorites</span>
             </Link>
             <Link href="/login" className="flex flex-col items-center gap-1 text-muted-foreground">
                 <User className="h-6 w-6"/>
@@ -68,41 +70,38 @@ const MobileFooter = () => (
 )
 
 const SpecialOfferCard = () => (
-    <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden shadow-lg mr-4 flex-shrink-0">
-        <Image src="https://placehold.co/600x400.png" alt="Special Offer" layout="fill" objectFit="cover" data-ai-hint="fashion model sale" />
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute top-4 left-4">
-            <Badge variant="destructive" className="bg-white text-primary rounded-full px-3 py-1 text-xs">Limited time!</Badge>
+    <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg mr-4 flex-shrink-0 bg-blue-600 text-white p-4 flex items-center">
+        <div className="flex-1 space-y-2">
+             <h3 className="text-xl font-bold">Get 30% OFF on Swimwear!</h3>
+             <p className="text-xs">Limited time offer. Shop now!</p>
+             <Button className="bg-yellow-400 text-black rounded-full hover:bg-yellow-500 h-8 px-4 mt-2">
+                <ShoppingCart className="mr-2 h-4 w-4"/>
+                Shop Now
+            </Button>
         </div>
-        <div className="absolute bottom-4 left-4 text-white">
-            <h3 className="text-lg font-bold">Get Special Offer</h3>
-            <p className="text-2xl font-bold">Up to 40%</p>
-            <p className="text-xs opacity-80">All Services Available | T&C Applied</p>
+        <div className="relative w-24 h-24">
+            <Image src="https://i.ibb.co/3W6MHTr/trunks.png" alt="Swimwear" layout="fill" objectFit="contain" data-ai-hint="swimwear men" />
         </div>
-        <Button className="absolute bottom-4 right-4 bg-white text-primary rounded-full hover:bg-gray-200">Claim</Button>
     </div>
 )
 
-const CategoryIcon = ({ icon: Icon, label }: { icon: React.ElementType, label: string}) => (
-    <div className="flex flex-col items-center gap-2 flex-shrink-0">
-        <div className="bg-red-100 rounded-full p-4">
-            <Icon className="h-6 w-6 text-primary" />
+const CategoryPills = () => {
+    const categories = ['All Products', 'Swimming', 'Goggles', 'T-Shirts'];
+    return (
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 -ml-4 pl-4">
+            {categories.map((cat, index) => (
+                 <Button key={cat} variant={index === 0 ? 'default' : 'secondary'} className="rounded-full h-8 text-sm flex-shrink-0">
+                    {cat}
+                 </Button>
+            ))}
         </div>
-        <span className="text-sm text-muted-foreground">{label}</span>
-    </div>
-)
+    )
+}
 
 export default function OktopusStorePage() {
   const { products, loading } = useProduct();
   const featuredProducts = products.slice(0, 5);
   const flashSaleProducts = products.slice(0, 4);
-
-  const categories = [
-      { icon: Shirt, label: 'Clothes'},
-      { icon: Radio, label: 'Electronics'},
-      { icon: Footprints, label: 'Shoes'},
-      { icon: Watch, label: 'Watch'},
-  ]
 
   return (
     <>
@@ -266,86 +265,67 @@ export default function OktopusStorePage() {
     <div className="md:hidden bg-background">
         <MobileHeader/>
         <main className="p-4 space-y-6 pb-24">
-            {/* Special For You */}
+            <CategoryPills />
+
             <section>
-                <div className="flex justify-between items-center mb-2">
-                    <h2 className="font-bold text-lg">#SpecialForYou</h2>
-                    <Link href="#" className="text-sm text-primary font-semibold">See All</Link>
-                </div>
                 <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -ml-4 pl-4">
-                    <div className="w-[85vw] snap-center">
+                    <div className="w-[90vw] snap-center">
                         <SpecialOfferCard />
                     </div>
-                     <div className="w-[85vw] snap-center">
+                     <div className="w-[90vw] snap-center">
                         <SpecialOfferCard />
                     </div>
-                     <div className="w-[85vw] snap-center">
+                     <div className="w-[90vw] snap-center">
                         <SpecialOfferCard />
                     </div>
                 </div>
                  <div className="flex justify-center items-center gap-2 mt-2">
-                    <span className="h-2 w-2 rounded-full bg-primary"></span>
+                    <span className="h-2 w-4 rounded-full bg-primary"></span>
                     <span className="h-2 w-2 rounded-full bg-gray-300"></span>
                     <span className="h-2 w-2 rounded-full bg-gray-300"></span>
                 </div>
             </section>
 
-            {/* Category */}
             <section>
                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="font-bold text-lg">Category</h2>
-                    <Link href="#" className="text-sm text-primary font-semibold">See All</Link>
+                    <h2 className="font-bold text-lg">Featured Products</h2>
+                    <Link href="/products" className="text-sm text-primary font-semibold flex items-center gap-1">
+                        See All <ChevronRight className="h-4 w-4" />
+                    </Link>
                 </div>
-                <div className="flex justify-around items-start">
-                    {categories.map(cat => <CategoryIcon key={cat.label} icon={cat.icon} label={cat.label} />)}
+                <div className="grid grid-cols-2 gap-4">
+                    {loading ? Array.from({length: 4}).map((_, i) => (
+                        <Card key={i} className="rounded-2xl overflow-hidden border-none shadow-sm bg-white">
+                           <Skeleton className="w-full aspect-square" />
+                           <CardContent className="p-2 space-y-1">
+                               <Skeleton className="h-4 w-1/2"/>
+                               <Skeleton className="h-4 w-3/4"/>
+                               <Skeleton className="h-4 w-1/4"/>
+                           </CardContent>
+                        </Card>
+                    )) : flashSaleProducts.map(product => (
+                        <Link href={`/products/${product.id}`} key={product.id}>
+                        <Card className="rounded-2xl overflow-hidden border-none shadow-sm bg-white">
+                            <div className="relative aspect-square">
+                                <Image src={product.imageUrls[0]} alt={product.name} layout="fill" objectFit="cover" data-ai-hint="product image" />
+                                <Button size="icon" variant="secondary" className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur-sm">
+                                    <Heart className="h-4 w-4 text-destructive" />
+                                </Button>
+                                <Badge variant="default" className="absolute bottom-2 left-2 bg-black/50 text-white border-none backdrop-blur-sm">₹{product.price.toFixed(2)}</Badge>
+                            </div>
+                            <CardContent className="p-2">
+                                <p className="text-xs text-muted-foreground">15 Stocks Left</p>
+                                <h3 className="text-sm font-bold truncate mt-1">{product.name}</h3>
+                                <div className="flex items-center gap-1 mt-1">
+                                    <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                                    <span className="text-xs font-bold">4.5</span>
+                                    <span className="text-xs text-muted-foreground">(201)</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        </Link>
+                    ))}
                 </div>
-            </section>
-
-            {/* Flash Sale */}
-            <section>
-                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="font-bold text-lg">Flash Sale</h2>
-                    <div className="flex items-center gap-1 text-sm">
-                        <span className="text-muted-foreground">Closing in:</span>
-                        <span className="font-bold bg-red-100 text-primary px-2 py-1 rounded-md">02</span>:
-                        <span className="font-bold bg-red-100 text-primary px-2 py-1 rounded-md">12</span>:
-                        <span className="font-bold bg-red-100 text-primary px-2 py-1 rounded-md">56</span>
-                    </div>
-                </div>
-                <Tabs defaultValue="newest">
-                    <TabsList className="grid w-full grid-cols-4 bg-transparent p-0 gap-2 mb-4">
-                        <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-full">All</TabsTrigger>
-                        <TabsTrigger value="newest" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-full">Newest</TabsTrigger>
-                        <TabsTrigger value="popular" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-full">Popular</TabsTrigger>
-                        <TabsTrigger value="clothes" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-full">Clothes</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="newest">
-                        <div className="grid grid-cols-2 gap-4">
-                            {flashSaleProducts.map(product => (
-                                <Link href={`/products/${product.id}`} key={product.id}>
-                                <Card className="rounded-2xl overflow-hidden border-none shadow-sm">
-                                    <div className="relative aspect-square">
-                                        <Image src={product.imageUrls[0]} alt={product.name} layout="fill" objectFit="cover" data-ai-hint="product image" />
-                                        <Button size="icon" variant="secondary" className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80">
-                                            <Heart className="h-4 w-4 text-primary" />
-                                        </Button>
-                                    </div>
-                                    <CardContent className="p-2 bg-white">
-                                        <h3 className="text-sm font-semibold truncate">{product.name}</h3>
-                                        <div className="flex justify-between items-center mt-1">
-                                            <p className="font-bold text-primary">₹{product.price.toFixed(2)}</p>
-                                            <div className="flex items-center gap-1">
-                                                <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                                                <span className="text-xs font-bold">4.5</span>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                                </Link>
-                            ))}
-                        </div>
-                    </TabsContent>
-                </Tabs>
             </section>
         </main>
         <MobileFooter/>
@@ -353,3 +333,5 @@ export default function OktopusStorePage() {
     </>
   );
 }
+
+    

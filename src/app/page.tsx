@@ -11,7 +11,7 @@ export default function LandingPage() {
         
         <div className="flex-1 flex flex-col justify-center items-center w-full">
             <Image 
-              src="https://placehold.co/64x64.png"
+              src="https://i.ibb.co/GfTs981G/okto-new-logo-white.png"
               alt="Logo placeholder"
               width={144}
               height={64}
