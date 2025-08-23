@@ -49,6 +49,7 @@ export default function OktopusStorePage() {
 
   const featuredProducts = products.filter(p => p.featured).slice(0, 5);
   const flashSaleProducts = products.slice(0, 4);
+  const heroProduct = featuredProducts.length > 0 ? featuredProducts[0] : null;
 
   const activePromotions = promotions.filter(p => p.isActive);
   const loading = productsLoading || promotionsLoading || categoriesLoading;
@@ -313,6 +314,34 @@ export default function OktopusStorePage() {
                         </Link>
                     ))}
                 </div>
+            </section>
+            
+            <section>
+                 <div className="flex justify-between items-center mb-2">
+                    <h2 className="font-bold text-lg">Hero Product</h2>
+                </div>
+                {loading ? (
+                    <Card className="rounded-2xl overflow-hidden border-none shadow-sm">
+                        <Skeleton className="w-full aspect-[4/3]" />
+                        <CardContent className="p-4 space-y-2">
+                            <Skeleton className="h-5 w-3/4"/>
+                            <Skeleton className="h-5 w-1/2"/>
+                        </CardContent>
+                    </Card>
+                ) : heroProduct ? (
+                     <Card className="rounded-2xl overflow-hidden border-none shadow-sm card-glass">
+                        <Link href={`/products/${heroProduct.id}`}>
+                            <div className="relative aspect-[4/3]">
+                                <Image src={heroProduct.imageUrls[0]} alt={heroProduct.name} layout="fill" objectFit="cover" data-ai-hint="hero product" />
+                            </div>
+                            <CardContent className="p-4">
+                                <h3 className="text-lg font-bold">{heroProduct.name}</h3>
+                                <p className="text-xl font-bold text-primary">₹{heroProduct.price.toFixed(2)}</p>
+                                <Button className="w-full mt-4">Shop Now</Button>
+                            </CardContent>
+                        </Link>
+                    </Card>
+                ): null}
             </section>
         </main>
         <MobileFooter/>
