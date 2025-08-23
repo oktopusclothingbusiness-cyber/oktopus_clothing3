@@ -78,9 +78,8 @@ export default function LandingPage() {
       </div>
 
       {/* Mobile View */}
-      <div className="md:hidden">
-        <MobileHeader />
-        <main className="flex flex-col items-center justify-center flex-grow p-4 overflow-hidden bg-black text-white min-h-screen">
+      <div className="md:hidden flex flex-col min-h-screen bg-black text-white">
+        <main className="flex flex-col items-center justify-center flex-grow p-4 overflow-hidden">
           <div className="flex-1 flex flex-col justify-center items-center w-full">
             <Image 
                 src="https://i.ibb.co/GfTs981G/okto-new-logo-white.png"
@@ -140,7 +139,6 @@ export default function LandingPage() {
               </div>
           </div>
         </main>
-        <MobileFooter />
       </div>
     </>
   );
