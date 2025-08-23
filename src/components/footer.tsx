@@ -2,14 +2,37 @@
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { Github, Twitter, Instagram } from "lucide-react";
+import * as React from 'react';
+import Image from "next/image";
 
 export function Footer() {
+  const [logoUrl, setLogoUrl] = React.useState('');
+
+  React.useEffect(() => {
+    const fetchSettings = async () => {
+        try {
+            const response = await fetch('/api/settings');
+            if (response.ok) {
+                const data = await response.json();
+                setLogoUrl(data.logoUrl || '');
+            }
+        } catch (error) {
+            console.error("Failed to fetch settings for footer logo:", error);
+        }
+    };
+    fetchSettings();
+  }, []);
+
   return (
     <footer className="border-t bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="font-bold mb-4">VogueVerse</h3>
+            {logoUrl ? (
+                <Image src={logoUrl} alt="Site Logo" width={140} height={40} className="object-contain mb-4" />
+            ) : (
+                <h3 className="font-bold mb-4 h-10"></h3>
+            )}
             <p className="text-sm text-muted-foreground">Style meets expression.</p>
           </div>
           <div>
@@ -50,7 +73,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>© 2025 VogueVerse. All rights reserved.</p>
+          <p>© 2025. All rights reserved.</p>
         </div>
       </div>
     </footer>

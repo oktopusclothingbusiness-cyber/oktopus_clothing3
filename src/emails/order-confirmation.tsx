@@ -26,6 +26,7 @@ type OrderConfirmationEmailProps = {
   orderDate: Date;
   total: number;
   products: Product[];
+  logoUrl?: string;
 };
 
 export const OrderConfirmationEmail = ({
@@ -33,9 +34,10 @@ export const OrderConfirmationEmail = ({
   userName,
   orderDate,
   total,
-  products
+  products,
+  logoUrl = "https://i.ibb.co/GfTs981G/okto-new-logo-white.png"
 }: OrderConfirmationEmailProps) => {
-  const previewText = `Your VogueVerse Order #${orderId.slice(-6)} confirmed!`;
+  const previewText = `Your Order #${orderId.slice(-6)} confirmed!`;
   
   return (
     <Html>
@@ -44,7 +46,7 @@ export const OrderConfirmationEmail = ({
       <Body style={main}>
         <Container style={container}>
           <Section style={logoContainer}>
-            <Text style={logoText}>VogueVerse</Text>
+            <Img src={logoUrl} width="140" height="40" alt="Logo" style={logo} />
           </Section>
           <Heading style={h1}>Thanks for your order, {userName}!</Heading>
           <Text style={paragraph}>
@@ -87,7 +89,7 @@ export const OrderConfirmationEmail = ({
           </Section>
 
           <Text style={footer}>
-            VogueVerse, 123 Fashion Ave, Style City, 12345
+            123 Fashion Ave, Style City, 12345
           </Text>
         </Container>
       </Body>
@@ -118,10 +120,8 @@ const logoContainer = {
   borderBottom: "1px solid #eaeaea",
 };
 
-const logoText = {
-    fontSize: "24px",
-    fontWeight: "bold",
-    color: "#333"
+const logo = {
+    margin: "0 auto"
 }
 
 const h1 = {

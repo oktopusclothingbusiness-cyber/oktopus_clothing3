@@ -41,9 +41,9 @@ export function Header() {
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link href="/store" className="flex items-center gap-2 text-2xl font-bold font-serif">
           {logoUrl ? (
-            <Image src={logoUrl} alt="VogueVerse Logo" width={140} height={40} className="object-contain" priority />
+            <Image src={logoUrl} alt="Site Logo" width={140} height={40} className="object-contain" priority />
           ) : (
-            'VogueVerse'
+            <div className="h-10 w-36" />
           )}
         </Link>
         <nav className="hidden md:flex gap-6">

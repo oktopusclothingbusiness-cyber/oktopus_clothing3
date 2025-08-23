@@ -10,13 +10,15 @@ import {
   Section,
   Row,
   Column,
-  Button
+  Button,
+  Img,
 } from "@react-email/components";
 
 type OrderStatusUpdateEmailProps = {
   orderId: string;
   userName: string;
   orderStatus: string;
+  logoUrl?: string;
 };
 
 const statusDescriptions: Record<string, string> = {
@@ -33,8 +35,9 @@ export const OrderStatusUpdateEmail = ({
   orderId,
   userName,
   orderStatus,
+  logoUrl = "https://i.ibb.co/GfTs981G/okto-new-logo-white.png"
 }: OrderStatusUpdateEmailProps) => {
-  const previewText = `Your VogueVerse Order #${orderId.slice(-6)} has been updated.`;
+  const previewText = `Your Order #${orderId.slice(-6)} has been updated.`;
   const description = statusDescriptions[orderStatus] || `Your order status has been updated to: ${orderStatus}.`
 
   return (
@@ -44,7 +47,7 @@ export const OrderStatusUpdateEmail = ({
       <Body style={main}>
         <Container style={container}>
            <Section style={logoContainer}>
-            <Text style={logoText}>VogueVerse</Text>
+            <Img src={logoUrl} width="140" height="40" alt="Logo" style={logo} />
           </Section>
           <Heading style={h1}>Order Status: {orderStatus.charAt(0).toUpperCase() + orderStatus.slice(1)}</Heading>
           <Text style={paragraph}>
@@ -72,7 +75,7 @@ export const OrderStatusUpdateEmail = ({
           )}
 
           <Text style={footer}>
-            VogueVerse, 123 Fashion Ave, Style City, 12345
+            123 Fashion Ave, Style City, 12345
           </Text>
         </Container>
       </Body>
@@ -103,10 +106,8 @@ const logoContainer = {
   borderBottom: "1px solid #eaeaea",
 };
 
-const logoText = {
-    fontSize: "24px",
-    fontWeight: "bold",
-    color: "#333"
+const logo = {
+    margin: "0 auto"
 }
 
 const h1 = {
