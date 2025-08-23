@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Download, Trash2 } from 'lucide-react';
 
 type DesignStatus = 'pending' | 'approved' | 'rejected';
 
@@ -20,6 +22,9 @@ type CustomDesign = {
   userId: string;
   userName: string;
   designUrl: string;
+  tshirtColor: string;
+  tshirtSize: string;
+  printArea: { width: number; height: number };
   notes: string;
   status: DesignStatus;
   createdAt: string;
@@ -63,28 +68,29 @@ export default function CustomDesignsPage() {
         title: 'Status Updated',
         description: `Design status changed to ${status}.`,
      });
-    // try {
-    //   const response = await fetch(`/api/custom-designs/${designId}`, {
-    //     method: 'PUT',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ status }),
-    //   });
-    //   if (!response.ok) {
-    //     throw new Error('Failed to update design status');
-    //   }
-    //   toast({
-    //     title: 'Design Status Updated',
-    //     description: `Design has been marked as ${status}.`,
-    //   });
-    //   fetchDesigns();
-    // } catch (error) {
-    //   console.error(error);
-    //   toast({
-    //     title: 'Error',
-    //     description: 'Failed to update design status.',
-    //     variant: 'destructive',
-    //   });
-    // }
+  };
+
+  const handleDelete = async (designId: string) => {
+    try {
+        const response = await fetch(`/api/custom-designs/${designId}`, {
+            method: 'DELETE',
+        });
+        if (!response.ok) {
+            throw new Error('Failed to delete design');
+        }
+        setDesigns(prev => prev.filter(d => d._id !== designId));
+        toast({
+            title: 'Design Deleted',
+            description: 'The custom design request has been deleted.',
+        });
+    } catch (error) {
+        console.error(error);
+        toast({
+            title: 'Error',
+            description: 'Could not delete the design request.',
+            variant: 'destructive',
+        });
+    }
   };
 
   const getStatusVariant = (status: string) => {
@@ -117,9 +123,11 @@ export default function CustomDesignsPage() {
                 <TableRow>
                   <TableHead>Design</TableHead>
                   <TableHead>User</TableHead>
+                  <TableHead>Details</TableHead>
                   <TableHead>Submitted</TableHead>
                   <TableHead>Notes</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -129,8 +137,10 @@ export default function CustomDesignsPage() {
                       <TableCell><Skeleton className="h-10 w-16 rounded-md" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-48" /></TableCell>
-                       <TableCell><Skeleton className="h-8 w-28" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-28" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-20" /></TableCell>
                     </TableRow>
                   ))
                 ) : designs.length > 0 ? (
@@ -151,6 +161,13 @@ export default function CustomDesignsPage() {
                         </Dialog>
                       </TableCell>
                       <TableCell className="font-medium">{design.userName}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                           <div className="h-4 w-4 rounded-full border" style={{ backgroundColor: design.tshirtColor }}></div>
+                           <span>{design.tshirtSize}</span>
+                           <span>{design.printArea.width}"x{design.printArea.height}"</span>
+                        </div>
+                      </TableCell>
                       <TableCell>{format(new Date(design.createdAt), 'PP')}</TableCell>
                       <TableCell className="max-w-[200px] truncate">{design.notes || 'N/A'}</TableCell>
                       <TableCell>
@@ -172,11 +189,37 @@ export default function CustomDesignsPage() {
                           </SelectContent>
                         </Select>
                       </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" asChild>
+                            <a href={design.designUrl} download={`design-${design._id}.png`}>
+                                <Download className="h-4 w-4" />
+                            </a>
+                        </Button>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Design Request?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This will permanently delete the design request. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDelete(design._id)}>Delete</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center h-24">
+                    <TableCell colSpan={7} className="text-center h-24">
                       No custom designs submitted yet.
                     </TableCell>
                   </TableRow>

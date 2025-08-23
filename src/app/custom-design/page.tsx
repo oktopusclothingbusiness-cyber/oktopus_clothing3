@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { Loader2, Palette, Upload } from 'lucide-react';
+import { Loader2, Palette, Upload, Minus, Plus } from 'lucide-react';
 import { MobileHeader } from '@/components/mobile-header';
 import { MobileFooter } from '@/components/mobile-footer';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
+
+const tshirtColors = [
+  { name: 'White', value: '#FFFFFF' },
+  { name: 'Black', value: '#000000' },
+  { name: 'Navy', value: '#000080' },
+  { name: 'Gray', value: '#808080' },
+  { name: 'Red', value: '#FF0000' },
+  { name: 'Blue', value: '#0000FF' },
+];
+
+const tshirtSizes = ['S', 'M', 'L', 'XL', 'XXL'];
 
 export default function CustomDesignPage() {
   const { user, loading: authLoading } = useAuth();
@@ -20,6 +33,9 @@ export default function CustomDesignPage() {
   const { toast } = useToast();
   const [file, setFile] = React.useState<File | null>(null);
   const [notes, setNotes] = React.useState('');
+  const [tshirtColor, setTshirtColor] = React.useState('#FFFFFF');
+  const [tshirtSize, setTshirtSize] = React.useState('M');
+  const [printArea, setPrintArea] = React.useState({ width: 8, height: 10 });
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   React.useEffect(() => {
@@ -94,6 +110,9 @@ export default function CustomDesignPage() {
           userId: user._id,
           userName: `${user.firstName} ${user.lastName}`,
           designUrl: designDataUrl,
+          tshirtColor,
+          tshirtSize,
+          printArea,
           notes,
         }),
       });
@@ -153,11 +172,46 @@ export default function CustomDesignPage() {
                              <Upload className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         </div>
                         {file && <p className="text-sm text-muted-foreground">Selected: {file.name}</p>}
+                        <p className="text-xs text-muted-foreground">.png, .jpg, .psd accepted. Max 10MB.</p>
                     </div>
+
+                    <div className="space-y-2">
+                        <Label>T-Shirt Color</Label>
+                        <div className="flex flex-wrap gap-2">
+                            {tshirtColors.map(color => (
+                                <button key={color.name} type="button" onClick={() => setTshirtColor(color.value)} className={cn('h-8 w-8 rounded-full border-2', tshirtColor === color.value ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-gray-200')} style={{backgroundColor: color.value}} aria-label={color.name} />
+                            ))}
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                           <Label htmlFor="tshirt-size">T-Shirt Size</Label>
+                           <Select value={tshirtSize} onValueChange={setTshirtSize}>
+                               <SelectTrigger id="tshirt-size">
+                                   <SelectValue placeholder="Select size" />
+                               </SelectTrigger>
+                               <SelectContent>
+                                   {tshirtSizes.map(size => (
+                                       <SelectItem key={size} value={size}>{size}</SelectItem>
+                                   ))}
+                               </SelectContent>
+                           </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Print Area (inches)</Label>
+                            <div className="flex gap-2">
+                                <Input type="number" value={printArea.width} onChange={e => setPrintArea(p => ({...p, width: parseInt(e.target.value)}))} placeholder="W" />
+                                <Input type="number" value={printArea.height} onChange={e => setPrintArea(p => ({...p, height: parseInt(e.target.value)}))} placeholder="H" />
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="space-y-2">
                         <Label htmlFor="notes">Notes or Instructions</Label>
                         <Textarea id="notes" placeholder="Any specific instructions? e.g., 'Place this on the center of a black T-shirt.'" value={notes} onChange={e => setNotes(e.target.value)} />
                     </div>
+
                     <Button type="submit" className="w-full" size="lg" disabled={isSubmitting || !file}>
                         {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Submitting...</> : 'Submit for Approval'}
                     </Button>
