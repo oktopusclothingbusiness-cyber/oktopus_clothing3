@@ -20,7 +20,7 @@ export const MobileFooter = () => {
     ];
 
     return (
-        <footer className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-lg rounded-t-3xl border-t border-black/5">
+        <footer className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg rounded-t-3xl border-t border-black/5">
             <div className="flex justify-around items-center p-2">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href || (pathname.startsWith('/products') && item.href === '/products');

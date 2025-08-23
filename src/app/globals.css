@@ -60,6 +60,6 @@
 
 @layer components {
   .md\:hidden .card-glass {
-    @apply bg-white/60 backdrop-blur-lg border border-white/20;
+    @apply bg-white/80 backdrop-blur-lg border border-white/20;
   }
 }
