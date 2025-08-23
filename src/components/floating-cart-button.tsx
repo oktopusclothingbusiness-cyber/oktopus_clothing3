@@ -6,9 +6,10 @@ import { useCart } from '@/context/cart-context';
 import { Button } from './ui/button';
 import { ShoppingCart } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 export function FloatingCartButton() {
-  const { cart } = useCart();
+  const { cart, isAnimating } = useCart();
   const pathname = usePathname();
 
   const cartItemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
@@ -28,7 +29,7 @@ export function FloatingCartButton() {
   }
 
   return (
-    <div className="md:hidden fixed bottom-20 right-4 z-50">
+    <div className={cn("md:hidden fixed bottom-20 right-4 z-50", isAnimating && "animate-sparkle")}>
       <Button asChild size="icon" className="relative h-14 w-14 rounded-full shadow-lg">
         <Link href="/cart">
           <ShoppingCart className="h-6 w-6" />

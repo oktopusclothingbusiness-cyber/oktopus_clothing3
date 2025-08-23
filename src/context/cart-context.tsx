@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +21,7 @@ type CartContextType = {
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
+  isAnimating: boolean;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -27,6 +29,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const { toast } = useToast();
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const addToCart = (product: Product) => {
     setCart((prevCart) => {
@@ -42,6 +45,9 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       title: "Added to cart",
       description: `${product.name} has been added to your cart.`,
     });
+     // Trigger animation
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 1000); // Animation duration
   };
 
   const removeFromCart = (productId: string) => {
@@ -71,7 +77,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart }}>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, isAnimating }}>
       {children}
     </CartContext.Provider>
   );

@@ -14,12 +14,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
+import { useCart } from "@/context/cart-context";
 
 
 export default function ProductDetailPage() {
   const params = useParams();
   const { products, loading } = useProduct();
   const [product, setProduct] = React.useState<Product | null | undefined>(undefined);
+  const { addToCart } = useCart();
 
   React.useEffect(() => {
     if (!loading) {
@@ -158,7 +160,7 @@ export default function ProductDetailPage() {
                         </Select>
                       </div>
                     </div>
-                    <AddToCartButton product={product} className="w-full" size="lg" />
+                    {/* The AddToCartButton was here and is now removed for mobile view to rely on the floating cart button. */}
                 </div>
             </main>
             <MobileFooter/>

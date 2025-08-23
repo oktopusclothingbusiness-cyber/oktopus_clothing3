@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 const config = {
@@ -71,10 +72,16 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "sparkle": {
+          "0%": { transform: "scale(1)", boxShadow: "0 0 0 0 rgba(255, 255, 255, 0.7)" },
+          "50%": { transform: "scale(1.2)", boxShadow: "0 0 10px 15px rgba(255, 255, 255, 0)" },
+          "100%": { transform: "scale(1)", boxShadow: "0 0 0 0 rgba(255, 255, 255, 0)" },
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "sparkle": "sparkle 1s ease-in-out",
       },
     },
   },
