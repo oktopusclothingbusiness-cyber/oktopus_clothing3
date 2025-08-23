@@ -246,11 +246,6 @@ export default function OktopusStorePage() {
             </section>
             
             <section>
-                <div className="flex justify-end items-center mb-2">
-                    <Link href="/products" className="text-sm text-primary font-semibold flex items-center gap-1">
-                        See All
-                    </Link>
-                </div>
                 <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -ml-4 pl-4 space-x-4">
                     {loading ? Array.from({length: 4}).map((_, i) => (
                         <div key={i} className="snap-center flex-shrink-0 w-16 text-center">
