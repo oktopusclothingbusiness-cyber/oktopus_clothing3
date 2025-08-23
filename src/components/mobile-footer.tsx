@@ -5,16 +5,19 @@ import Link from "next/link";
 import { Home, Box, Heart, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/auth-context";
 
-const navItems = [
-    { href: '/store', icon: Home, label: 'Home' },
-    { href: '/orders', icon: Box, label: 'Orders' },
-    { href: '/favorites', icon: Heart, label: 'Favorites' },
-    { href: '/login', icon: User, label: 'Profile' },
-];
 
 export const MobileFooter = () => {
     const pathname = usePathname();
+    const { user } = useAuth();
+
+    const navItems = [
+        { href: '/store', icon: Home, label: 'Home' },
+        { href: '/orders', icon: Box, label: 'Orders' },
+        { href: '/favorites', icon: Heart, label: 'Favorites' },
+        { href: user ? '/profile' : '/login', icon: User, label: 'Profile' },
+    ];
 
     return (
         <footer className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.1)] rounded-t-3xl">
