@@ -15,6 +15,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
 import { useCart } from "@/context/cart-context";
+import { Star } from "lucide-react";
 
 
 export default function ProductDetailPage() {
@@ -79,8 +80,21 @@ export default function ProductDetailPage() {
               </div>
               <div className="space-y-6">
                 <h1 className="text-3xl lg:text-4xl font-bold">{product.name}</h1>
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                        {Array.from({length: 5}).map((_, i) => (
+                            <Star key={i} className={`h-5 w-5 ${i < Math.round(product.rating || 0) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
+                        ))}
+                    </div>
+                    <span className="text-muted-foreground">({product.rating?.toFixed(1)})</span>
+                </div>
                 <p className="text-muted-foreground">{product.description}</p>
-                <p className="text-3xl font-bold">₹{product.price.toFixed(2)}</p>
+                 <div className="flex items-baseline gap-2">
+                    <p className="text-3xl font-bold">₹{product.price.toFixed(2)}</p>
+                    {product.originalPrice && product.originalPrice > product.price && (
+                        <p className="text-xl text-muted-foreground line-through">₹{product.originalPrice.toFixed(2)}</p>
+                    )}
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium">Size</label>
@@ -134,7 +148,12 @@ export default function ProductDetailPage() {
                 </Carousel>
                 <div className="p-4 space-y-4">
                     <h1 className="text-2xl font-bold">{product.name}</h1>
-                    <p className="text-2xl font-bold">₹{product.price.toFixed(2)}</p>
+                    <div className="flex items-baseline gap-2">
+                        <p className="text-2xl font-bold">₹{product.price.toFixed(2)}</p>
+                         {product.originalPrice && product.originalPrice > product.price && (
+                            <p className="text-lg text-muted-foreground line-through">₹{product.originalPrice.toFixed(2)}</p>
+                        )}
+                    </div>
                     <p className="text-muted-foreground text-sm">{product.description}</p>
                      <div className="grid grid-cols-2 gap-4">
                       <div>

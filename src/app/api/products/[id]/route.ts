@@ -42,6 +42,10 @@ export async function PUT(request: Request, { params }: { params: { id: string }
             delete updateData.featured;
         }
 
+        if (updateData.originalPrice === '') {
+            updateData.originalPrice = undefined;
+        }
+
         const client = await clientPromise;
         const db = client.db();
 

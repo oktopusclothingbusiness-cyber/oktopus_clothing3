@@ -15,12 +15,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { useCategory, Category } from '@/context/category-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 
 const emptyProduct = {
     id: '',
     name: '',
     description: '',
     price: '',
+    originalPrice: '',
+    discountPercentage: 0,
+    rating: 4.5,
+    stock: 100,
     imageUrls: '',
     sizes: '',
     colors: '',
@@ -38,7 +43,8 @@ export default function AdminProductsPage() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const numValue = (name === 'price' || name === 'originalPrice' || name === 'discountPercentage' || name === 'rating' || name === 'stock') ? parseFloat(value) : value;
+        setFormData(prev => ({ ...prev, [name]: numValue }));
     };
 
     const handleCategoryChange = (value: string) => {
@@ -52,6 +58,10 @@ export default function AdminProductsPage() {
             name: product.name,
             description: product.description,
             price: product.price.toString(),
+            originalPrice: product.originalPrice?.toString() || '',
+            discountPercentage: product.discountPercentage || 0,
+            rating: product.rating || 4.5,
+            stock: product.stock || 100,
             imageUrls: product.imageUrls.join(', '),
             sizes: product.sizes.join(', '),
             colors: product.colors.join(', '),
@@ -70,6 +80,10 @@ export default function AdminProductsPage() {
                 name: formData.name,
                 description: formData.description,
                 price: parseFloat(formData.price),
+                originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
+                discountPercentage: formData.discountPercentage,
+                rating: formData.rating,
+                stock: formData.stock,
                 imageUrls: formData.imageUrls.split(',').map(url => url.trim()).filter(url => url),
                 category: formData.category,
                 sizes: formData.sizes.split(',').map(s => s.trim()).filter(s => s),
@@ -119,9 +133,25 @@ export default function AdminProductsPage() {
                   <Label htmlFor="description">Description</Label>
                   <Textarea id="description" name="description" value={formData.description} onChange={handleInputChange} placeholder="Product description" disabled={isSubmitting} />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price</Label>
-                  <Input id="price" name="price" type="number" value={formData.price} onChange={handleInputChange} placeholder="e.g., 40.00" required disabled={isSubmitting} />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Price (Final)</Label>
+                    <Input id="price" name="price" type="number" value={formData.price} onChange={handleInputChange} placeholder="e.g., 40.00" required disabled={isSubmitting} />
+                  </div>
+                   <div className="space-y-2">
+                    <Label htmlFor="originalPrice">Original Price</Label>
+                    <Input id="originalPrice" name="originalPrice" type="number" value={formData.originalPrice} onChange={handleInputChange} placeholder="e.g., 50.00" disabled={isSubmitting} />
+                  </div>
+                </div>
+                 <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="rating">Rating</Label>
+                    <Input id="rating" name="rating" type="number" min="0" max="5" step="0.1" value={formData.rating} onChange={handleInputChange} disabled={isSubmitting} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="stock">Stock</Label>
+                    <Input id="stock" name="stock" type="number" value={formData.stock} onChange={handleInputChange} disabled={isSubmitting} />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="imageUrls">Image URLs</Label>
@@ -205,7 +235,14 @@ export default function AdminProductsPage() {
                             <Image src={product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : 'https://placehold.co/40x40.png'} alt={product.name} width={40} height={40} className="rounded-md object-cover" />
                           </TableCell>
                           <TableCell className="font-medium">{product.name}</TableCell>
-                          <TableCell>₹{product.price.toFixed(2)}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                                <span className="font-bold">₹{product.price.toFixed(2)}</span>
+                                {product.originalPrice && (
+                                    <span className="text-xs text-muted-foreground line-through">₹{product.originalPrice.toFixed(2)}</span>
+                                )}
+                            </div>
+                          </TableCell>
                           <TableCell>
                                 <Button 
                                     variant={product.isHero ? "default" : "outline"} 

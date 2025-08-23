@@ -10,6 +10,10 @@ export type Product = {
   name: string;
   description: string;
   price: number;
+  originalPrice?: number;
+  discountPercentage?: number;
+  rating?: number;
+  stock?: number;
   imageUrls: string[];
   category: string;
   sizes: string[];

@@ -17,6 +17,8 @@ import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
 import { usePromotion } from "@/context/promotion-context";
 import { useCategory } from "@/context/category-context";
+import { format, addDays } from "date-fns";
+import * as React from "react";
 
 const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
     <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg mr-4 flex-shrink-0 bg-red-500 text-white p-6 flex flex-col justify-between">
@@ -46,6 +48,7 @@ export default function OktopusStorePage() {
   const { products, loading: productsLoading } = useProduct();
   const { promotions, loading: promotionsLoading } = usePromotion();
   const { categories, loading: categoriesLoading } = useCategory();
+  const [deliveryDate] = React.useState(format(addDays(new Date(), 5), 'MMM dd'));
 
   const featuredProducts = products.filter(p => p.featured).slice(0, 5);
   const flashSaleProducts = products.slice(0, 4);
@@ -293,22 +296,28 @@ export default function OktopusStorePage() {
                         </Card>
                     )) : flashSaleProducts.map(product => (
                         <Link href={`/products/${product.id}`} key={product.id}>
-                        <Card className="rounded-2xl overflow-hidden border-none shadow-sm bg-white">
+                        <Card className="rounded-2xl overflow-hidden border-none shadow-sm bg-white card-glass">
                             <div className="relative aspect-square">
                                 <Image src={product.imageUrls[0]} alt={product.name} layout="fill" objectFit="cover" data-ai-hint="product image" />
                                 <Button size="icon" variant="secondary" className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur-sm">
                                     <Heart className="h-4 w-4 text-gray-500" />
                                 </Button>
                             </div>
-                            <CardContent className="p-3">
+                            <CardContent className="p-3 space-y-1">
                                 <h3 className="text-sm font-semibold truncate">{product.name}</h3>
                                 <div className="flex items-center gap-1 text-xs mt-1">
                                     <Star className="w-3 h-3 text-yellow-400 fill-yellow-400"/>
-                                    <span className="font-bold">4.9</span>
+                                    <span className="font-bold">{product.rating?.toFixed(1)}</span>
                                     <span className="text-gray-400">|</span>
-                                    <span className="text-gray-400">2356 sold</span>
+                                    <span className="text-gray-400">{product.stock} sold</span>
                                 </div>
-                                <p className="text-md font-bold text-red-500 mt-1">₹{product.price.toFixed(2)}</p>
+                                <div className="flex items-baseline gap-1">
+                                    <p className="text-md font-bold text-primary mt-1">₹{product.price.toFixed(2)}</p>
+                                    {product.originalPrice && (
+                                        <p className="text-xs text-muted-foreground line-through">₹{product.originalPrice.toFixed(2)}</p>
+                                    )}
+                                </div>
+                                <p className="text-xs text-green-600">Get it by {deliveryDate}</p>
                             </CardContent>
                         </Card>
                         </Link>

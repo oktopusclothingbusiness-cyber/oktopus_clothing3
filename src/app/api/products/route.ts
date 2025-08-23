@@ -33,6 +33,8 @@ export async function POST(request: Request) {
       ...product,
       featured: product.featured || false, // Default featured to false
       isHero: product.isHero || false,
+      rating: product.rating || 4.5,
+      stock: product.stock || 100,
       createdAt: new Date(),
     });
 
