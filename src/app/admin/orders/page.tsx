@@ -8,6 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'packed' | 'shipped' | 'delivered' | 'paid';
 
 type Order = {
   _id: string;
@@ -20,7 +23,7 @@ type Order = {
     address: string;
     instructions: string;
   };
-  status: 'pending' | 'paid' | 'shipped' | 'delivered';
+  status: OrderStatus;
   createdAt: string;
 };
 
@@ -29,44 +32,78 @@ export default function OrdersPage() {
   const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
 
-  React.useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/orders');
-        if (!response.ok) {
-          throw new Error('Failed to fetch orders');
-        }
-        const data = await response.json();
-        setOrders(data);
-      } catch (error) {
-        console.error(error);
-        toast({
-          title: 'Error fetching orders',
-          description: 'Could not load orders from the database.',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
+  const fetchOrders = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/orders');
+      if (!response.ok) {
+        throw new Error('Failed to fetch orders');
       }
-    };
-    fetchOrders();
+      const data = await response.json();
+      setOrders(data);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Error fetching orders',
+        description: 'Could not load orders from the database.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   }, [toast]);
+
+  React.useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  const handleStatusChange = async (orderId: string, status: OrderStatus) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update order status');
+      }
+      toast({
+        title: 'Order Status Updated',
+        description: `Order has been marked as ${status}.`,
+      });
+      // Refresh orders
+      fetchOrders();
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update order status.',
+        variant: 'destructive',
+      });
+    }
+  };
+
 
   const getStatusVariant = (status: string) => {
     switch (status) {
       case 'paid':
+      case 'accepted':
+      case 'packed':
         return 'default';
       case 'pending':
         return 'secondary';
       case 'shipped':
         return 'outline';
       case 'delivered':
-        return 'destructive'; // Using destructive for visibility, can be changed
+        return 'default'; // Success state could be different
+      case 'rejected':
+        return 'destructive';
       default:
         return 'secondary';
     }
   };
+
+  const statusOptions: OrderStatus[] = ['pending', 'accepted', 'rejected', 'packed', 'shipped', 'delivered', 'paid'];
 
   return (
     <>
@@ -95,7 +132,7 @@ export default function OrdersPage() {
                     <TableRow key={index}>
                       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-28" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-48" /></TableCell>
@@ -107,7 +144,23 @@ export default function OrdersPage() {
                       <TableCell className="font-medium">{order.userName}</TableCell>
                       <TableCell>{format(new Date(order.createdAt), 'PPpp')}</TableCell>
                       <TableCell>
-                        <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
+                        <Select
+                          defaultValue={order.status}
+                          onValueChange={(value: OrderStatus) => handleStatusChange(order._id, value)}
+                        >
+                           <SelectTrigger className="w-[140px]">
+                              <SelectValue>
+                                 <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
+                              </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {statusOptions.map(status => (
+                                <SelectItem key={status} value={status}>
+                                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                                </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell>₹{order.total.toFixed(2)}</TableCell>
                       <TableCell>

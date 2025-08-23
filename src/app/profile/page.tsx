@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { Loader2, User as UserIcon, LogOut, ChevronRight, ShoppingBag, Heart, Edit } from 'lucide-react';
+import { Loader2, User as UserIcon, LogOut, ChevronRight, ShoppingBag, Heart, Edit, Truck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MobileHeader } from '@/components/mobile-header';
 import { MobileFooter } from '@/components/mobile-footer';
@@ -31,6 +31,7 @@ export default function ProfilePage() {
 
   const menuItems = [
     { label: 'My Orders', icon: ShoppingBag, href: '/orders' },
+    { label: 'Track Order', icon: Truck, href: '/track-order' },
     { label: 'Wishlist', icon: Heart, href: '/favorites' },
     { label: 'Edit Profile', icon: Edit, href: '/profile/edit' },
   ];

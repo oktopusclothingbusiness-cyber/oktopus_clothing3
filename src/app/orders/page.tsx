@@ -4,21 +4,23 @@
 import * as React from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { Loader2, Package } from 'lucide-react';
+import { Loader2, Package, CheckCircle, XCircle, Truck, PackageCheck, PackageOpen } from 'lucide-react';
 import { MobileHeader } from '@/components/mobile-header';
 import { MobileFooter } from '@/components/mobile-footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
+type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'packed' | 'shipped' | 'delivered' | 'paid';
+
 type Order = {
   _id: string;
   products: { name: string; quantity: number; price: number }[];
   total: number;
-  status: 'pending' | 'paid' | 'shipped' | 'delivered';
+  status: OrderStatus;
   createdAt: string;
 };
 
@@ -40,7 +42,6 @@ export default function OrdersPage() {
       if (user?._id) {
         try {
           setLoading(true);
-          // This endpoint needs to be created to fetch orders for a specific user
           const response = await fetch(`/api/users/${user._id}/orders`);
           if (!response.ok) {
             throw new Error('Failed to fetch orders');
@@ -65,18 +66,21 @@ export default function OrdersPage() {
    const getStatusVariant = (status: string) => {
     switch (status) {
       case 'paid':
+      case 'accepted':
+      case 'packed':
         return 'default';
       case 'pending':
         return 'secondary';
       case 'shipped':
         return 'outline';
       case 'delivered':
-        return 'destructive'; // Can be changed
+        return 'default'; 
+      case 'rejected':
+        return 'destructive';
       default:
         return 'secondary';
     }
   };
-
 
   if (authLoading || loading) {
     return (
@@ -116,6 +120,11 @@ export default function OrdersPage() {
                     <span>₹{order.total.toFixed(2)}</span>
                   </div>
                 </CardContent>
+                <CardFooter>
+                    <Button variant="outline" size="sm" className="w-full" asChild>
+                       <Link href={`/track-order/${order._id}`}>Track Order</Link>
+                    </Button>
+                </CardFooter>
               </Card>
             ))}
           </div>
