@@ -3,9 +3,11 @@ import { NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
 import shortid from 'shortid';
 
+// The Razorpay keys are now hardcoded.
+// Replace with your actual keys.
 const instance = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
+  key_id: "YOUR_RAZORPAY_KEY_ID_HERE",
+  key_secret: "YOUR_RAZORPAY_KEY_SECRET_HERE",
 });
 
 export async function POST(request: Request) {

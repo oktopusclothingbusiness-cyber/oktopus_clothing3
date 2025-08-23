@@ -1,14 +1,16 @@
 import { MongoClient } from 'mongodb'
 
-if (!process.env.MONGODB_URI) {
-  throw new Error('Invalid/Missing environment variable: "MONGODB_URI"')
-}
-
-const uri = process.env.MONGODB_URI
+// The MongoDB URI is now hardcoded.
+// Replace "YOUR_MONGODB_URI_HERE" with your actual connection string.
+const uri = "YOUR_MONGODB_URI_HERE"
 const options = {}
 
 let client
 let clientPromise: Promise<MongoClient>
+
+if (!uri) {
+  throw new Error('MongoDB URI is not set. Please hardcode it in src/lib/mongodb.ts')
+}
 
 if (process.env.NODE_ENV === 'development') {
   // In development mode, use a global variable so that the value

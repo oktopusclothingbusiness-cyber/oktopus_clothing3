@@ -25,6 +25,10 @@ declare global {
   }
 }
 
+// The Razorpay Key ID is now hardcoded.
+// Replace with your actual key ID.
+const RAZORPAY_KEY_ID = "YOUR_RAZORPAY_KEY_ID_HERE";
+
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, clearCart, subtotal, discount, total, applyCoupon } = useCart();
   const { toast } = useToast();
@@ -110,7 +114,7 @@ export default function CartPage() {
 
       // 3. Open Razorpay checkout
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: RAZORPAY_KEY_ID,
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
         name: 'VogueVerse',

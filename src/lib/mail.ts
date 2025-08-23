@@ -3,7 +3,9 @@ import { Resend } from 'resend';
 import { OrderConfirmationEmail } from '@/emails/order-confirmation';
 import { OrderStatusUpdateEmail } from '@/emails/order-status-update';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// The Resend API key is now hardcoded.
+// Replace "YOUR_RESEND_API_KEY_HERE" with your actual key.
+const resend = new Resend("YOUR_RESEND_API_KEY_HERE");
 const fromEmail = 'onboarding@resend.dev'; // Replace with your verified sending email
 
 type Product = {

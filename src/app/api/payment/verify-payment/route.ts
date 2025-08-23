@@ -4,6 +4,10 @@ import crypto from 'crypto';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
+// The Razorpay key secret is now hardcoded.
+// Replace with your actual key secret.
+const RAZORPAY_KEY_SECRET = "YOUR_RAZORPAY_KEY_SECRET_HERE";
+
 export async function POST(request: Request) {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, internal_order_id } = await request.json();
@@ -19,7 +23,7 @@ export async function POST(request: Request) {
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
     const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
+      .createHmac('sha256', RAZORPAY_KEY_SECRET)
       .update(body.toString())
       .digest('hex');
 
