@@ -5,7 +5,7 @@ import { OrderStatusUpdateEmail } from '@/emails/order-status-update';
 
 // The Resend API key is now hardcoded.
 // Replace "YOUR_RESEND_API_KEY_HERE" with your actual key.
-const resend = new Resend("YOUR_RESEND_API_KEY_HERE");
+const resend = new Resend("re_haiJpfjF_PLqntto3viosnCYENzo3GCKo");
 const fromEmail = 'onboarding@resend.dev'; // Replace with your verified sending email
 
 type Product = {

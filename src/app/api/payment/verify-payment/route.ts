@@ -6,7 +6,7 @@ import { ObjectId } from 'mongodb';
 
 // The Razorpay key secret is now hardcoded.
 // Replace with your actual key secret.
-const RAZORPAY_KEY_SECRET = "YOUR_RAZORPAY_KEY_SECRET_HERE";
+const RAZORPAY_KEY_SECRET = "ZNsWsHhF6S22LymgEQugNZZ4";
 
 export async function POST(request: Request) {
   try {

@@ -27,7 +27,7 @@ declare global {
 
 // The Razorpay Key ID is now hardcoded.
 // Replace with your actual key ID.
-const RAZORPAY_KEY_ID = "YOUR_RAZORPAY_KEY_ID_HERE";
+const RAZORPAY_KEY_ID = "rzp_test_R8uYO3NMQa71Id";
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, clearCart, subtotal, discount, total, applyCoupon } = useCart();
