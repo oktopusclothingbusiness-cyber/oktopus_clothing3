@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
@@ -10,6 +11,7 @@ import { PromotionProvider } from "@/context/promotion-context";
 import { CategoryProvider } from "@/context/category-context";
 import Script from "next/script";
 import { ThemeProvider } from "@/context/theme-provider";
+import { FloatingCartButton } from "@/components/floating-cart-button";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const poppins = Poppins({ 
@@ -44,6 +46,7 @@ export default function RootLayout({
                   <PromotionProvider>
                     <CartProvider>
                       {children}
+                      <FloatingCartButton />
                     </CartProvider>
                   </PromotionProvider>
                 </ProductProvider>

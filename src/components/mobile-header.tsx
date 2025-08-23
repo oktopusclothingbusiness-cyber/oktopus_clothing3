@@ -72,11 +72,7 @@ export const MobileHeader = ({ showCart = true, title }: MobileHeaderProps) => {
                         </div>
                     </div>
                 </Link>
-                <Button variant="ghost" size="icon" asChild>
-                    <Link href="/cart">
-                        <ShoppingCart className="h-6 w-6" />
-                    </Link>
-                </Button>
+                {/* The cart button was here, now removed. The new floating button will be used instead. */}
             </div>
             <div className="flex items-center gap-2">
                 <div className="relative flex-grow">
