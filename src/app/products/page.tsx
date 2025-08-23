@@ -14,21 +14,41 @@ import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
 import * as React from 'react';
 import { useSearchParams } from "next/navigation";
+import { useCategory } from "@/context/category-context";
 
 export default function ProductsPage() {
-  const { products, loading } = useProduct();
+  const { products, loading: productsLoading } = useProduct();
+  const { categories, loading: categoriesLoading } = useCategory();
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('q');
+  const categoryId = searchParams.get('category');
+
+  const loading = productsLoading || categoriesLoading;
+
+  const categoryName = React.useMemo(() => {
+    if (!categoryId || categoriesLoading) return '';
+    return categories.find(c => c.id === categoryId)?.name || '';
+  }, [categoryId, categories, categoriesLoading]);
   
   const filteredProducts = React.useMemo(() => {
-    if (!searchQuery) {
-        return products;
+    let tempProducts = products;
+    if (searchQuery) {
+        tempProducts = tempProducts.filter(product => 
+            product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            product.description.toLowerCase().includes(searchQuery.toLowerCase())
+        );
     }
-    return products.filter(product => 
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [products, searchQuery]);
+    if (categoryId) {
+        tempProducts = tempProducts.filter(product => product.category === categoryId);
+    }
+    return tempProducts;
+  }, [products, searchQuery, categoryId]);
+
+  const getPageTitle = () => {
+    if (searchQuery) return `Search results for "${searchQuery}"`;
+    if (categoryId) return categoryName || 'Category Products';
+    return 'All Products';
+  }
 
 
   return (
@@ -38,7 +58,7 @@ export default function ProductsPage() {
         <Header />
         <main className="flex-grow container mx-auto px-4 py-8">
           <h1 className="text-3xl font-bold mb-8">
-             {searchQuery ? `Search results for "${searchQuery}"` : 'All Products'}
+             {getPageTitle()}
           </h1>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {loading ? (
@@ -91,7 +111,7 @@ export default function ProductsPage() {
 
       {/* Mobile View */}
       <div className="md:hidden">
-        <MobileHeader showCart={false} title={searchQuery ? `Searching for "${searchQuery}"` : "All Products"} />
+        <MobileHeader showCart={false} title={getPageTitle()} />
         <main className="pb-24">
           <div className="grid grid-cols-2 gap-4 p-4">
             {loading ? (

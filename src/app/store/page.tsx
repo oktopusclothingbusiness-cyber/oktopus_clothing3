@@ -5,7 +5,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ShoppingCart, Heart, MapPin, Bell, Search, Settings2, Shirt, Radio, Watch, MessageCircle, User, Home, Star, Footprints } from "lucide-react";
+import { ArrowRight, ShoppingCart, Heart, MapPin, Bell, Search, Settings2, Shirt, Radio, Watch, MessageCircle, User, Home, Star, Footprints, Shapes } from "lucide-react";
 import { Header } from "@/components/header";
 import { OktopusFooter } from "@/components/oktopus-footer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
 import { usePromotion } from "@/context/promotion-context";
+import { useCategory } from "@/context/category-context";
 
 const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
     <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg mr-4 flex-shrink-0 bg-red-500 text-white p-6 flex flex-col justify-between">
@@ -44,12 +45,13 @@ const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
 export default function OktopusStorePage() {
   const { products, loading: productsLoading } = useProduct();
   const { promotions, loading: promotionsLoading } = usePromotion();
+  const { categories, loading: categoriesLoading } = useCategory();
 
   const featuredProducts = products.filter(p => p.featured).slice(0, 5);
   const flashSaleProducts = products.slice(0, 4);
 
   const activePromotions = promotions.filter(p => p.isActive);
-  const loading = productsLoading || promotionsLoading;
+  const loading = productsLoading || promotionsLoading || categoriesLoading;
 
   return (
     <>
@@ -243,6 +245,37 @@ export default function OktopusStorePage() {
                 </div>
             </section>
             
+            <section>
+                <div className="flex justify-between items-center mb-2">
+                    <h2 className="font-bold text-lg">Categories</h2>
+                    <Link href="/products" className="text-sm text-primary font-semibold flex items-center gap-1">
+                        See All
+                    </Link>
+                </div>
+                <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -ml-4 pl-4 space-x-4">
+                    {loading ? Array.from({length: 4}).map((_, i) => (
+                        <div key={i} className="snap-center flex-shrink-0 w-24">
+                            <Skeleton className="w-24 h-24 rounded-2xl" />
+                            <Skeleton className="h-4 w-16 mt-2 mx-auto" />
+                        </div>
+                    )) : categories.length > 0 ? (
+                        categories.map(category => (
+                            <Link href={`/products?category=${category.id}`} key={category.id} className="snap-center flex-shrink-0 w-24 text-center">
+                                <div className="w-24 h-24 rounded-2xl overflow-hidden bg-secondary">
+                                    <Image src={category.imageUrl} alt={category.name} width={96} height={96} className="object-cover w-full h-full" />
+                                </div>
+                                <p className="text-xs font-semibold mt-2 truncate">{category.name}</p>
+                            </Link>
+                        ))
+                    ) : (
+                        <div className="w-full text-center py-8">
+                             <Shapes className="h-8 w-8 text-muted-foreground mx-auto" />
+                             <p className="text-sm text-muted-foreground mt-2">No categories found.</p>
+                        </div>
+                    )}
+                </div>
+            </section>
+
             <section>
                  <div className="flex justify-between items-center mb-2">
                     <h2 className="font-bold text-lg">Flash Sale</h2>
