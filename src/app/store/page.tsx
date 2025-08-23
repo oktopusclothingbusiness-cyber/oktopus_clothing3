@@ -41,35 +41,6 @@ const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
     </div>
 )
 
-const CategoryPills = () => {
-    const categories = [
-        {name: 'T-shirt', icon: Shirt},
-        {name: 'Radio', icon: Radio},
-        {name: 'Shoes', icon: Footprints},
-        {name: 'Watch', icon: Watch},
-        {name: 'T-shirt', icon: Shirt},
-        {name: 'Radio', icon: Radio},
-    ];
-    return (
-        <div className="flex items-center gap-4 overflow-x-auto pb-2 -ml-4 pl-4">
-            <div className="flex flex-col items-center gap-2 flex-shrink-0">
-                <Button variant="secondary" size="icon" className="w-14 h-14 rounded-full bg-red-100 text-red-500">
-                    <Settings2/>
-                </Button>
-                <span className="text-xs font-semibold">All</span>
-            </div>
-            {categories.map((cat, index) => (
-                 <div key={index} className="flex flex-col items-center gap-2 flex-shrink-0">
-                    <Button variant="secondary" size="icon" className="w-14 h-14 rounded-full bg-gray-100 text-gray-500">
-                        <cat.icon/>
-                    </Button>
-                    <span className="text-xs font-semibold">{cat.name}</span>
-                </div>
-            ))}
-        </div>
-    )
-}
-
 export default function OktopusStorePage() {
   const { products, loading: productsLoading } = useProduct();
   const { promotions, loading: promotionsLoading } = usePromotion();
@@ -272,10 +243,6 @@ export default function OktopusStorePage() {
                 </div>
             </section>
             
-            <section>
-                <CategoryPills/>
-            </section>
-
             <section>
                  <div className="flex justify-between items-center mb-2">
                     <h2 className="font-bold text-lg">Flash Sale</h2>

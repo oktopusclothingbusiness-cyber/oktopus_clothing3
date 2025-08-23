@@ -7,6 +7,7 @@ import { ProductProvider } from "@/context/product-context";
 import { AuthProvider } from "@/context/auth-context";
 import { UserProvider } from "@/context/user-context";
 import { PromotionProvider } from "@/context/promotion-context";
+import { CategoryProvider } from "@/context/category-context";
 import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -31,13 +32,15 @@ export default function RootLayout({
       <body className={`${inter.variable} ${poppins.variable} font-sans`}>
         <AuthProvider>
           <UserProvider>
-            <ProductProvider>
-              <PromotionProvider>
-                <CartProvider>
-                  {children}
-                </CartProvider>
-              </PromotionProvider>
-            </ProductProvider>
+            <CategoryProvider>
+              <ProductProvider>
+                <PromotionProvider>
+                  <CartProvider>
+                    {children}
+                  </CartProvider>
+                </PromotionProvider>
+              </ProductProvider>
+            </CategoryProvider>
           </UserProvider>
         </AuthProvider>
         <Toaster />

@@ -13,6 +13,8 @@ import { Trash2, Edit, Loader2, PlusCircle } from 'lucide-react';
 import { useProduct, Product } from '@/context/product-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
+import { useCategory, Category } from '@/context/category-context';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const emptyProduct = {
     id: '',
@@ -28,6 +30,7 @@ const emptyProduct = {
 
 export default function AdminProductsPage() {
     const { products, addProduct, deleteProduct, updateProduct, loading } = useProduct();
+    const { categories, loading: categoriesLoading } = useCategory();
     const [formData, setFormData] = React.useState(emptyProduct);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isEditing, setIsEditing] = React.useState(false);
@@ -37,10 +40,9 @@ export default function AdminProductsPage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleCheckedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, checked } = e.target;
-        setFormData(prev => ({ ...prev, [name]: checked }));
-    }
+    const handleCategoryChange = (value: string) => {
+        setFormData(prev => ({ ...prev, category: value }));
+    };
     
     const handleEditClick = (product: Product) => {
         setIsEditing(true);
@@ -59,7 +61,7 @@ export default function AdminProductsPage() {
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (formData.name && formData.price && formData.imageUrls) {
+        if (formData.name && formData.price && formData.imageUrls && formData.category) {
             setIsSubmitting(true);
             
             const productData = {
@@ -67,7 +69,7 @@ export default function AdminProductsPage() {
                 description: formData.description,
                 price: parseFloat(formData.price),
                 imageUrls: formData.imageUrls.split(',').map(url => url.trim()).filter(url => url),
-                category: formData.category || 'New',
+                category: formData.category,
                 sizes: formData.sizes.split(',').map(s => s.trim()).filter(s => s),
                 colors: formData.colors.split(',').map(c => c.trim()).filter(c => c),
                 featured: formData.featured
@@ -122,6 +124,19 @@ export default function AdminProductsPage() {
                   <Label htmlFor="imageUrls">Image URLs</Label>
                   <Textarea id="imageUrls" name="imageUrls" value={formData.imageUrls} onChange={handleInputChange} placeholder="Comma-separated URLs" required disabled={isSubmitting} />
                   <p className="text-xs text-muted-foreground">Enter multiple image URLs separated by commas.</p>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="category">Category</Label>
+                    <Select onValueChange={handleCategoryChange} value={formData.category} disabled={isSubmitting || categoriesLoading}>
+                        <SelectTrigger id="category">
+                            <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {categories.map((cat) => (
+                                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
                   <div className="space-y-2">
                   <Label htmlFor="sizes">Sizes</Label>
