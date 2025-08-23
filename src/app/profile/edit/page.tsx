@@ -15,10 +15,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
 
 const formSchema = z.object({
   firstName: z.string().min(1, { message: 'First name is required.' }),
   lastName: z.string().min(1, { message: 'Last name is required.' }),
+  mobile: z.string().optional(),
+  address: z.string().optional(),
+  profilePictureUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
 });
 
 export default function EditProfilePage() {
@@ -31,6 +35,9 @@ export default function EditProfilePage() {
     defaultValues: {
       firstName: '',
       lastName: '',
+      mobile: '',
+      address: '',
+      profilePictureUrl: '',
     },
   });
 
@@ -42,6 +49,9 @@ export default function EditProfilePage() {
       form.reset({
         firstName: user.firstName,
         lastName: user.lastName,
+        mobile: user.mobile || '',
+        address: user.address || '',
+        profilePictureUrl: user.profilePictureUrl || '',
       });
     }
   }, [user, loading, router, form]);
@@ -118,6 +128,45 @@ export default function EditProfilePage() {
                       <FormLabel>Last Name</FormLabel>
                       <FormControl>
                         <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="mobile"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mobile Number</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., +1234567890" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Address</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Enter your full address" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="profilePictureUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Profile Picture URL</FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://example.com/image.png" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

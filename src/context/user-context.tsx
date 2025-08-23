@@ -12,6 +12,9 @@ export type User = {
   email: string;
   role: 'user' | 'admin';
   createdAt: string;
+  mobile?: string;
+  address?: string;
+  profilePictureUrl?: string;
 };
 
 type UserContextType = {

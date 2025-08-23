@@ -5,7 +5,7 @@ import * as React from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { Loader2, User as UserIcon, LogOut, ChevronRight, ShoppingBag, Heart, Edit } from 'lucide-react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MobileHeader } from '@/components/mobile-header';
 import { MobileFooter } from '@/components/mobile-footer';
 import Link from 'next/link';
@@ -45,6 +45,7 @@ export default function ProfilePage() {
       <main className="bg-secondary min-h-screen pb-24 p-4">
         <div className="flex items-center gap-4 mb-8">
           <Avatar className="h-16 w-16">
+            <AvatarImage src={user.profilePictureUrl} alt={`${user.firstName} ${user.lastName}`} />
             <AvatarFallback className="text-2xl">
                 {getInitials(user.firstName, user.lastName)}
             </AvatarFallback>

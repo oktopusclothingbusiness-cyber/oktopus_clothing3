@@ -12,6 +12,9 @@ type User = {
     lastName: string;
     email: string;
     role: 'user' | 'admin';
+    mobile?: string;
+    address?: string;
+    profilePictureUrl?: string;
 };
 
 type AuthContextType = {
