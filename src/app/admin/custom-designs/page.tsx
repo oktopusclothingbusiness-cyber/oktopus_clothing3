@@ -24,7 +24,7 @@ type CustomDesign = {
   designUrl: string;
   tshirtColor: string;
   tshirtSize: string;
-  printArea: { width: number; height: number };
+  printArea?: { width: number; height: number };
   notes: string;
   status: DesignStatus;
   createdAt: string;
@@ -165,7 +165,7 @@ export default function CustomDesignsPage() {
                         <div className="flex items-center gap-2">
                            <div className="h-4 w-4 rounded-full border" style={{ backgroundColor: design.tshirtColor }}></div>
                            <span>{design.tshirtSize}</span>
-                           <span>{design.printArea.width}"x{design.printArea.height}"</span>
+                           {design.printArea && <span>{design.printArea.width}"x{design.printArea.height}"</span>}
                         </div>
                       </TableCell>
                       <TableCell>{format(new Date(design.createdAt), 'PP')}</TableCell>
