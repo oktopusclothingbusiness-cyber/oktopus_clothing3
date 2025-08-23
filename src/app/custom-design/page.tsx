@@ -29,9 +29,39 @@ export default function CustomDesignPage() {
   }, [user, authLoading, router]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
+    const selectedFile = e.target.files?.[0];
+
+    if (!selectedFile) {
+        setFile(null);
+        return;
     }
+
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+    const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/vnd.adobe.photoshop'];
+
+    if (selectedFile.size > MAX_FILE_SIZE) {
+        toast({
+            title: 'File Too Large',
+            description: 'Please upload a file smaller than 10 MB.',
+            variant: 'destructive',
+        });
+        e.target.value = ''; // Reset the input
+        setFile(null);
+        return;
+    }
+
+    if (!ALLOWED_FILE_TYPES.includes(selectedFile.type)) {
+        toast({
+            title: 'Invalid File Type',
+            description: 'Please upload a .jpg, .jpeg, .png, or .psd file.',
+            variant: 'destructive',
+        });
+        e.target.value = ''; // Reset the input
+        setFile(null);
+        return;
+    }
+    
+    setFile(selectedFile);
   };
   
   const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
@@ -119,7 +149,7 @@ export default function CustomDesignPage() {
                     <div className="space-y-2">
                         <Label htmlFor="design-file">Design File</Label>
                         <div className="relative">
-                            <Input id="design-file" type="file" onChange={handleFileChange} accept="image/png, image/jpeg, image/svg+xml" className="pr-16" required/>
+                            <Input id="design-file" type="file" onChange={handleFileChange} accept="image/png, image/jpeg, image/vnd.adobe.photoshop" className="pr-16" required/>
                              <Upload className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         </div>
                         {file && <p className="text-sm text-muted-foreground">Selected: {file.name}</p>}
