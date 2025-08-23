@@ -12,9 +12,24 @@ import { useProduct } from "@/context/product-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
+import * as React from 'react';
+import { useSearchParams } from "next/navigation";
 
 export default function ProductsPage() {
   const { products, loading } = useProduct();
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get('q');
+  
+  const filteredProducts = React.useMemo(() => {
+    if (!searchQuery) {
+        return products;
+    }
+    return products.filter(product => 
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [products, searchQuery]);
+
 
   return (
     <>
@@ -22,7 +37,9 @@ export default function ProductsPage() {
       <div className="hidden md:flex flex-col min-h-screen">
         <Header />
         <main className="flex-grow container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold mb-8">All Products</h1>
+          <h1 className="text-3xl font-bold mb-8">
+             {searchQuery ? `Search results for "${searchQuery}"` : 'All Products'}
+          </h1>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {loading ? (
                Array.from({ length: 8 }).map((_, index) => (
@@ -39,8 +56,8 @@ export default function ProductsPage() {
                     </CardFooter>
                   </Card>
                 ))
-            ) : (
-              products.map((product) => (
+            ) : filteredProducts.length > 0 ? (
+              filteredProducts.map((product) => (
                 <Card key={product.id} className="overflow-hidden group">
                   <Link href={`/products/${product.id}`}>
                     <div className="relative aspect-[3/4]">
@@ -64,6 +81,8 @@ export default function ProductsPage() {
                   </CardFooter>
                 </Card>
               ))
+            ) : (
+                <p>No products found for your search.</p>
             )}
           </div>
         </main>
@@ -72,7 +91,7 @@ export default function ProductsPage() {
 
       {/* Mobile View */}
       <div className="md:hidden">
-        <MobileHeader showCart={false} title="All Products" />
+        <MobileHeader showCart={false} title={searchQuery ? `Searching for "${searchQuery}"` : "All Products"} />
         <main className="pb-24">
           <div className="grid grid-cols-2 gap-4 p-4">
             {loading ? (
@@ -85,8 +104,8 @@ export default function ProductsPage() {
                     </div>
                   </Card>
                 ))
-            ) : (
-              products.map((product) => (
+            ) : filteredProducts.length > 0 ? (
+              filteredProducts.map((product) => (
                 <Card key={product.id} className="overflow-hidden group rounded-lg">
                   <Link href={`/products/${product.id}`}>
                     <div className="relative aspect-[3/4]">
@@ -105,6 +124,8 @@ export default function ProductsPage() {
                   </Link>
                 </Card>
               ))
+            ) : (
+                 <p className="col-span-2 text-center">No products found.</p>
             )}
           </div>
         </main>

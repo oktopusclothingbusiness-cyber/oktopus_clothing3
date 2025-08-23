@@ -2,6 +2,7 @@
 'use client';
 
 import Link from "next/link";
+import * as React from 'react';
 import { Button } from "@/components/ui/button";
 import { Search, SlidersHorizontal, ShoppingCart, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,13 @@ type MobileHeaderProps = {
 export const MobileHeader = ({ showCart = true, title }: MobileHeaderProps) => {
     const { user } = useAuth();
     const router = useRouter();
+    const [searchQuery, setSearchQuery] = React.useState('');
+
+    const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && searchQuery.trim() !== '') {
+            router.push(`/products?q=${encodeURIComponent(searchQuery)}`);
+        }
+    }
 
     if (title) {
         return (
@@ -71,7 +79,13 @@ export const MobileHeader = ({ showCart = true, title }: MobileHeaderProps) => {
             <div className="flex items-center gap-2">
                 <div className="relative flex-grow">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input placeholder="What's on your list?" className="w-full rounded-full pl-10 bg-secondary border-none" />
+                    <Input 
+                        placeholder="What's on your list?" 
+                        className="w-full rounded-full pl-10 bg-secondary border-none" 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={handleSearch}
+                    />
                 </div>
                 <Button variant="outline" size="icon" className="bg-secondary border-none">
                     <SlidersHorizontal className="h-5 w-5 text-primary" />
