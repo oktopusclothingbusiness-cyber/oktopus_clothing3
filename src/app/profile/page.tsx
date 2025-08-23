@@ -4,12 +4,13 @@
 import * as React from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { Loader2, User as UserIcon, LogOut, ChevronRight, ShoppingBag, Heart, Edit, Truck } from 'lucide-react';
+import { Loader2, User as UserIcon, LogOut, ChevronRight, ShoppingBag, Heart, Edit, Truck, Moon } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MobileHeader } from '@/components/mobile-header';
 import { MobileFooter } from '@/components/mobile-footer';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function ProfilePage() {
   const { user, loading, logout } = useAuth();
@@ -57,7 +58,7 @@ export default function ProfilePage() {
           </div>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm">
+        <div className="bg-background rounded-lg shadow-sm">
           {menuItems.map((item, index) => (
             <Link href={item.href} key={item.label}>
               <div className={`flex items-center justify-between p-4 ${index < menuItems.length - 1 ? 'border-b' : ''}`}>
@@ -69,9 +70,16 @@ export default function ProfilePage() {
               </div>
             </Link>
           ))}
+           <div className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-4">
+                  <Moon className="h-5 w-5 text-muted-foreground" />
+                  <span className="font-medium">Dark Mode</span>
+                </div>
+                <ThemeToggle />
+            </div>
         </div>
         
-        <Button variant="outline" className="w-full mt-8 bg-white" onClick={logout}>
+        <Button variant="outline" className="w-full mt-8 bg-background" onClick={logout}>
           <LogOut className="mr-2 h-4 w-4" />
           Logout
         </Button>

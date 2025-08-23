@@ -8,6 +8,7 @@ import { useCart } from "@/context/cart-context";
 import { useAuth } from "@/context/auth-context";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ThemeToggle } from "./theme-toggle";
 
 export function Header() {
   const { cart } = useCart();
@@ -38,6 +39,7 @@ export function Header() {
           </Link>
         </nav>
         <div className="flex items-center gap-4">
+          <ThemeToggle />
            <Button asChild variant="ghost" size="icon">
             <Link href="/cart" className="relative">
               <ShoppingCart className="h-5 w-5" />
@@ -54,6 +56,7 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="secondary" size="icon" className="rounded-full">
                   <Avatar>
+                     <AvatarImage src={user.profilePictureUrl} />
                      <AvatarFallback>{getInitials(user.firstName, user.lastName)}</AvatarFallback>
                   </Avatar>
                   <span className="sr-only">Toggle user menu</span>

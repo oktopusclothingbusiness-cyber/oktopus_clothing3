@@ -9,6 +9,7 @@ import { UserProvider } from "@/context/user-context";
 import { PromotionProvider } from "@/context/promotion-context";
 import { CategoryProvider } from "@/context/category-context";
 import Script from "next/script";
+import { ThemeProvider } from "@/context/theme-provider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const poppins = Poppins({ 
@@ -30,24 +31,31 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${poppins.variable} font-sans`}>
-        <AuthProvider>
-          <UserProvider>
-            <CategoryProvider>
-              <ProductProvider>
-                <PromotionProvider>
-                  <CartProvider>
-                    {children}
-                  </CartProvider>
-                </PromotionProvider>
-              </ProductProvider>
-            </CategoryProvider>
-          </UserProvider>
-        </AuthProvider>
-        <Toaster />
-        <Script
-          id="razorpay-checkout-js"
-          src="https://checkout.razorpay.com/v1/checkout.js"
-        />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <UserProvider>
+              <CategoryProvider>
+                <ProductProvider>
+                  <PromotionProvider>
+                    <CartProvider>
+                      {children}
+                    </CartProvider>
+                  </PromotionProvider>
+                </ProductProvider>
+              </CategoryProvider>
+            </UserProvider>
+          </AuthProvider>
+          <Toaster />
+          <Script
+            id="razorpay-checkout-js"
+            src="https://checkout.razorpay.com/v1/checkout.js"
+          />
+        </ThemeProvider>
       </body>
     </html>
   );
