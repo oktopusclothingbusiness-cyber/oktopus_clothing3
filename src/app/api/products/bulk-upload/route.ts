@@ -3,9 +3,17 @@ import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
+type Category = {
+    _id: ObjectId;
+    id: string;
+    name: string;
+    imageUrl: string;
+}
+
 // Helper function to convert string values to the correct type
-const parseProduct = (item: any, categories: any[]) => {
-    const category = categories.find(c => c.name.toLowerCase() === item.category?.toLowerCase());
+const parseProduct = (item: any, categoryMap: Map<string, Category>) => {
+    const categoryName = item.category?.trim().toLowerCase();
+    const category = categoryMap.get(categoryName);
     return {
         name: item.name,
         description: item.description || '',
@@ -34,12 +42,40 @@ export async function POST(request: Request) {
 
         const client = await clientPromise;
         const db = client.db();
+        const categoriesCollection = db.collection('categories');
         
-        // Fetch categories to map names to IDs
-        const categories = await db.collection('categories').find({}).toArray();
-        const categoriesWithId = categories.map(c => ({ ...c, id: c._id.toString() }));
+        // Fetch existing categories and create a map for quick lookups
+        const existingCategories = await categoriesCollection.find({}).toArray();
+        const categoryMap = new Map<string, Category>();
+        existingCategories.forEach(c => {
+            categoryMap.set(c.name.toLowerCase(), { ...c, id: c._id.toString() } as Category);
+        });
 
-        const productsToInsert = productsData.map(item => parseProduct(item, categoriesWithId));
+        // Identify and create new categories
+        const newCategoryNames = new Set<string>();
+        productsData.forEach(item => {
+            const categoryName = item.category?.trim();
+            if (categoryName && !categoryMap.has(categoryName.toLowerCase())) {
+                newCategoryNames.add(categoryName);
+            }
+        });
+
+        if (newCategoryNames.size > 0) {
+            const newCategories = Array.from(newCategoryNames).map(name => ({
+                name: name,
+                imageUrl: 'https://placehold.co/400x400.png', // Default placeholder
+                createdAt: new Date()
+            }));
+            const result = await categoriesCollection.insertMany(newCategories);
+            // Add the newly created categories to our map
+            const insertedCategories = await categoriesCollection.find({ _id: { $in: Object.values(result.insertedIds) } }).toArray();
+            insertedCategories.forEach(c => {
+                 categoryMap.set(c.name.toLowerCase(), { ...c, id: c._id.toString() } as Category);
+            });
+        }
+
+
+        const productsToInsert = productsData.map(item => parseProduct(item, categoryMap));
 
         // Validate products
         const invalidProducts = productsToInsert.filter(p => !p.name || isNaN(p.price) || !p.category || p.imageUrls.length === 0);
