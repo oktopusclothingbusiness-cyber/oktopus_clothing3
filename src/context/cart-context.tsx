@@ -15,13 +15,15 @@ type Product = {
 
 type CartItem = Product & {
   quantity: number;
+  size: string;
+  color: string;
 };
 
 type CartContextType = {
   cart: CartItem[];
-  addToCart: (product: Product) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: Product, size: string, color: string) => void;
+  removeFromCart: (productId: string, size: string, color: string) => void;
+  updateQuantity: (productId: string, size: string, color: string, quantity: number) => void;
   clearCart: () => void;
   isAnimating: boolean;
   subtotal: number;
@@ -66,15 +68,15 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Product, size: string, color: string) => {
     setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === product.id);
+      const existingItem = prevCart.find((item) => item.id === product.id && item.size === size && item.color === color);
       if (existingItem) {
         return prevCart.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id && item.size === size && item.color === color ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      return [...prevCart, { ...product, quantity: 1 }];
+      return [...prevCart, { ...product, quantity: 1, size, color }];
     });
     toast({
       title: "Added to cart",
@@ -84,8 +86,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     setTimeout(() => setIsAnimating(false), 700);
   };
 
-  const removeFromCart = (productId: string) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
+  const removeFromCart = (productId: string, size: string, color: string) => {
+    setCart((prevCart) => prevCart.filter((item) => !(item.id === productId && item.size === size && item.color === color)));
      toast({
       title: "Removed from cart",
       description: `Item has been removed from your cart.`,
@@ -93,10 +95,10 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     });
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (productId: string, size: string, color: string, quantity: number) => {
     if (quantity > 0) {
       setCart((prevCart) =>
-        prevCart.map((item) => (item.id === productId ? { ...item, quantity } : item))
+        prevCart.map((item) => (item.id === productId && item.size === size && item.color === color ? { ...item, quantity } : item))
       );
     }
   };

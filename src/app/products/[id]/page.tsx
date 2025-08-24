@@ -8,14 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { AddToCartButton } from "@/components/add-to-cart-button";
 import { useProduct, Product } from "@/context/product-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
 import { useCart } from "@/context/cart-context";
-import { Star } from "lucide-react";
+import { Star, ShoppingCart } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 
 export default function ProductDetailPage() {
@@ -23,13 +23,37 @@ export default function ProductDetailPage() {
   const { products, loading } = useProduct();
   const [product, setProduct] = React.useState<Product | null | undefined>(undefined);
   const { addToCart } = useCart();
+  const { toast } = useToast();
+  
+  const [selectedSize, setSelectedSize] = React.useState<string>('');
+  const [selectedColor, setSelectedColor] = React.useState<string>('');
 
   React.useEffect(() => {
     if (!loading) {
       const foundProduct = products.find((p) => p.id === params.id);
       setProduct(foundProduct);
+      if (foundProduct?.sizes?.length > 0) {
+        setSelectedSize(foundProduct.sizes[0]);
+      }
+      if (foundProduct?.colors?.length > 0) {
+        setSelectedColor(foundProduct.colors[0]);
+      }
     }
   }, [params.id, products, loading]);
+
+  const handleAddToCart = () => {
+    if (product) {
+      if (!selectedSize && product.sizes.length > 0) {
+        toast({ title: 'Please select a size.', variant: 'destructive' });
+        return;
+      }
+      if (!selectedColor && product.colors.length > 0) {
+        toast({ title: 'Please select a color.', variant: 'destructive' });
+        return;
+      }
+      addToCart(product, selectedSize, selectedColor);
+    }
+  };
 
   if (loading || product === undefined) {
     return (
@@ -96,20 +120,23 @@ export default function ProductDetailPage() {
                     )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium">Size</label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {product.sizes.map(size => <SelectItem key={size} value={size}>{size}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {product.sizes.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium">Size</label>
+                      <Select value={selectedSize} onValueChange={setSelectedSize}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select size" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {product.sizes.map(size => <SelectItem key={size} value={size}>{size}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  {product.colors.length > 0 && (
                   <div>
                     <label className="text-sm font-medium">Color</label>
-                    <Select>
+                     <Select value={selectedColor} onValueChange={setSelectedColor}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select color" />
                       </SelectTrigger>
@@ -118,8 +145,11 @@ export default function ProductDetailPage() {
                       </SelectContent>
                     </Select>
                   </div>
+                  )}
                 </div>
-                <AddToCartButton product={product} className="w-full" size="lg" />
+                <Button onClick={handleAddToCart} className="w-full" size="lg">
+                    <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
+                </Button>
               </div>
             </div>
           </main>
@@ -156,30 +186,36 @@ export default function ProductDetailPage() {
                     </div>
                     <p className="text-muted-foreground text-sm">{product.description}</p>
                      <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-xs font-medium">Size</label>
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select size" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {product.sizes.map(size => <SelectItem key={size} value={size}>{size}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium">Color</label>
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select color" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {product.colors.map(color => <SelectItem key={color} value={color}>{color}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                       {product.sizes.length > 0 && (
+                        <div>
+                          <label className="text-xs font-medium">Size</label>
+                          <Select value={selectedSize} onValueChange={setSelectedSize}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select size" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {product.sizes.map(size => <SelectItem key={size} value={size}>{size}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                       )}
+                       {product.colors.length > 0 && (
+                        <div>
+                          <label className="text-xs font-medium">Color</label>
+                          <Select value={selectedColor} onValueChange={setSelectedColor}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select color" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {product.colors.map(color => <SelectItem key={color} value={color}>{color}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                       )}
                     </div>
-                    <AddToCartButton product={product} className="w-full" size="lg" />
+                    <Button onClick={handleAddToCart} className="w-full" size="lg">
+                        <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
+                    </Button>
                 </div>
             </main>
             <MobileFooter/>

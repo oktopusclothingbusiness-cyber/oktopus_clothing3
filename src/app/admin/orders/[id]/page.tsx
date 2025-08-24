@@ -14,11 +14,19 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'packed' | 'shipped' | 'delivered';
 
+type OrderProduct = {
+  name: string;
+  quantity: number;
+  price: number;
+  size: string;
+  color: string;
+}
+
 type Order = {
   _id: string;
   userId: string;
   userName: string;
-  products: { name: string; quantity: number; price: number }[];
+  products: OrderProduct[];
   total: number;
   shippingAddress: {
     mobile: string;
@@ -130,6 +138,7 @@ export default function OrderDetailsPage() {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Product</TableHead>
+                                        <TableHead>Details</TableHead>
                                         <TableHead>Quantity</TableHead>
                                         <TableHead>Price</TableHead>
                                         <TableHead className="text-right">Total</TableHead>
@@ -139,6 +148,10 @@ export default function OrderDetailsPage() {
                                     {order.products.map((item, index) => (
                                         <TableRow key={index}>
                                             <TableCell className="font-medium">{item.name}</TableCell>
+                                            <TableCell className="text-sm text-muted-foreground">
+                                                <div>Size: {item.size}</div>
+                                                <div>Color: {item.color}</div>
+                                            </TableCell>
                                             <TableCell>{item.quantity}</TableCell>
                                             <TableCell>₹{item.price.toFixed(2)}</TableCell>
                                             <TableCell className="text-right">₹{(item.price * item.quantity).toFixed(2)}</TableCell>
@@ -172,7 +185,7 @@ export default function OrderDetailsPage() {
                         <CardContent className="space-y-1">
                             <p>{order.shippingAddress.address}</p>
                             <p>Mobile: {order.shippingAddress.mobile}</p>
-                            {order.shippingAddress.instructions && <p className="text-sm text-muted-foreground">Notes: {order.shippingAddress.instructions}</p>}
+                            {order.shippingAddress.instructions && <p className="text-sm text-muted-foreground pt-2"><strong>Instructions:</strong> {order.shippingAddress.instructions}</p>}
                         </CardContent>
                     </Card>
                      <Card>

@@ -25,8 +25,6 @@ declare global {
   }
 }
 
-// The Razorpay Key ID is now hardcoded.
-// Replace with your actual key ID.
 const RAZORPAY_KEY_ID = "rzp_test_R8uYO3NMQa71Id";
 
 export default function CartPage() {
@@ -83,7 +81,9 @@ export default function CartPage() {
             productId: item.id,
             name: item.name,
             quantity: item.quantity,
-            price: item.price
+            price: item.price,
+            size: item.size,
+            color: item.color
         }));
 
         const internalOrderResponse = await fetch('/api/orders', {
@@ -205,25 +205,26 @@ export default function CartPage() {
             <div className="grid md:grid-cols-3 gap-8">
               <div className="md:col-span-2 space-y-4">
                 {cart.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={`${item.id}-${item.size}-${item.color}`} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-4">
                       <Image src={item.imageUrls[0]} alt={item.name} width={80} height={80} className="rounded-md" />
                       <div>
                         <h2 className="font-semibold">{item.name}</h2>
+                        <p className="text-sm text-muted-foreground">Size: {item.size}, Color: {item.color}</p>
                         <p className="text-muted-foreground">₹{item.price.toFixed(2)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" onClick={() => updateQuantity(item.id, item.quantity - 1)} disabled={item.quantity <= 1}>
+                        <Button variant="outline" size="icon" onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity - 1)} disabled={item.quantity <= 1}>
                           <Minus className="h-4 w-4" />
                         </Button>
                         <span>{item.quantity}</span>
-                        <Button variant="outline" size="icon" onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+                        <Button variant="outline" size="icon" onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity + 1)}>
                           <Plus className="h-4 w-4" />
                         </Button>
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)}>
+                      <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id, item.size, item.color)}>
                         <Trash2 className="h-5 w-5 text-destructive" />
                       </Button>
                     </div>
@@ -322,22 +323,23 @@ export default function CartPage() {
           ) : (
             <div className="p-4 space-y-4">
               {cart.map((item) => (
-                <div key={item.id} className="flex items-start gap-4 p-4 card-glass rounded-lg shadow-sm">
+                <div key={`${item.id}-${item.size}-${item.color}`} className="flex items-start gap-4 p-4 card-glass rounded-lg shadow-sm">
                   <Image src={item.imageUrls[0]} alt={item.name} width={80} height={80} className="rounded-md" />
                   <div className="flex-grow">
                     <h2 className="font-semibold text-sm">{item.name}</h2>
+                    <p className="text-xs text-muted-foreground">Size: {item.size}, Color: {item.color}</p>
                     <p className="text-primary font-bold text-md">₹{item.price.toFixed(2)}</p>
                     <div className="flex items-center gap-2 mt-2">
-                      <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.quantity - 1)} disabled={item.quantity <= 1}>
+                      <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity - 1)} disabled={item.quantity <= 1}>
                         <Minus className="h-3 w-3" />
                       </Button>
                       <span className="text-sm">{item.quantity}</span>
-                      <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+                      <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity + 1)}>
                         <Plus className="h-3 w-3" />
                       </Button>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeFromCart(item.id)}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeFromCart(item.id, item.size, item.color)}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>
