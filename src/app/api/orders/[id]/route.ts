@@ -65,7 +65,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     
     const user = await db.collection('users').findOne({ _id: new ObjectId(updatedOrder.userId) });
 
-    if(user && status === 'accepted') {
+    if(user) {
         await sendOrderStatusUpdateEmail({
             to: user.email,
             orderId: updatedOrder._id.toString(),
