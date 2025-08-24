@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import Image from 'next/image';
-import { Trash2, Edit, Loader2, PlusCircle, Star, Upload, FileDown } from 'lucide-react';
+import { Trash2, Edit, Loader2, PlusCircle, Star, Upload, FileDown, Search } from 'lucide-react';
 import { useProduct, Product } from '@/context/product-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
@@ -43,7 +43,15 @@ export default function AdminProductsPage() {
     const [isEditing, setIsEditing] = React.useState(false);
     const [bulkFile, setBulkFile] = React.useState<File | null>(null);
     const [isUploading, setIsUploading] = React.useState(false);
+    const [searchTerm, setSearchTerm] = React.useState('');
     const { toast } = useToast();
+    
+    const filteredProducts = React.useMemo(() => {
+        if (!searchTerm) return products;
+        return products.filter(product =>
+            product.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [products, searchTerm]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -274,9 +282,20 @@ export default function AdminProductsPage() {
       </div>
         
       <Card>
-        <CardHeader>
-          <CardTitle>Manage Products</CardTitle>
-          <CardDescription>View, edit, or delete your existing products.</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+                <CardTitle>Manage Products</CardTitle>
+                <CardDescription>View, edit, or delete your existing products.</CardDescription>
+            </div>
+            <div className="relative w-full max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder="Search products..."
+                    className="pl-9"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
         </CardHeader>
         <CardContent>
           <div className="border rounded-lg overflow-hidden">
@@ -303,8 +322,8 @@ export default function AdminProductsPage() {
                         <TableCell className="text-right"><Skeleton className="h-8 w-20" /></TableCell>
                       </TableRow>
                   ))
-                ) : products.length > 0 ? (
-                  products.map((product) => (
+                ) : filteredProducts.length > 0 ? (
+                  filteredProducts.map((product) => (
                     <TableRow key={product.id}>
                       <TableCell>
                         <Image src={product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : 'https://placehold.co/40x40.png'} alt={product.name} width={40} height={40} className="rounded-md object-cover" />
@@ -331,7 +350,7 @@ export default function AdminProductsPage() {
                        </TableCell>
                        <TableCell>
                             <Switch
-                                checked={product.featured}
+                                checked={!!product.featured}
                                 onCheckedChange={() => handleFeatureToggle(product)}
                                 aria-label="Toggle featured status"
                             />
@@ -351,10 +370,11 @@ export default function AdminProductsPage() {
                     <TableCell colSpan={6} className="text-center h-24">
                       <div className="flex flex-col items-center gap-2">
                           <p>No products found.</p>
-                          <Button variant="outline" size="sm" onClick={() => document.getElementById('name')?.focus()}>
-                              <PlusCircle className="mr-2 h-4 w-4" />
-                              Add New Product
-                          </Button>
+                          {searchTerm && (
+                             <Button variant="outline" size="sm" onClick={() => setSearchTerm('')}>
+                                Clear Search
+                            </Button>
+                          )}
                       </div>
                     </TableCell>
                   </TableRow>
