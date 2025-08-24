@@ -22,18 +22,6 @@ type OrderConfirmationProps = {
   products: Product[];
 };
 
-const getLogoUrl = async () => {
-    try {
-        const client = await clientPromise;
-        const db = client.db();
-        const settings = await db.collection('settings').findOne({ _id: 'global' });
-        return settings?.logoUrl || "https://i.ibb.co/GfTs981G/okto-new-logo-white.png";
-    } catch (error) {
-        console.error("Failed to fetch logo for email:", error);
-        return "https://i.ibb.co/GfTs981G/okto-new-logo-white.png";
-    }
-}
-
 export const sendOrderConfirmationEmail = async ({
   to,
   orderId,
@@ -43,12 +31,11 @@ export const sendOrderConfirmationEmail = async ({
   products
 }: OrderConfirmationProps) => {
   try {
-    const logoUrl = await getLogoUrl();
     await resend.emails.send({
       from: fromEmail,
       to: to,
       subject: `Order Confirmation #${orderId.slice(-6)}`,
-      react: OrderConfirmationEmail({ orderId, userName, orderDate, total, products, logoUrl }),
+      react: OrderConfirmationEmail({ orderId, userName, orderDate, total, products }),
     });
     console.log(`Order confirmation email sent to ${to}`);
   } catch (error) {
@@ -71,12 +58,11 @@ export const sendOrderStatusUpdateEmail = async ({
     userName,
 }: OrderStatusUpdateProps) => {
     try {
-        const logoUrl = await getLogoUrl();
         await resend.emails.send({
             from: fromEmail,
             to: to,
             subject: `Your Order #${orderId.slice(-6)} has been ${orderStatus}`,
-            react: OrderStatusUpdateEmail({ orderId, orderStatus, userName, logoUrl })
+            react: OrderStatusUpdateEmail({ orderId, orderStatus, userName })
         });
          console.log(`Order status update email sent to ${to}`);
     } catch (error) {

@@ -18,7 +18,6 @@ type OrderStatusUpdateEmailProps = {
   orderId: string;
   userName: string;
   orderStatus: string;
-  logoUrl?: string;
 };
 
 const statusDescriptions: Record<string, string> = {
@@ -35,10 +34,10 @@ export const OrderStatusUpdateEmail = ({
   orderId,
   userName,
   orderStatus,
-  logoUrl = "https://i.ibb.co/GfTs981G/okto-new-logo-white.png"
 }: OrderStatusUpdateEmailProps) => {
   const previewText = `Your Order #${orderId.slice(-6)} has been updated.`;
   const description = statusDescriptions[orderStatus] || `Your order status has been updated to: ${orderStatus}.`
+  const logoUrl = "https://i.ibb.co/GfTs981G/okto-new-logo-white.png";
 
   return (
     <Html>

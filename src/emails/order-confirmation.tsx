@@ -26,7 +26,6 @@ type OrderConfirmationEmailProps = {
   orderDate: Date;
   total: number;
   products: Product[];
-  logoUrl?: string;
 };
 
 export const OrderConfirmationEmail = ({
@@ -35,9 +34,9 @@ export const OrderConfirmationEmail = ({
   orderDate,
   total,
   products,
-  logoUrl = "https://i.ibb.co/GfTs981G/okto-new-logo-white.png"
 }: OrderConfirmationEmailProps) => {
   const previewText = `Your Order #${orderId.slice(-6)} confirmed!`;
+  const logoUrl = "https://i.ibb.co/GfTs981G/okto-new-logo-white.png";
   
   return (
     <Html>
