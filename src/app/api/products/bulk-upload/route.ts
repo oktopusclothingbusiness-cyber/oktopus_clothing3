@@ -67,9 +67,13 @@ export async function POST(request: Request) {
                 createdAt: new Date()
             }));
             const result = await categoriesCollection.insertMany(newCategories);
+            
+            // Query the newly inserted categories to get their full documents including the _id
+            const insertedIds = Object.values(result.insertedIds);
+            const newlyCreatedCategories = await categoriesCollection.find({ _id: { $in: insertedIds } }).toArray();
+
             // Add the newly created categories to our map
-            const insertedCategories = await categoriesCollection.find({ _id: { $in: Object.values(result.insertedIds) } }).toArray();
-            insertedCategories.forEach(c => {
+            newlyCreatedCategories.forEach(c => {
                  categoryMap.set(c.name.toLowerCase(), { ...c, id: c._id.toString() } as Category);
             });
         }
