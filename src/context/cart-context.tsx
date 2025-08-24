@@ -47,19 +47,29 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   const discount = useMemo(() => {
     if (!appliedCoupon) return 0;
-    return subtotal * (appliedCoupon.discountPercentage / 100);
+
+    if (appliedCoupon.discountType === 'percentage') {
+        return subtotal * (appliedCoupon.discountValue / 100);
+    } else if (appliedCoupon.discountType === 'flat') {
+        return appliedCoupon.discountValue;
+    }
+    return 0;
   }, [subtotal, appliedCoupon]);
 
   const total = useMemo(() => {
-    return subtotal - discount;
+    return Math.max(0, subtotal - discount);
   }, [subtotal, discount]);
 
 
   const applyCoupon = async (code: string) => {
     const coupon = coupons.find(c => c.code.toUpperCase() === code.toUpperCase() && c.isActive);
     if(coupon) {
+      if (subtotal < coupon.minimumAmount) {
+        toast({ title: "Cannot Apply Coupon", description: `You need to spend at least ₹${coupon.minimumAmount} to use this coupon.`, variant: 'destructive'});
+        return false;
+      }
       setAppliedCoupon(coupon);
-      toast({ title: "Coupon Applied", description: `You've got a ${coupon.discountPercentage}% discount!` });
+      toast({ title: "Coupon Applied", description: `The coupon ${coupon.code} has been applied!` });
       return true;
     } else {
       toast({ title: "Invalid Coupon", description: "The coupon code is invalid or has expired.", variant: 'destructive'});

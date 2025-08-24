@@ -13,13 +13,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
-const emptyCoupon = {
-    id: '',
+const emptyCoupon: Omit<Coupon, '_id' | 'id' | 'createdAt'> = {
     code: '',
-    discountPercentage: 0,
+    discountValue: 0,
     isActive: true,
+    offerType: 'public',
+    minimumAmount: 0,
+    discountType: 'percentage',
 };
+
 
 export default function AdminCouponsPage() {
     const { coupons, addCoupon, deleteCoupon, updateCoupon, loading } = useCoupon();
@@ -32,7 +36,7 @@ export default function AdminCouponsPage() {
         if (type === 'checkbox') {
           setFormData(prev => ({ ...prev, [name]: checked }));
         } else if (type === 'number') {
-            setFormData(prev => ({ ...prev, [name]: parseInt(value, 10) }));
+            setFormData(prev => ({ ...prev, [name]: parseFloat(value) }));
         }
         else {
            setFormData(prev => ({ ...prev, [name]: value.toUpperCase() }));
@@ -44,20 +48,26 @@ export default function AdminCouponsPage() {
         setFormData({
             id: coupon.id,
             code: coupon.code,
-            discountPercentage: coupon.discountPercentage,
+            discountValue: coupon.discountValue,
             isActive: coupon.isActive,
+            offerType: coupon.offerType || 'public',
+            minimumAmount: coupon.minimumAmount || 0,
+            discountType: coupon.discountType || 'percentage',
         });
     };
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (formData.code && formData.discountPercentage > 0) {
+        if (formData.code && formData.discountValue > 0) {
             setIsSubmitting(true);
             
             const couponData = {
                 code: formData.code,
-                discountPercentage: formData.discountPercentage,
-                isActive: formData.isActive
+                discountValue: formData.discountValue,
+                isActive: formData.isActive,
+                offerType: formData.offerType,
+                minimumAmount: formData.minimumAmount,
+                discountType: formData.discountType,
             };
 
             if (isEditing) {
@@ -98,9 +108,53 @@ export default function AdminCouponsPage() {
                   <Input id="code" name="code" value={formData.code} onChange={handleInputChange} placeholder="e.g., SUMMER20" required disabled={isSubmitting} />
                 </div>
                  <div className="space-y-2">
-                  <Label htmlFor="discountPercentage">Discount Percentage (%)</Label>
-                  <Input id="discountPercentage" name="discountPercentage" type="number" min="1" max="100" value={formData.discountPercentage} onChange={handleInputChange} placeholder="e.g., 20" required disabled={isSubmitting} />
+                    <Label>Offer Type</Label>
+                    <RadioGroup
+                        name="offerType"
+                        value={formData.offerType}
+                        onValueChange={(value: 'public' | 'secret') => setFormData(prev => ({...prev, offerType: value}))}
+                        className="flex gap-4"
+                    >
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="public" id="public" />
+                            <Label htmlFor="public">Public</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="secret" id="secret" />
+                            <Label htmlFor="secret">Secret</Label>
+                        </div>
+                    </RadioGroup>
                 </div>
+
+                <div className="space-y-2">
+                    <Label>Discount Type</Label>
+                    <RadioGroup
+                        name="discountType"
+                        value={formData.discountType}
+                        onValueChange={(value: 'percentage' | 'flat') => setFormData(prev => ({...prev, discountType: value}))}
+                        className="flex gap-4"
+                    >
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="percentage" id="percentage" />
+                            <Label htmlFor="percentage">Percentage (%)</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="flat" id="flat" />
+                            <Label htmlFor="flat">Flat Amount (₹)</Label>
+                        </div>
+                    </RadioGroup>
+                </div>
+
+                 <div className="space-y-2">
+                  <Label htmlFor="discountValue">Discount Value</Label>
+                  <Input id="discountValue" name="discountValue" type="number" min="0" value={formData.discountValue} onChange={handleInputChange} placeholder={formData.discountType === 'percentage' ? "e.g., 20" : "e.g., 500"} required disabled={isSubmitting} />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="minimumAmount">Minimum Cart Amount (₹)</Label>
+                  <Input id="minimumAmount" name="minimumAmount" type="number" min="0" value={formData.minimumAmount} onChange={handleInputChange} placeholder="e.g., 1000" disabled={isSubmitting} />
+                </div>
+
                  <div className="flex items-center space-x-2">
                     <Switch id="isActive" name="isActive" checked={formData.isActive} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))} disabled={isSubmitting} />
                     <Label htmlFor="isActive">Active</Label>
@@ -130,6 +184,7 @@ export default function AdminCouponsPage() {
                     <TableRow>
                       <TableHead>Code</TableHead>
                       <TableHead>Discount</TableHead>
+                      <TableHead>Min. Amount</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Created</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -141,6 +196,7 @@ export default function AdminCouponsPage() {
                           <TableRow key={index}>
                             <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                             <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                             <TableCell><Skeleton className="h-6 w-12" /></TableCell>
                              <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                             <TableCell className="text-right"><Skeleton className="h-8 w-20" /></TableCell>
@@ -150,7 +206,8 @@ export default function AdminCouponsPage() {
                       coupons.map((coupon) => (
                         <TableRow key={coupon.id}>
                           <TableCell className="font-medium font-mono"><Badge variant="outline">{coupon.code}</Badge></TableCell>
-                          <TableCell>{coupon.discountPercentage}%</TableCell>
+                          <TableCell>{coupon.discountType === 'percentage' ? `${coupon.discountValue}%` : `₹${coupon.discountValue}`}</TableCell>
+                           <TableCell>₹{coupon.minimumAmount}</TableCell>
                            <TableCell>
                                 <Switch
                                     checked={coupon.isActive}
@@ -171,7 +228,7 @@ export default function AdminCouponsPage() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center h-24">
+                        <TableCell colSpan={6} className="text-center h-24">
                           <div className="flex flex-col items-center gap-2">
                               <Ticket className="h-8 w-8 text-muted-foreground" />
                               <p>No coupons found.</p>

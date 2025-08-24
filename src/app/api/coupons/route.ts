@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   try {
     const coupon = await request.json();
     
-    if (!coupon.code || !coupon.discountPercentage) {
+    if (!coupon.code || !coupon.discountValue || !coupon.discountType) {
       return NextResponse.json({ message: 'Missing required fields.' }, { status: 400 });
     }
 
@@ -36,6 +36,8 @@ export async function POST(request: Request) {
       ...coupon,
       code: coupon.code.toUpperCase(),
       isActive: coupon.isActive ?? true,
+      offerType: coupon.offerType || 'public',
+      minimumAmount: coupon.minimumAmount || 0,
       createdAt: new Date(),
     });
 

@@ -8,7 +8,10 @@ export type Coupon = {
   _id: string;
   id: string;
   code: string;
-  discountPercentage: number;
+  discountValue: number;
+  discountType: 'percentage' | 'flat';
+  minimumAmount: number;
+  offerType: 'public' | 'secret';
   isActive: boolean;
   createdAt: string;
 };
