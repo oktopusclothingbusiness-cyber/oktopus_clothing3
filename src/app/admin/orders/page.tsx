@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import Link from 'next/link';
 
 type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'packed' | 'shipped' | 'delivered';
 
@@ -186,7 +187,11 @@ export default function OrdersPage() {
                 ) : orders.length > 0 ? (
                   orders.map((order) => (
                     <TableRow key={order._id}>
-                      <TableCell className="font-mono text-xs">#{order._id.slice(-6)}</TableCell>
+                      <TableCell>
+                        <Link href={`/admin/orders/${order._id}`} className="font-mono text-xs hover:underline">
+                          #{order._id.slice(-6)}
+                        </Link>
+                      </TableCell>
                       <TableCell className="font-medium">{order.userName}</TableCell>
                       <TableCell>{format(new Date(order.createdAt), 'PPpp')}</TableCell>
                       <TableCell>
