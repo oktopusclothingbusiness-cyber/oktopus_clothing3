@@ -17,6 +17,7 @@ import { useSearchParams } from "next/navigation";
 import { useCategory } from "@/context/category-context";
 import { Star } from "lucide-react";
 import { format, addDays } from "date-fns";
+import { ProductCard } from "@/components/product-card";
 
 export default function ProductsPage() {
   const { products, loading: productsLoading } = useProduct();
@@ -24,7 +25,6 @@ export default function ProductsPage() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('q');
   const categoryId = searchParams.get('category');
-  const [deliveryDate] = React.useState(format(addDays(new Date(), 5), 'MMM dd'));
 
   const loading = productsLoading || categoriesLoading;
 
@@ -81,42 +81,7 @@ export default function ProductsPage() {
                 ))
             ) : filteredProducts.length > 0 ? (
               filteredProducts.map((product) => (
-                <Card key={product.id} className="overflow-hidden group">
-                  <Link href={`/products/${product.id}`}>
-                    <div className="relative aspect-[3/4]">
-                      <Image
-                        src={product.imageUrls[0]}
-                        alt={product.name}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        data-ai-hint="clothing item"
-                      />
-                    </div>
-                    <CardHeader>
-                      <CardTitle className="truncate">{product.name}</CardTitle>
-                    </CardHeader>
-                  </Link>
-                  <CardContent className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-0.5">
-                        {Array.from({length: 5}).map((_, i) => (
-                          <Star key={i} className={`h-4 w-4 ${i < Math.round(product.rating || 0) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
-                        ))}
-                      </div>
-                       <span className="text-xs text-muted-foreground">({product.rating?.toFixed(1)})</span>
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                       <p className="text-lg font-semibold">₹{product.price.toFixed(2)}</p>
-                       {product.originalPrice && product.originalPrice > product.price && (
-                          <p className="text-sm text-muted-foreground line-through">₹{product.originalPrice.toFixed(2)}</p>
-                       )}
-                    </div>
-                     <p className="text-xs text-green-600">Get it by {deliveryDate}</p>
-                  </CardContent>
-                  <CardFooter>
-                    <AddToCartButton product={product} />
-                  </CardFooter>
-                </Card>
+                <ProductCard key={product.id} product={product} />
               ))
             ) : (
                 <p>No products found for your search.</p>
@@ -143,29 +108,7 @@ export default function ProductsPage() {
                 ))
             ) : filteredProducts.length > 0 ? (
               filteredProducts.map((product) => (
-                <Card key={product.id} className="overflow-hidden group rounded-lg card-glass">
-                  <Link href={`/products/${product.id}`}>
-                    <div className="relative aspect-[3/4]">
-                      <Image
-                        src={product.imageUrls[0]}
-                        alt={product.name}
-                        fill
-                        className="object-cover"
-                        data-ai-hint="clothing item"
-                      />
-                    </div>
-                    <div className="p-2 space-y-1">
-                      <h3 className="truncate text-sm font-semibold">{product.name}</h3>
-                      <div className="flex items-baseline gap-1">
-                        <p className="text-sm font-bold">₹{product.price.toFixed(2)}</p>
-                        {product.originalPrice && product.originalPrice > product.price && (
-                            <p className="text-xs text-muted-foreground line-through">₹{product.originalPrice.toFixed(2)}</p>
-                        )}
-                      </div>
-                       <p className="text-xs text-green-600">Get it by {deliveryDate}</p>
-                    </div>
-                  </Link>
-                </Card>
+                <ProductCard key={product.id} product={product} isMobile={true} />
               ))
             ) : (
                  <p className="col-span-2 text-center">No products found.</p>
