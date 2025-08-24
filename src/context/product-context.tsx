@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 export type Product = {
@@ -31,6 +31,7 @@ type ProductContextType = {
   updateProduct: (product: Product | (Omit<Product, '_id'> & { _id?: string })) => Promise<void>;
   setHeroProduct: (productId: string) => Promise<void>;
   loading: boolean;
+  fetchProducts: () => Promise<void>;
 };
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
@@ -40,7 +41,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/products');
@@ -60,11 +61,11 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
   const addProduct = async (product: AddProduct) => {
      try {
@@ -167,7 +168,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <ProductContext.Provider value={{ products, addProduct, deleteProduct, updateProduct, setHeroProduct, loading }}>
+    <ProductContext.Provider value={{ products, addProduct, deleteProduct, updateProduct, setHeroProduct, loading, fetchProducts }}>
       {children}
     </ProductContext.Provider>
   );

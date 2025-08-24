@@ -9,13 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import Image from 'next/image';
-import { Trash2, Edit, Loader2, PlusCircle, Star } from 'lucide-react';
+import { Trash2, Edit, Loader2, PlusCircle, Star, Upload, FileDown } from 'lucide-react';
 import { useProduct, Product } from '@/context/product-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { useCategory, Category } from '@/context/category-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import * as XLSX from 'xlsx';
 
 const emptyProduct = {
     id: '',
@@ -35,11 +36,14 @@ const emptyProduct = {
 };
 
 export default function AdminProductsPage() {
-    const { products, addProduct, deleteProduct, updateProduct, setHeroProduct, loading } = useProduct();
+    const { products, addProduct, deleteProduct, updateProduct, setHeroProduct, loading, fetchProducts } = useProduct();
     const { categories, loading: categoriesLoading } = useCategory();
     const [formData, setFormData] = React.useState(emptyProduct);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isEditing, setIsEditing] = React.useState(false);
+    const [bulkFile, setBulkFile] = React.useState<File | null>(null);
+    const [isUploading, setIsUploading] = React.useState(false);
+    const { toast } = useToast();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -112,11 +116,58 @@ export default function AdminProductsPage() {
         setFormData(emptyProduct);
         setIsEditing(false);
     }
+    
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setBulkFile(e.target.files[0]);
+        }
+    };
+
+    const handleBulkUpload = async () => {
+        if (!bulkFile) {
+            toast({ title: 'No file selected', description: 'Please select an Excel file to upload.', variant: 'destructive' });
+            return;
+        }
+
+        setIsUploading(true);
+
+        try {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const data = e.target?.result;
+                const workbook = XLSX.read(data, { type: 'binary' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet);
+
+                const response = await fetch('/api/products/bulk-upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(json),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Bulk upload failed');
+                }
+                
+                toast({ title: 'Success', description: 'Products have been uploaded successfully.' });
+                await fetchProducts(); // Refresh products list
+                setBulkFile(null); 
+            };
+            reader.readAsBinaryString(bulkFile);
+
+        } catch (error: any) {
+            toast({ title: 'Upload Error', description: error.message, variant: 'destructive' });
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
   return (
     <>
       <h1 className="text-3xl font-bold mb-8">Product Management</h1>
-      <div className="grid md:grid-cols-3 gap-8">
+      <div className="grid md:grid-cols-3 gap-8 mb-8">
         <div className="md:col-span-1">
           <Card>
             <CardHeader>
@@ -198,99 +249,121 @@ export default function AdminProductsPage() {
           </Card>
         </div>
         <div className="md:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Manage Products</CardTitle>
-              <CardDescription>View, edit, or delete your existing products.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="border rounded-lg overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Image</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Hero</TableHead>
-                      <TableHead>Featured</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {loading ? (
-                      Array.from({ length: 5 }).map((_, index) => (
-                          <TableRow key={index}>
-                            <TableCell><Skeleton className="h-10 w-10 rounded-md" /></TableCell>
-                            <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                            <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                            <TableCell><Skeleton className="h-8 w-12" /></TableCell>
-                            <TableCell><Skeleton className="h-6 w-12" /></TableCell>
-                            <TableCell className="text-right"><Skeleton className="h-8 w-20" /></TableCell>
-                          </TableRow>
-                      ))
-                    ) : products.length > 0 ? (
-                      products.map((product) => (
-                        <TableRow key={product.id}>
-                          <TableCell>
-                            <Image src={product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : 'https://placehold.co/40x40.png'} alt={product.name} width={40} height={40} className="rounded-md object-cover" />
-                          </TableCell>
-                          <TableCell className="font-medium">{product.name}</TableCell>
-                          <TableCell>
-                            <div className="flex flex-col">
-                                <span className="font-bold">₹{product.price.toFixed(2)}</span>
-                                {product.originalPrice && (
-                                    <span className="text-xs text-muted-foreground line-through">₹{product.originalPrice.toFixed(2)}</span>
-                                )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                                <Button 
-                                    variant={product.isHero ? "default" : "outline"} 
-                                    size="sm" 
-                                    onClick={() => setHeroProduct(product.id)}
-                                    disabled={product.isHero}
-                                >
-                                    <Star className="mr-2 h-4 w-4" />
-                                    {product.isHero ? "Hero" : "Set Hero"}
-                                </Button>
-                           </TableCell>
-                           <TableCell>
-                                <Switch
-                                    checked={product.featured}
-                                    onCheckedChange={() => handleFeatureToggle(product)}
-                                    aria-label="Toggle featured status"
-                                />
-                           </TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" className="mr-2" onClick={() => handleEditClick(product)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => deleteProduct(product.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center h-24">
-                          <div className="flex flex-col items-center gap-2">
-                              <p>No products found.</p>
-                              <Button variant="outline" size="sm" onClick={() => document.getElementById('name')?.focus()}>
-                                  <PlusCircle className="mr-2 h-4 w-4" />
-                                  Add New Product
-                              </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Bulk Product Upload</CardTitle>
+                    <CardDescription>Upload multiple products at once using an Excel file.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="bulk-upload">Excel File (.xlsx)</Label>
+                        <Input id="bulk-upload" type="file" accept=".xlsx" onChange={handleFileChange} />
+                    </div>
+                     <a href="/sample-products.xlsx" download className="text-sm text-primary hover:underline flex items-center gap-2">
+                        <FileDown className="h-4 w-4" />
+                        Download Sample Template
+                    </a>
+                </CardContent>
+                <CardFooter>
+                    <Button onClick={handleBulkUpload} disabled={isUploading || !bulkFile}>
+                        {isUploading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading...</> : <><Upload className="mr-2 h-4 w-4"/>Upload Products</>}
+                    </Button>
+                </CardFooter>
+            </Card>
         </div>
       </div>
+        
+      <Card>
+        <CardHeader>
+          <CardTitle>Manage Products</CardTitle>
+          <CardDescription>View, edit, or delete your existing products.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="border rounded-lg overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Image</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead>Hero</TableHead>
+                  <TableHead>Featured</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, index) => (
+                      <TableRow key={index}>
+                        <TableCell><Skeleton className="h-10 w-10 rounded-md" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                        <TableCell><Skeleton className="h-8 w-12" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-12" /></TableCell>
+                        <TableCell className="text-right"><Skeleton className="h-8 w-20" /></TableCell>
+                      </TableRow>
+                  ))
+                ) : products.length > 0 ? (
+                  products.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell>
+                        <Image src={product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : 'https://placehold.co/40x40.png'} alt={product.name} width={40} height={40} className="rounded-md object-cover" />
+                      </TableCell>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                            <span className="font-bold">₹{product.price.toFixed(2)}</span>
+                            {product.originalPrice && (
+                                <span className="text-xs text-muted-foreground line-through">₹{product.originalPrice.toFixed(2)}</span>
+                            )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                            <Button 
+                                variant={product.isHero ? "default" : "outline"} 
+                                size="sm" 
+                                onClick={() => setHeroProduct(product.id)}
+                                disabled={product.isHero}
+                            >
+                                <Star className="mr-2 h-4 w-4" />
+                                {product.isHero ? "Hero" : "Set Hero"}
+                            </Button>
+                       </TableCell>
+                       <TableCell>
+                            <Switch
+                                checked={product.featured}
+                                onCheckedChange={() => handleFeatureToggle(product)}
+                                aria-label="Toggle featured status"
+                            />
+                       </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" className="mr-2" onClick={() => handleEditClick(product)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => deleteProduct(product.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center h-24">
+                      <div className="flex flex-col items-center gap-2">
+                          <p>No products found.</p>
+                          <Button variant="outline" size="sm" onClick={() => document.getElementById('name')?.focus()}>
+                              <PlusCircle className="mr-2 h-4 w-4" />
+                              Add New Product
+                          </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </>
   );
 }
