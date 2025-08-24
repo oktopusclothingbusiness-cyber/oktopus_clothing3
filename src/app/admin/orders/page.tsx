@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'packed' | 'shipped' | 'delivered' | 'paid';
+type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'packed' | 'shipped' | 'delivered';
 
 type Order = {
   _id: string;
@@ -25,7 +25,10 @@ type Order = {
   };
   status: OrderStatus;
   createdAt: string;
-  paymentDetails: { razorpay_payment_id?: string };
+  paymentDetails: { 
+    razorpay_payment_id?: string;
+    paymentStatus?: 'paid' | 'pending' 
+  };
 };
 
 export default function OrdersPage() {
@@ -87,7 +90,6 @@ export default function OrdersPage() {
 
   const getStatusVariant = (status: string) => {
     switch (status) {
-      case 'paid':
       case 'accepted':
       case 'packed':
         return 'default';
@@ -153,7 +155,6 @@ export default function OrdersPage() {
                         <Select
                           defaultValue={order.status}
                           onValueChange={(value: OrderStatus) => handleStatusChange(order._id, value)}
-                          disabled={order.status === 'paid'}
                         >
                            <SelectTrigger className="w-[140px]">
                               <SelectValue>
@@ -170,7 +171,7 @@ export default function OrdersPage() {
                         </Select>
                       </TableCell>
                       <TableCell>
-                        {order.status === 'paid' ? (
+                        {order.paymentDetails?.paymentStatus === 'paid' ? (
                             <Badge variant="default">Paid</Badge>
                         ) : (
                             <Badge variant="secondary">Pending</Badge>

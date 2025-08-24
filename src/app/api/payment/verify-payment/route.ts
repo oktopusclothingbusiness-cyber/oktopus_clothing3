@@ -38,12 +38,12 @@ export async function POST(request: Request) {
         { _id: new ObjectId(internal_order_id) },
         { 
           $set: { 
-            status: 'paid',
             paymentDetails: {
               razorpay_order_id,
               razorpay_payment_id,
               razorpay_signature,
-              verifiedAt: new Date()
+              verifiedAt: new Date(),
+              paymentStatus: 'paid'
             }
           }
         }
