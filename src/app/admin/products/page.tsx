@@ -148,7 +148,7 @@ export default function AdminProductsPage() {
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(errorData.message || 'Bulk upload failed');
+                    throw new Error(errorData.message + (errorData.details ? ` Details: ${errorData.details}` : ''));
                 }
                 
                 toast({ title: 'Success', description: 'Products have been uploaded successfully.' });
@@ -158,7 +158,7 @@ export default function AdminProductsPage() {
             reader.readAsBinaryString(bulkFile);
 
         } catch (error: any) {
-            toast({ title: 'Upload Error', description: error.message, variant: 'destructive' });
+            toast({ title: 'Upload Error', description: error.message, variant: 'destructive', duration: 10000 });
         } finally {
             setIsUploading(false);
         }
@@ -252,11 +252,11 @@ export default function AdminProductsPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Bulk Product Upload</CardTitle>
-                    <CardDescription>Upload multiple products at once using an Excel file.</CardDescription>
+                    <CardDescription>Upload multiple products at once using an Excel or CSV file.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="bulk-upload">Excel File (.xlsx)</Label>
+                        <Label htmlFor="bulk-upload">Excel/CSV File (.xlsx, .csv)</Label>
                         <Input id="bulk-upload" type="file" accept=".xlsx,.csv" onChange={handleFileChange} />
                     </div>
                      <a href="/sample-products.csv" download className="text-sm text-primary hover:underline flex items-center gap-2">
