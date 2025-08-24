@@ -19,7 +19,8 @@ import { Star } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { ProductCard } from "@/components/product-card";
 
-export default function ProductsPage() {
+
+function ProductListComponent() {
   const { products, loading: productsLoading } = useProduct();
   const { categories, loading: categoriesLoading } = useCategory();
   const searchParams = useSearchParams();
@@ -53,9 +54,8 @@ export default function ProductsPage() {
     return 'All Products';
   }
 
-
   return (
-    <>
+     <>
       {/* Desktop View */}
       <div className="hidden md:flex flex-col min-h-screen">
         <Header />
@@ -118,5 +118,13 @@ export default function ProductsPage() {
         <MobileFooter />
       </div>
     </>
+  )
+}
+
+export default function ProductsPage() {
+  return (
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <ProductListComponent />
+    </React.Suspense>
   );
 }
