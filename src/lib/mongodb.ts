@@ -1,11 +1,13 @@
 
 import { MongoClient } from 'mongodb'
 
-if (!process.env.MONGODB_URI) {
-  throw new Error('Invalid/Missing environment variable: "MONGODB_URI"')
+// IMPORTANT: Replace this with your actual MongoDB connection string.
+const uri = "mongodb+srv://<user>:<password>@<cluster-url>/<database-name>?retryWrites=true&w=majority";
+
+if (!uri) {
+  throw new Error('MongoDB connection string is missing.')
 }
 
-const uri = process.env.MONGODB_URI
 const options = {}
 
 let client
