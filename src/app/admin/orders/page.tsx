@@ -104,7 +104,7 @@ export default function OrdersPage() {
     }
   };
 
-  const statusOptions: OrderStatus[] = ['pending', 'accepted', 'rejected', 'packed', 'shipped', 'delivered', 'paid'];
+  const statusOptions: OrderStatus[] = ['pending', 'accepted', 'rejected', 'packed', 'shipped', 'delivered'];
 
   return (
     <>
@@ -153,6 +153,7 @@ export default function OrdersPage() {
                         <Select
                           defaultValue={order.status}
                           onValueChange={(value: OrderStatus) => handleStatusChange(order._id, value)}
+                          disabled={order.status === 'paid'}
                         >
                            <SelectTrigger className="w-[140px]">
                               <SelectValue>
