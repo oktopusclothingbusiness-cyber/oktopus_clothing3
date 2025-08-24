@@ -2,7 +2,7 @@
 import { MongoClient } from 'mongodb'
 
 // IMPORTANT: Replace this with your actual MongoDB connection string.
-const uri = "mongodb+srv://<user>:<password>@<cluster-url>/<database-name>?retryWrites=true&w=majority";
+const uri = "mongodb+srv://rbaskeyofficial:rbaskeyofficial@cluster0.lnstw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 if (!uri) {
   throw new Error('MongoDB connection string is missing.')
