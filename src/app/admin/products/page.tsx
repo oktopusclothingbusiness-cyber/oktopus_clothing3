@@ -49,8 +49,10 @@ export default function AdminProductsPage() {
     
     const filteredProducts = React.useMemo(() => {
         if (!searchTerm) return products;
+        const lowercasedTerm = searchTerm.toLowerCase();
         return products.filter(product =>
-            product.name.toLowerCase().includes(searchTerm.toLowerCase())
+            product.name.toLowerCase().includes(lowercasedTerm) ||
+            product.id.toLowerCase().includes(lowercasedTerm)
         );
     }, [products, searchTerm]);
 
@@ -291,7 +293,7 @@ export default function AdminProductsPage() {
             <div className="relative w-full max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                    placeholder="Search products..."
+                    placeholder="Search products by name or ID..."
                     className="pl-9"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
