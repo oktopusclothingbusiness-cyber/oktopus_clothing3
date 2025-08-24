@@ -257,11 +257,11 @@ export default function AdminProductsPage() {
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="bulk-upload">Excel File (.xlsx)</Label>
-                        <Input id="bulk-upload" type="file" accept=".xlsx" onChange={handleFileChange} />
+                        <Input id="bulk-upload" type="file" accept=".xlsx,.csv" onChange={handleFileChange} />
                     </div>
-                     <a href="/sample-products.xlsx" download className="text-sm text-primary hover:underline flex items-center gap-2">
+                     <a href="/sample-products.csv" download className="text-sm text-primary hover:underline flex items-center gap-2">
                         <FileDown className="h-4 w-4" />
-                        Download Sample Template
+                        Download CSV Template
                     </a>
                 </CardContent>
                 <CardFooter>

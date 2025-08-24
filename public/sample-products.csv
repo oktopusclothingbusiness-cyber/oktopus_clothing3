@@ -1,0 +1,4 @@
+name,description,price,originalPrice,discountPercentage,rating,stock,imageUrls,category,sizes,colors,featured,isHero
+"Classic Crewneck T-Shirt","A timeless white t-shirt made from 100% premium cotton. Soft, durable, and perfect for everyday wear.",1299,1499,13,4.7,150,"https://placehold.co/600x800.png,https://placehold.co/600x800.png",T-Shirts,"S,M,L,XL",White,TRUE,FALSE
+"Vintage Graphic Tee","A comfortable black tee featuring a retro-inspired graphic. Made from a soft cotton blend for a worn-in feel.",1599,,0,4.9,80,"https://placehold.co/600x800.png",T-Shirts,"M,L,XL","Black,Washed Grey",TRUE,TRUE
+"Men's V-Neck Tee","A versatile navy blue v-neck t-shirt. Perfect for layering or wearing on its own.",1399,1599,12,4.6,120,"https://placehold.co/600x800.png",T-Shirts,"S,M,L",Navy,FALSE,FALSE
