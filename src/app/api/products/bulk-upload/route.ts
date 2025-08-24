@@ -62,20 +62,19 @@ export async function POST(request: Request) {
 
         if (newCategoryNames.size > 0) {
             const newCategories = Array.from(newCategoryNames).map(name => ({
+                _id: new ObjectId(),
                 name: name,
                 imageUrl: 'https://placehold.co/400x400.png', // Default placeholder
                 createdAt: new Date()
             }));
-            const result = await categoriesCollection.insertMany(newCategories);
             
-            // Query the newly inserted categories to get their full documents including the _id
-            const insertedIds = Object.values(result.insertedIds);
-            const newlyCreatedCategories = await categoriesCollection.find({ _id: { $in: insertedIds } }).toArray();
-
-            // Add the newly created categories to our map
-            newlyCreatedCategories.forEach(c => {
-                 categoryMap.set(c.name.toLowerCase(), { ...c, id: c._id.toString() } as Category);
-            });
+            if (newCategories.length > 0) {
+                await categoriesCollection.insertMany(newCategories);
+                 // Add the newly created categories to our map
+                newCategories.forEach(c => {
+                     categoryMap.set(c.name.toLowerCase(), { ...c, id: c._id.toString() } as Category);
+                });
+            }
         }
 
 
