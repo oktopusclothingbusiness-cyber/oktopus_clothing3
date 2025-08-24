@@ -22,10 +22,10 @@ const parseProduct = (item: any, categoryMap: Map<string, Category>) => {
         discountPercentage: item.discountPercentage ? parseInt(item.discountPercentage, 10) : 0,
         rating: item.rating ? parseFloat(item.rating) : 4.5,
         stock: item.stock ? parseInt(item.stock, 10) : 100,
-        imageUrls: (item.imageUrls || '').split(',').map((url: string) => url.trim()).filter((url: string) => url),
+        imageUrls: typeof item.imageUrls === 'string' ? item.imageUrls.split(',').map((url: string) => url.trim()).filter((url: string) => url) : [],
         category: category ? category.id : '', // Use category ID
-        sizes: (item.sizes || '').split(',').map((s: string) => s.trim()).filter((s: string) => s),
-        colors: (item.colors || '').split(',').map((c: string) => c.trim()).filter((c: string) => c),
+        sizes: typeof item.sizes === 'string' ? (item.sizes || '').split(',').map((s: string) => s.trim()).filter((s: string) => s) : [],
+        colors: typeof item.colors === 'string' ? (item.colors || '').split(',').map((c: string) => c.trim()).filter((c: string) => c) : [],
         featured: item.featured === 'TRUE' || item.featured === true,
         isHero: item.isHero === 'TRUE' || item.isHero === true,
         createdAt: new Date(),
