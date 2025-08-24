@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -23,6 +23,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'packed' | 'shipped' | 'delivered';
 
@@ -49,6 +50,7 @@ export default function OrdersPage() {
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
+  const router = useRouter();
 
   const fetchOrders = React.useCallback(async () => {
     try {
@@ -164,8 +166,6 @@ export default function OrdersPage() {
                   <TableHead>Order Status</TableHead>
                   <TableHead>Payment</TableHead>
                   <TableHead>Total</TableHead>
-                  <TableHead>Items</TableHead>
-                  <TableHead>Shipping Details</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -179,21 +179,17 @@ export default function OrdersPage() {
                       <TableCell><Skeleton className="h-8 w-28" /></TableCell>
                       <TableCell><Skeleton className="h-6 w-16" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-48" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-48" /></TableCell>
-                       <TableCell><Skeleton className="h-8 w-8" /></TableCell>
+                       <TableCell><Skeleton className="h-8 w-20" /></TableCell>
                     </TableRow>
                   ))
                 ) : orders.length > 0 ? (
                   orders.map((order) => (
                     <TableRow key={order._id}>
                       <TableCell>
-                        <Link href={`/admin/orders/${order._id}`} className="font-mono text-xs hover:underline">
-                          #{order._id.slice(-6)}
-                        </Link>
+                         <span className="font-mono text-xs">#{order._id.slice(-6)}</span>
                       </TableCell>
                       <TableCell className="font-medium">{order.userName}</TableCell>
-                      <TableCell>{format(new Date(order.createdAt), 'PPpp')}</TableCell>
+                      <TableCell>{format(new Date(order.createdAt), 'PP')}</TableCell>
                       <TableCell>
                         <Select
                           defaultValue={order.status}
@@ -221,17 +217,10 @@ export default function OrdersPage() {
                         )}
                       </TableCell>
                       <TableCell>₹{order.total.toFixed(2)}</TableCell>
-                      <TableCell>
-                        {order.products.map(p => `${p.name} (x${p.quantity})`).join(', ')}
-                      </TableCell>
-                       <TableCell>
-                        <div className="text-sm">
-                            <p>{order.shippingAddress.address}</p>
-                            <p>Ph: {order.shippingAddress.mobile}</p>
-                            {order.shippingAddress.instructions && <p>Notes: {order.shippingAddress.instructions}</p>}
-                        </div>
-                      </TableCell>
                        <TableCell className="text-right">
+                         <Button variant="ghost" size="icon" onClick={() => router.push(`/admin/orders/${order._id}`)}>
+                            <Eye className="h-4 w-4" />
+                         </Button>
                          <AlertDialog>
                             <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon">
@@ -258,7 +247,7 @@ export default function OrdersPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center h-24">
+                    <TableCell colSpan={7} className="text-center h-24">
                       No orders found.
                     </TableCell>
                   </TableRow>
