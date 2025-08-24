@@ -117,7 +117,7 @@ export default function CartPage() {
         key: RAZORPAY_KEY_ID,
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
-        name: 'VogueVerse',
+        name: 'Oktopus Clothing',
         description: 'Test Transaction',
         order_id: razorpayOrder.id,
         handler: async function (response: any) {
