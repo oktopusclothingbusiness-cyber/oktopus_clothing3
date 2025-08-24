@@ -34,7 +34,7 @@ export default function LandingPage() {
                   data-ai-hint="eyewear fashion"
                 />
                 <Image
-                  src="https://i.imgur.com/U33Hq20.png"
+                  src="https://i.imgur.com/njNbmfx.jpeg"
                   alt="Eyewear 1"
                   width={210}
                   height={280}
@@ -50,7 +50,7 @@ export default function LandingPage() {
                   data-ai-hint="eyewear fashion"
                 />
                  <Image
-                  src="https://i.imgur.com/wz4Wpfq.png"
+                  src="https://i.imgur.com/kDUL51T.jpeg"
                   alt="Eyewear 4"
                   width={210}
                   height={280}
@@ -58,7 +58,7 @@ export default function LandingPage() {
                   data-ai-hint="eyewear fashion"
                 />
                 <Image
-                  src="https://i.imgur.com/kGkSg1Z.png"
+                  src="https://i.imgur.com/x9kLhGO.jpeg"
                   alt="Eyewear 5"
                   width={180}
                   height={240}
@@ -91,7 +91,7 @@ export default function LandingPage() {
               />
               <div className="relative w-full h-[300px] md:h-[500px] flex items-center justify-center mb-12">
                   <Image
-                    src="https://i.ibb.co/PsgRHxCN/pic-1.png"
+                    src="https://i.imgur.com/h0SjEpg.png"
                     alt="Eyewear 2"
                     width={180}
                     height={240}
@@ -99,7 +99,7 @@ export default function LandingPage() {
                     data-ai-hint="eyewear fashion"
                   />
                   <Image
-                    src="https://i.imgur.com/U33Hq20.png"
+                    src="https://i.imgur.com/njNbmfx.jpeg"
                     alt="Eyewear 1"
                     width={210}
                     height={280}
@@ -115,7 +115,7 @@ export default function LandingPage() {
                     data-ai-hint="eyewear fashion"
                   />
                    <Image
-                    src="https://i.imgur.com/wz4Wpfq.png"
+                    src="https://i.imgur.com/kDUL51T.jpeg"
                     alt="Eyewear 4"
                     width={210}
                     height={280}
@@ -123,7 +123,7 @@ export default function LandingPage() {
                     data-ai-hint="eyewear fashion"
                   />
                   <Image
-                    src="https://i.imgur.com/kGkSg1Z.png"
+                    src="https://i.imgur.com/x9kLhGO.jpeg"
                     alt="Eyewear 5"
                     width={180}
                     height={240}
