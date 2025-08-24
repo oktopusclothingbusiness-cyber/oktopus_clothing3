@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'packed' | 'shipped' | 'delivered';
 
 type OrderProduct = {
+  productId: string;
   name: string;
   quantity: number;
   price: number;
@@ -147,7 +148,10 @@ export default function OrderDetailsPage() {
                                 <TableBody>
                                     {order.products.map((item, index) => (
                                         <TableRow key={index}>
-                                            <TableCell className="font-medium">{item.name}</TableCell>
+                                            <TableCell className="font-medium">
+                                                <div>{item.name}</div>
+                                                <div className="text-xs text-muted-foreground font-mono">#{item.productId?.slice(-6) || 'N/A'}</div>
+                                            </TableCell>
                                             <TableCell className="text-sm text-muted-foreground">
                                                 <div>Size: {item.size}</div>
                                                 <div>Color: {item.color}</div>

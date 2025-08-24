@@ -31,7 +31,7 @@ type Order = {
   _id: string;
   userId: string;
   userName: string;
-  products: { name: string; quantity: number; price: number }[];
+  products: { productId: string; name: string; quantity: number; price: number }[];
   total: number;
   shippingAddress: {
     mobile: string;
