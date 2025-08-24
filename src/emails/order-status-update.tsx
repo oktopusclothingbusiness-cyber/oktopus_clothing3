@@ -47,7 +47,7 @@ export const OrderStatusUpdateEmail = ({
       <Body style={main}>
         <Container style={container}>
            <Section style={logoContainer}>
-            <Img src={logoUrl} width="140" height="40" alt="Logo" style={logo} />
+            <Img src={logoUrl} width="140" height="40" alt="OKTOPUS CLOTHING" style={logo} />
           </Section>
           <Heading style={h1}>Order Status: {orderStatus.charAt(0).toUpperCase() + orderStatus.slice(1)}</Heading>
           <Text style={paragraph}>
@@ -75,7 +75,7 @@ export const OrderStatusUpdateEmail = ({
           )}
 
           <Text style={footer}>
-            123 Fashion Ave, Style City, 12345
+            OKTOPUS CLOTHING | 123 Fashion Ave, Style City, 12345
           </Text>
         </Container>
       </Body>
