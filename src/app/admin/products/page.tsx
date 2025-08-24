@@ -17,6 +17,7 @@ import { useCategory, Category } from '@/context/category-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
+import { Badge } from '@/components/ui/badge';
 
 const emptyProduct = {
     id: '',
@@ -304,6 +305,7 @@ export default function AdminProductsPage() {
                 <TableRow>
                   <TableHead>Image</TableHead>
                   <TableHead>Name</TableHead>
+                  <TableHead>Product ID</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Hero</TableHead>
                   <TableHead>Featured</TableHead>
@@ -316,6 +318,7 @@ export default function AdminProductsPage() {
                       <TableRow key={index}>
                         <TableCell><Skeleton className="h-10 w-10 rounded-md" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                         <TableCell><Skeleton className="h-8 w-12" /></TableCell>
                         <TableCell><Skeleton className="h-6 w-12" /></TableCell>
@@ -329,6 +332,9 @@ export default function AdminProductsPage() {
                         <Image src={product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : 'https://placehold.co/40x40.png'} alt={product.name} width={40} height={40} className="rounded-md object-cover" />
                       </TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="font-mono">{product.id.slice(-6)}</Badge>
+                      </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
                             <span className="font-bold">₹{product.price.toFixed(2)}</span>
@@ -367,7 +373,7 @@ export default function AdminProductsPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center h-24">
+                    <TableCell colSpan={7} className="text-center h-24">
                       <div className="flex flex-col items-center gap-2">
                           <p>No products found.</p>
                           {searchTerm && (
