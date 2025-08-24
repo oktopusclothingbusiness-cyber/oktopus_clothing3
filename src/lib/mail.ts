@@ -5,7 +5,7 @@ import { OrderStatusUpdateEmail } from '@/emails/order-status-update';
 import clientPromise from './mongodb';
 
 const resend = new Resend("re_hUGiai9e_8FKbk9HRaRFEpXHgnS755XGr");
-const fromEmail = 'onboarding@resend.dev'; 
+const fromEmail = 'OKTOPUS CLOTHING <onboarding@resend.dev>'; 
 
 type Product = {
   name: string;
