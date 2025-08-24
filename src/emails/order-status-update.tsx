@@ -67,14 +67,14 @@ export const OrderStatusUpdateEmail = ({
 
           {orderStatus === 'shipped' && (
              <Section style={{ textAlign: 'center', marginTop: '20px' }}>
-                <Button style={button} href={`http://localhost:3000/track-order/${orderId}`}>
+                <Button style={button} href={`https://oktopusclothing1.vercel.app/track-order/${orderId}`}>
                     Track Your Order
                 </Button>
             </Section>
           )}
 
           <Text style={footer}>
-            OKTOPUS CLOTHING | 123 Fashion Ave, Style City, 12345
+            OKTOPUS CLOTHING | Kolkata, West Bengal, 712235
           </Text>
         </Container>
       </Body>
