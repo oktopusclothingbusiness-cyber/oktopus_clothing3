@@ -25,6 +25,7 @@ type Order = {
   };
   status: OrderStatus;
   createdAt: string;
+  paymentDetails: { razorpay_payment_id?: string };
 };
 
 export default function OrdersPage() {
@@ -121,7 +122,8 @@ export default function OrdersPage() {
                   <TableHead>Order ID</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Order Status</TableHead>
+                  <TableHead>Payment</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Items</TableHead>
                   <TableHead>Shipping Details</TableHead>
@@ -135,6 +137,7 @@ export default function OrdersPage() {
                       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-8 w-28" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-16" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-48" /></TableCell>
@@ -165,6 +168,13 @@ export default function OrdersPage() {
                           </SelectContent>
                         </Select>
                       </TableCell>
+                      <TableCell>
+                        {order.status === 'paid' ? (
+                            <Badge variant="default">Paid</Badge>
+                        ) : (
+                            <Badge variant="secondary">Pending</Badge>
+                        )}
+                      </TableCell>
                       <TableCell>₹{order.total.toFixed(2)}</TableCell>
                       <TableCell>
                         {order.products.map(p => `${p.name} (x${p.quantity})`).join(', ')}
@@ -180,7 +190,7 @@ export default function OrdersPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center h-24">
+                    <TableCell colSpan={8} className="text-center h-24">
                       No orders found.
                     </TableCell>
                   </TableRow>
