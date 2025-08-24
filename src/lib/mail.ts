@@ -4,7 +4,7 @@ import { OrderConfirmationEmail } from '@/emails/order-confirmation';
 import { OrderStatusUpdateEmail } from '@/emails/order-status-update';
 import clientPromise from './mongodb';
 
-const resend = new Resend("re_haiJpfjF_PLqntto3viosnCYENzo3GCKo");
+const resend = new Resend("re_hUGiai9e_8FKbk9HRaRFEpXHgnS755XGr");
 const fromEmail = 'onboarding@resend.dev'; 
 
 type Product = {

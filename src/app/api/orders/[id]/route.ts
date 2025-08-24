@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import { sendOrderStatusUpdateEmail } from '@/lib/mail';
-import { send } from 'process';
 
 // This file is for a dynamic route segment. For example: /api/orders/123
 
@@ -66,7 +65,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     
     const user = await db.collection('users').findOne({ _id: new ObjectId(updatedOrder.userId) });
 
-    if(user) {
+    if(user && status === 'accepted') {
         await sendOrderStatusUpdateEmail({
             to: user.email,
             orderId: updatedOrder._id.toString(),
