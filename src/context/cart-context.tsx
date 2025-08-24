@@ -2,7 +2,7 @@
 "use client";
 
 import { useToast } from "@/hooks/use-toast";
-import React, { createContext, useContext, useState, useMemo } from "react";
+import React, { createContext, useContext, useState, useMemo, useEffect } from "react";
 import { useCoupon, Coupon } from "./coupon-context";
 
 
@@ -28,6 +28,7 @@ type CartContextType = {
   isAnimating: boolean;
   subtotal: number;
   discount: number;
+  shipping: number;
   total: number;
   applyCoupon: (code: string) => Promise<boolean>;
 };
@@ -40,6 +41,23 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const { coupons } = useCoupon();
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [shipping, setShipping] = useState(0);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+        try {
+            const response = await fetch('/api/settings');
+            if (response.ok) {
+                const data = await response.json();
+                setShipping(data.deliveryCharge || 0);
+            }
+        } catch (error) {
+            console.error("Failed to fetch settings for shipping:", error);
+            setShipping(0); // Default to free shipping on error
+        }
+    };
+    fetchSettings();
+  }, []);
 
   const subtotal = useMemo(() => {
       return cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -57,8 +75,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   }, [subtotal, appliedCoupon]);
 
   const total = useMemo(() => {
-    return Math.max(0, subtotal - discount);
-  }, [subtotal, discount]);
+    return Math.max(0, subtotal - discount + shipping);
+  }, [subtotal, discount, shipping]);
 
 
   const applyCoupon = async (code: string) => {
@@ -124,7 +142,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, isAnimating, subtotal, discount, total, applyCoupon }}>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, isAnimating, subtotal, discount, shipping, total, applyCoupon }}>
       {children}
     </CartContext.Provider>
   );

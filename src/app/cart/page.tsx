@@ -28,7 +28,7 @@ declare global {
 const RAZORPAY_KEY_ID = "rzp_test_R8uYO3NMQa71Id";
 
 export default function CartPage() {
-  const { cart, removeFromCart, updateQuantity, clearCart, subtotal, discount, total, applyCoupon } = useCart();
+  const { cart, removeFromCart, updateQuantity, clearCart, subtotal, discount, shipping, total, applyCoupon } = useCart();
   const { toast } = useToast();
   const { user } = useAuth();
   const router = useRouter();
@@ -248,9 +248,9 @@ export default function CartPage() {
                 )}
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span>Free</span>
+                  <span>{shipping > 0 ? `₹${shipping.toFixed(2)}` : 'Free'}</span>
                 </div>
-                <div className="flex justify-between font-bold text-lg">
+                <div className="flex justify-between font-bold text-lg border-t pt-2">
                   <span>Total</span>
                   <span>₹{total.toFixed(2)}</span>
                 </div>
@@ -368,13 +368,23 @@ export default function CartPage() {
                 </Dialog>
               </div>
               <div className="fixed bottom-16 left-0 right-0 bg-background/80 backdrop-blur-lg p-4 border-t shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
-                {discount > 0 && (
-                  <div className="flex justify-between items-center mb-2 text-sm text-green-600">
-                    <span>Discount Applied!</span>
-                    <span>- ₹{discount.toFixed(2)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between items-center mb-4">
+                 <div className="text-xs space-y-1 mb-2">
+                    <div className="flex justify-between">
+                        <span>Subtotal</span>
+                        <span>₹{subtotal.toFixed(2)}</span>
+                    </div>
+                    {discount > 0 && (
+                        <div className="flex justify-between text-green-600">
+                            <span>Discount</span>
+                            <span>- ₹{discount.toFixed(2)}</span>
+                        </div>
+                    )}
+                     <div className="flex justify-between">
+                        <span>Shipping</span>
+                        <span>{shipping > 0 ? `₹${shipping.toFixed(2)}` : 'Free'}</span>
+                    </div>
+                 </div>
+                <div className="flex justify-between items-center mb-4 border-t pt-2">
                   <span className="text-muted-foreground">Total</span>
                   <span className="text-xl font-bold">₹{total.toFixed(2)}</span>
                 </div>
