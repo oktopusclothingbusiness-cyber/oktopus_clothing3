@@ -46,7 +46,7 @@ export const OrderStatusUpdateEmail = ({
       <Body style={main}>
         <Container style={container}>
            <Section style={logoContainer}>
-            <Img src={logoUrl} width="140" height="40" alt="OKTOPUS CLOTHING" style={logo} />
+            <Img src={logoUrl} width="150" height="40" alt="OKTOPUS CLOTHING" style={logo} />
           </Section>
           <Heading style={h1}>Order Status: {orderStatus.charAt(0).toUpperCase() + orderStatus.slice(1)}</Heading>
           <Text style={paragraph}>
