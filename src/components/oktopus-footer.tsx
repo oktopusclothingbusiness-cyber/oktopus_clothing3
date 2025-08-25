@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { Github, Twitter, Instagram } from "lucide-react";
@@ -34,7 +35,7 @@ export function OktopusFooter() {
             <ul className="space-y-2">
               <li><Link href="#" className="text-sm text-muted-foreground hover:text-accent">About</Link></li>
               <li><Link href="#" className="text-sm text-muted-foreground hover:text-accent">Careers</Link></li>
-              <li><Link href="#" className="text-sm text-muted-foreground hover:text-accent">Affiliates</Link></li>
+              <li><Link href="/return-policy" className="text-sm text-muted-foreground hover:text-accent">Return Policy</Link></li>
               <li><Link href="#" className="text-sm text-muted-foreground hover:text-accent">Blog</Link></li>
             </ul>
           </div>
