@@ -53,7 +53,7 @@ export function Header() {
           <Link href="/products" className="text-sm font-medium hover:text-primary">
             Products
           </Link>
-          <Link href="#" className="text-sm font-medium hover:text-primary">
+          <Link href="/about" className="text-sm font-medium hover:text-primary">
             About
           </Link>
           <Link href="#" className="text-sm font-medium hover:text-primary">

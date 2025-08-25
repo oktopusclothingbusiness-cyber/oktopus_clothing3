@@ -33,7 +33,7 @@ export function OktopusFooter() {
           <div>
             <h3 className="font-semibold mb-4 font-serif">COMPANY</h3>
             <ul className="space-y-2">
-              <li><Link href="#" className="text-sm text-muted-foreground hover:text-accent">About</Link></li>
+              <li><Link href="/about" className="text-sm text-muted-foreground hover:text-accent">About</Link></li>
               <li><Link href="#" className="text-sm text-muted-foreground hover:text-accent">Careers</Link></li>
               <li><Link href="/return-policy" className="text-sm text-muted-foreground hover:text-accent">Return Policy</Link></li>
               <li><Link href="#" className="text-sm text-muted-foreground hover:text-accent">Blog</Link></li>
