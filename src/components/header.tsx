@@ -56,7 +56,7 @@ export function Header() {
           <Link href="/about" className="text-sm font-medium hover:text-primary">
             About
           </Link>
-          <Link href="#" className="text-sm font-medium hover:text-primary">
+          <Link href="/contact" className="text-sm font-medium hover:text-primary">
             Contact
           </Link>
         </nav>
