@@ -20,9 +20,10 @@ export type Product = {
   colors: string[];
   featured?: boolean;
   isHero?: boolean;
+  createdAt: string;
 };
 
-type AddProduct = Omit<Product, 'id' | '_id'>
+type AddProduct = Omit<Product, 'id' | '_id' | 'createdAt'>
 
 type ProductContextType = {
   products: Product[];

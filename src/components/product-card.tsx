@@ -8,8 +8,9 @@ import { AddToCartButton } from '@/components/add-to-cart-button';
 import type { Product } from '@/context/product-context';
 import * as React from 'react';
 import { Star } from 'lucide-react';
-import { format, addDays } from 'date-fns';
+import { format, addDays, isWithinInterval, subDays } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 const ProductImageSlider = ({ imageUrls, alt, isMobile }: { imageUrls: string[], alt: string, isMobile: boolean }) => {
     const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
@@ -49,12 +50,18 @@ const ProductImageSlider = ({ imageUrls, alt, isMobile }: { imageUrls: string[],
 export function ProductCard({ product, isMobile = false }: { product: Product, isMobile?: boolean }) {
     const [deliveryDate] = React.useState(format(addDays(new Date(), 5), 'MMM dd'));
 
+    const isNew = product.createdAt && isWithinInterval(new Date(product.createdAt), {
+        start: subDays(new Date(), 7),
+        end: new Date(),
+    });
+
     if (isMobile) {
         return (
              <Card className="overflow-hidden group rounded-lg card-glass">
               <Link href={`/products/${product.id}`}>
                 <div className="relative aspect-[3/4]">
                     <ProductImageSlider imageUrls={product.imageUrls} alt={product.name} isMobile={isMobile} />
+                     {isNew && <Badge className="absolute top-2 left-2">Fresh</Badge>}
                 </div>
                 <div className="p-2 space-y-1">
                   <h3 className="truncate text-sm font-semibold">{product.name}</h3>
@@ -76,6 +83,7 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
             <Link href={`/products/${product.id}`}>
                 <div className="relative aspect-[3/4]">
                     <ProductImageSlider imageUrls={product.imageUrls} alt={product.name} isMobile={isMobile} />
+                     {isNew && <Badge className="absolute top-2 left-2">Fresh</Badge>}
                 </div>
                 <CardHeader>
                     <CardTitle className="truncate">{product.name}</CardTitle>
