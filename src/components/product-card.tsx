@@ -83,7 +83,7 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
             <Link href={`/products/${product.id}`}>
                 <div className="relative aspect-[3/4]">
                     <ProductImageSlider imageUrls={product.imageUrls} alt={product.name} isMobile={isMobile} />
-                     {isNew && <Badge variant="destructive" className="absolute top-2 left-2">Fresh</Badge>}
+                     {isNew && <Badge variant="destructive" className="absolute top-2 left-2">Fresh🔥</Badge>}
                 </div>
                 <CardHeader>
                     <CardTitle className="truncate">{product.name}</CardTitle>

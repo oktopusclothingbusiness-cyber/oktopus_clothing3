@@ -79,7 +79,7 @@ export default function OktopusStorePage() {
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="relative rounded-2xl overflow-hidden aspect-[4/5]">
-               <Image src="https://i.ibb.co/7tL6SqQ6/e4622d48a767cf92bc65d7ffad4f2009.jpg" alt="Fashion model 1" fill objectFit="cover" data-ai-hint="male model" />
+               <Image src="https://i.ibb.co/7tL6Sq6/e4622d48a767cf92bc65d7ffad4f2009.jpg" alt="Fashion model 1" fill objectFit="cover" data-ai-hint="male model" />
             </div>
             <div className="grid grid-rows-2 gap-6">
               <div className="relative rounded-2xl overflow-hidden aspect-video">
