@@ -191,7 +191,7 @@ export default function OktopusStorePage() {
                     </Button>
                 </div>
                 <div className="relative rounded-2xl overflow-hidden aspect-square animate-slide-in-from-right">
-                    <Image src="https://s4.ezgif.com/tmp/ezgif-4b517cfa519aa.jpg" alt="Fashion model" fill objectFit="cover" data-ai-hint="fashion model" />
+                    <Image src="https://ibb.co/001d5tZ" alt="Fashion model" fill objectFit="cover" data-ai-hint="fashion model" />
                 </div>
             </div>
         </section>
