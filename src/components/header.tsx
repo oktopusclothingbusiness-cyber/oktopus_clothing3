@@ -11,11 +11,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "./theme-toggle";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export function Header() {
   const { cart } = useCart();
   const { user, logout } = useAuth();
   const [logoUrl, setLogoUrl] = React.useState('');
+  const router = useRouter();
   
   React.useEffect(() => {
     const fetchSettings = async () => {
@@ -87,7 +89,7 @@ export function Header() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Profile</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/profile')}>Profile</DropdownMenuItem>
                 <DropdownMenuItem>Settings</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout}>
