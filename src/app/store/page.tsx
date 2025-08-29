@@ -180,7 +180,7 @@ export default function OktopusStorePage() {
             <div className="relative z-10 space-y-4">
               <h2 className="text-3xl md:text-4xl font-bold font-serif">Elevate Your Wardrobe with Our Fashion Finds</h2>
               <p className="text-sm text-muted-foreground">Our new collection introduces a range of styles and materials, ensuring that you'll find the perfect addition to your wardrobe.</p>
-              <Button asChild className="bg-transparent text-accent p-0 h-auto hover:bg-transparent">
+              <Button asChild variant="link" className="text-accent p-0 mt-4 hover:bg-transparent">
                 <Link href="/products">Our New Collection Introduction <ArrowRight className="h-4 w-4 ml-2" /></Link>
               </Button>
             </div>
