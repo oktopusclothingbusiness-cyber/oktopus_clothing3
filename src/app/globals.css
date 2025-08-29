@@ -66,4 +66,9 @@
   .dark .md\:hidden .card-glass {
      @apply bg-background/60 backdrop-blur-lg border border-white/10;
   }
+
+  .profile-header-curve {
+    border-bottom-left-radius: 50% 40px;
+    border-bottom-right-radius: 50% 40px;
+  }
 }
