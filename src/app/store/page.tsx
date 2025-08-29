@@ -89,6 +89,72 @@ const ShufflingProducts = () => {
   );
 }
 
+const FingertipsShuffler = () => {
+    const { products, loading } = useProduct();
+    const [imageUrls, setImageUrls] = React.useState<string[]>([]);
+    const [currentIndex1, setCurrentIndex1] = React.useState(0);
+    const [currentIndex2, setCurrentIndex2] = React.useState(1);
+
+    React.useEffect(() => {
+        if (!loading && products.length > 0) {
+            const allImageUrls = products.flatMap(p => p.imageUrls);
+            const shuffled = allImageUrls.sort(() => 0.5 - Math.random());
+            setImageUrls(shuffled.slice(0, 10)); // Take 10 random images
+        }
+    }, [products, loading]);
+
+    React.useEffect(() => {
+        if (imageUrls.length > 2) {
+            const interval1 = setInterval(() => {
+                setCurrentIndex1(prev => (prev + 2) % imageUrls.length);
+            }, 3000);
+            const interval2 = setInterval(() => {
+                setCurrentIndex2(prev => (prev + 2) % imageUrls.length);
+            }, 3500);
+
+            return () => {
+                clearInterval(interval1);
+                clearInterval(interval2);
+            };
+        }
+    }, [imageUrls.length]);
+    
+    if (loading) {
+        return (
+             <div className="grid grid-cols-2 gap-8">
+                <Skeleton className="relative rounded-2xl overflow-hidden border-none h-80" />
+                <Skeleton className="relative rounded-2xl overflow-hidden border-none h-80" />
+            </div>
+        )
+    }
+    
+    if(imageUrls.length < 2) return null;
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <Card className="relative h-80 rounded-2xl overflow-hidden border-none bg-[#F0F5F4] flex flex-col justify-end p-8">
+                <h3 className="text-3xl font-bold font-serif">1200+ Happy Customers</h3>
+                <p className="text-sm text-muted-foreground mt-2">See our customer reviews and testimonials.</p>
+                <Button asChild variant="link" className="text-accent p-0 mt-4 justify-start">
+                    <Link href="#">See Reviews <ArrowRight className="h-4 w-4 ml-2" /></Link>
+                </Button>
+            </Card>
+            <div className="grid grid-cols-2 gap-8">
+                <Card className="relative rounded-2xl overflow-hidden border-none">
+                    {imageUrls.map((url, index) => (
+                         <Image key={index} src={url} alt={`Showcase image ${index + 1}`} layout="fill" objectFit="cover" data-ai-hint="customer showcase" className={cn("transition-opacity duration-1000", index === currentIndex1 ? 'opacity-100' : 'opacity-0')} />
+                    ))}
+                </Card>
+                <Card className="relative rounded-2xl overflow-hidden border-none">
+                    {imageUrls.map((url, index) => (
+                         <Image key={index} src={url} alt={`Showcase image ${index + 1}`} layout="fill" objectFit="cover" data-ai-hint="customer showcase" className={cn("transition-opacity duration-1000", index === currentIndex2 ? 'opacity-100' : 'opacity-0')} />
+                    ))}
+                </Card>
+            </div>
+        </div>
+    )
+}
+
 
 export default function OktopusStorePage() {
   const { products, loading: productsLoading } = useProduct();
@@ -178,23 +244,7 @@ export default function OktopusStorePage() {
 
         <section className="container mx-auto px-4 my-20">
           <h2 className="text-4xl font-bold text-center mb-12 font-serif">Fashion at Your Fingertips</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className="relative h-80 rounded-2xl overflow-hidden border-none bg-[#F0F5F4] flex flex-col justify-end p-8">
-               <h3 className="text-3xl font-bold font-serif">1200+ Happy Customers</h3>
-               <p className="text-sm text-muted-foreground mt-2">See our customer reviews and testimonials.</p>
-               <Button asChild variant="link" className="text-accent p-0 mt-4 justify-start">
-                  <Link href="#">See Reviews <ArrowRight className="h-4 w-4 ml-2" /></Link>
-               </Button>
-            </Card>
-            <div className="grid grid-cols-2 gap-8">
-                <Card className="relative rounded-2xl overflow-hidden border-none">
-                    <Image src="https://i.ibb.co/3s8sCsy/fingertips-1.png" alt="New Arrivals" layout="fill" objectFit="cover" data-ai-hint="customer showcase" />
-                </Card>
-                <Card className="relative rounded-2xl overflow-hidden border-none">
-                    <Image src="https://i.ibb.co/rpxC5w2/fingertips-2.png" alt="New Arrivals" layout="fill" objectFit="cover" data-ai-hint="customer showcase" />
-                </Card>
-            </div>
-          </div>
+          <FingertipsShuffler />
         </section>
       </main>
       <OktopusFooter />
