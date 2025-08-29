@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import Image from "next/image";
@@ -63,49 +62,24 @@ export default function OktopusStorePage() {
     <div className="hidden md:block bg-white text-stone-900 font-serif">
       <Header />
       <main>
-        <section className="container mx-auto px-4 py-12 md:py-16">
-          <div className="text-center mb-12">
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight flex items-center justify-center flex-wrap">
-              DIVE INTO A W
-              <span className="inline-flex items-center justify-center mx-2">
-                <FlowerIcon className="h-12 w-12 text-accent" />
-              </span>
-              RLD OF ENDLESS
-            </h1>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight">FASHION POSSIBILITIES</h1>
-            <p className="text-sm text-muted-foreground mt-4 max-w-2xl mx-auto">
-              Discover premium clothing collections tailored for a modern and stylish lifestyle. From formal wear to casual attire, find your perfect look for any occasion.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="relative rounded-2xl overflow-hidden aspect-[4/5]">
-               <Image src="https://i.ibb.co/7tL6Sq6/e4622d48a767cf92bc65d7ffad4f2009.jpg" alt="Fashion model 1" fill objectFit="cover" data-ai-hint="male model" />
-            </div>
-            <div className="grid grid-rows-2 gap-6">
-              <div className="relative rounded-2xl overflow-hidden aspect-video">
-                 <Image src="https://i.ibb.co/DPBrq8Cb/9cbfc8f8f4a9d7cd120e2e8324e1986d.jpg" alt="Fashion model 2" fill objectFit="cover" data-ai-hint="male model" />
-              </div>
-              <div className="relative rounded-2xl overflow-hidden">
-                 <Image src="https://i.ibb.co/4RscTdbf/test17-4.png" alt="Fashion model 3" fill objectFit="cover" data-ai-hint="male model" />
-                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                 <div className="absolute bottom-4 left-4 text-white">
-                    <p className="text-sm">Awesome Collection</p>
-                    <p className="font-bold">View All</p>
-                 </div>
-              </div>
-            </div>
-          </div>
-           <div className="flex justify-center gap-4 mt-8">
-              <Button size="lg" className="bg-stone-900 text-white hover:bg-stone-800 rounded-full px-8 py-6" asChild>
-                <Link href="/products">
-                  Shop Now <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" className="rounded-full border-stone-900 text-stone-900 hover:bg-stone-100 px-8 py-6" asChild>
-                 <Link href="/products">
-                  Explore More Products
-                </Link>
-              </Button>
+        <section className="container mx-auto px-4 py-12 md:py-16 overflow-hidden">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+                <div className="space-y-6">
+                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight animate-slide-in-from-left">
+                        Style That Speaks Volumes
+                    </h1>
+                    <p className="text-lg text-muted-foreground animate-fade-in animation-delay-300">
+                        Discover premium clothing collections tailored for a modern and stylish lifestyle. Find your perfect look for any occasion.
+                    </p>
+                    <Button size="lg" className="bg-stone-900 text-white hover:bg-stone-800 rounded-full px-8 py-6 animate-slide-in-from-bottom animation-delay-500" asChild>
+                        <Link href="/products">
+                            Shop Now <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                    </Button>
+                </div>
+                <div className="relative rounded-2xl overflow-hidden aspect-square animate-slide-in-from-right">
+                    <Image src="https://picsum.photos/800/800" alt="Fashion model" fill objectFit="cover" data-ai-hint="fashion model" />
+                </div>
             </div>
         </section>
 
