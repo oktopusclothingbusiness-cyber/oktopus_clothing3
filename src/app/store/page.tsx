@@ -19,6 +19,7 @@ import { useCategory } from "@/context/category-context";
 import { format, addDays } from "date-fns";
 import * as React from "react";
 import { ProductCard } from "@/components/product-card";
+import { cn } from "@/lib/utils";
 
 const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
     <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg mr-4 flex-shrink-0 bg-red-500 text-white p-6 flex flex-col justify-between">
@@ -43,6 +44,51 @@ const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
         </div>
     </div>
 )
+
+const ShufflingProducts = () => {
+  const { products, loading } = useProduct();
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+
+  const newProducts = React.useMemo(() => 
+    products
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5),
+    [products]
+  );
+
+  React.useEffect(() => {
+    if (newProducts.length > 1) {
+      const intervalId = setInterval(() => {
+        setCurrentIndex(prevIndex => (prevIndex + 1) % newProducts.length);
+      }, 3000); // Change image every 3 seconds
+
+      return () => clearInterval(intervalId);
+    }
+  }, [newProducts.length]);
+
+  if (loading) return <Skeleton className="h-full w-full rounded-2xl" />;
+  if (newProducts.length === 0) return <div className="h-full w-full rounded-2xl bg-gray-200" />;
+
+  return (
+    <div className="relative h-full w-full">
+      {newProducts.map((product, index) => (
+         <Image 
+            key={product.id}
+            src={product.imageUrls[0]} 
+            alt={product.name} 
+            fill 
+            objectFit="cover" 
+            className={cn(
+                "rounded-2xl transition-opacity duration-1000 ease-in-out",
+                index === currentIndex ? "opacity-100" : "opacity-0"
+            )}
+            data-ai-hint="fashion product"
+          />
+      ))}
+    </div>
+  );
+}
+
 
 export default function OktopusStorePage() {
   const { products, loading: productsLoading } = useProduct();
@@ -124,7 +170,7 @@ export default function OktopusStorePage() {
               </Button>
             </div>
             <div className="relative h-80 md:h-96">
-               <Image src="https://i.ibb.co/1GZq5Mk/promo-guy.png" alt="Model in a suit" fill objectFit="cover" className="rounded-2xl" data-ai-hint="model suit" />
+               <ShufflingProducts />
             </div>
           </div>
         </section>
