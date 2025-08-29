@@ -71,8 +71,10 @@ export default function ProfilePage() {
                     {getInitials(user.firstName, user.lastName)}
                 </AvatarFallback>
               </Avatar>
-              <h1 className="text-2xl font-bold text-background">{user.firstName} {user.lastName}</h1>
-              <p className="text-background/80 text-sm">{user.email}</p>
+               <div className="bg-background text-foreground rounded-lg p-4 shadow-lg -mt-12 pt-14 w-full">
+                 <h1 className="text-2xl font-bold">{user.firstName} {user.lastName}</h1>
+                 <p className="text-muted-foreground text-sm">{user.email}</p>
+               </div>
             </div>
             
             <Card className="card-glass">
