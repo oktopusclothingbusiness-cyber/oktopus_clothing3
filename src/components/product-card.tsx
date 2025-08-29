@@ -11,6 +11,7 @@ import { Star } from 'lucide-react';
 import { format, addDays, isWithinInterval, subDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Button } from './ui/button';
 
 const ProductImageSlider = ({ imageUrls, alt, isMobile }: { imageUrls: string[], alt: string, isMobile: boolean }) => {
     const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
@@ -51,7 +52,7 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
     const [deliveryDate] = React.useState(format(addDays(new Date(), 5), 'MMM dd'));
 
     const isNew = product.createdAt && isWithinInterval(new Date(product.createdAt), {
-        start: subDays(new Date(), 2),
+        start: subDays(new Date(), 7), // A week for new
         end: new Date(),
     });
 
@@ -79,35 +80,25 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
     }
 
     return (
-        <Card className="overflow-hidden group">
+        <Card className="overflow-hidden group border rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-300">
             <Link href={`/products/${product.id}`}>
-                <div className="relative aspect-[3/4]">
+                <div className="relative aspect-[3/4] bg-gray-100">
                     <ProductImageSlider imageUrls={product.imageUrls} alt={product.name} isMobile={isMobile} />
-                     {isNew && <Badge variant="destructive" className="absolute top-2 left-2">Fresh🔥</Badge>}
+                     {isNew && <Badge variant="default" className="absolute top-3 left-3 bg-stone-900 text-white">New</Badge>}
                 </div>
-                <CardHeader>
-                    <CardTitle className="truncate">{product.name}</CardTitle>
-                </CardHeader>
-            </Link>
-            <CardContent className="space-y-2">
-                <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-0.5">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                            <Star key={i} className={`h-4 w-4 ${i < Math.round(product.rating || 0) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
-                        ))}
+                <CardContent className="p-4 text-center">
+                    <h3 className="font-bold text-lg truncate font-serif">{product.name}</h3>
+                    <p className="text-muted-foreground text-sm">{product.description.split(' ').slice(0, 5).join(' ') + '...'}</p>
+                    <div className="flex items-baseline justify-center gap-2 mt-2">
+                        <p className="text-xl font-bold">₹{product.price.toFixed(2)}</p>
+                        {product.originalPrice && product.originalPrice > product.price && (
+                            <p className="text-md text-muted-foreground line-through">₹{product.originalPrice.toFixed(2)}</p>
+                        )}
                     </div>
-                    <span className="text-xs text-muted-foreground">({product.rating?.toFixed(1)})</span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                    <p className="text-lg font-semibold">₹{product.price.toFixed(2)}</p>
-                    {product.originalPrice && product.originalPrice > product.price && (
-                        <p className="text-sm text-muted-foreground line-through">₹{product.originalPrice.toFixed(2)}</p>
-                    )}
-                </div>
-                <p className="text-xs text-green-600">Get it by {deliveryDate}</p>
-            </CardContent>
-            <CardFooter>
-                <AddToCartButton product={product} />
+                </CardContent>
+            </Link>
+            <CardFooter className="p-4 pt-0">
+                <AddToCartButton product={product} className="bg-stone-900 text-white hover:bg-stone-700 rounded-full" />
             </CardFooter>
         </Card>
     );
