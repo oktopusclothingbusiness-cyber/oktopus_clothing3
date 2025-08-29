@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Card, CardContent } from '@/components/ui/card';
+import Image from 'next/image';
 
 export default function ProfilePage() {
   const { user, loading, logout } = useAuth();
@@ -56,6 +57,13 @@ export default function ProfilePage() {
       <div className="relative">
           <div className="absolute top-0 left-0 right-0 h-48 bg-foreground text-background profile-header-curve" />
           <main className="relative z-10 min-h-screen pb-24 p-4 space-y-6">
+            <Image
+                src="https://i.ibb.co/GfTs981G/okto-new-logo-white.png"
+                alt="Oktopus Logo"
+                width={120}
+                height={40}
+                className="absolute top-4 left-4"
+              />
             <div className="flex flex-col items-center text-center pt-8">
                <Avatar className="h-24 w-24 border-4 border-background mb-4">
                 <AvatarImage src={user.profilePictureUrl} alt={`${user.firstName} ${user.lastName}`} />
