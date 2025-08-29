@@ -16,51 +16,57 @@ export default function ReturnPolicyPage() {
         <main className="flex-grow container mx-auto px-4 py-8">
           <Card>
             <CardHeader>
-              <CardTitle className="text-3xl">Return & Refund Policy</CardTitle>
+              <CardTitle className="text-3xl">Refunds & Cancellations Policy</CardTitle>
             </CardHeader>
             <CardContent className="prose max-w-none">
-              <p>At OKTOPUS CLOTHING, every product is crafted with care and attention to detail. Since we specialize in customized and made-to-order clothing, we want to ensure our customers clearly understand our Return & Refund Policy before placing an order.</p>
+              <p>At OKTOPUS CLOTHING, every product is crafted with care and attention to detail. Since we specialize in customized and made-to-order clothing, we want to ensure our customers clearly understand our policy before placing an order.</p>
               
-              <h2>1. Returns Policy</h2>
+              <h2>1. Returns & Exchanges</h2>
               <h3>Customized / Made-to-Order Products</h3>
-              <p>All customized products are made specifically according to the customer’s chosen design, size, and personalization.</p>
-              <p>We do not accept returns or exchanges on customized products, as they are made uniquely for you and cannot be resold.</p>
+              <p>All customized products are made specifically according to the customer’s chosen design, size, and personalization details.</p>
+              <p><strong>We do not accept returns or exchanges on customized products</strong>, as they are made uniquely for you and cannot be resold. Please double-check your size, design, and color selections before placing your order.</p>
               
-              <h3>Non-Customized Products (if any are offered in the future)</h3>
-              <p>Returns will only be accepted if the item is unused, unworn, and returned in its original packaging within 7 days of delivery.</p>
-              <p>Customers must contact our support team before initiating any return.</p>
+              <h3>Non-Customized Products</h3>
+              <p>For any non-customized products, returns will only be accepted if the item is unused, unworn, and returned in its original packaging within 7 days of delivery. Customers must contact our support team before initiating any return.</p>
 
-              <h2>2. Refund Policy</h2>
+              <h2>2. Cancellations</h2>
+              <p>You may request to cancel your order within <strong>24 hours</strong> of placing it. After this period, production begins, and we can no longer accept cancellations for customized items.</p>
+
+              <h2>3. Refund Policy</h2>
               <p>Refunds are only applicable under the following conditions:</p>
               <ul>
                 <li>
-                  <strong>Product Not Delivered:</strong> If your order has not been delivered within the specified delivery time due to unforeseen circumstances or logistical issues, you are eligible for a full refund.
+                  <strong>Cancellation:</strong> If you cancel your order within the 24-hour window.
                 </li>
                 <li>
-                  <strong>Order Not Possible to Fulfill:</strong> In rare cases where we are unable to produce or deliver your customized order (for example, due to material unavailability or technical constraints), we will notify you promptly and issue a full refund.
+                  <strong>Product Not Delivered:</strong> If your order has not been delivered within the specified maximum delivery time due to unforeseen circumstances or logistical issues, you are eligible for a full refund.
                 </li>
                 <li>
-                  <strong>Incorrect or Damaged Product (by our error only):</strong> If you receive an incorrect item or a product damaged during production, we will review the case. A replacement will be offered wherever possible. If replacement is not feasible, a full refund will be issued.
+                  <strong>Order Not Possible to Fulfill:</strong> In the rare case that we are unable to produce your order (e.g., due to material unavailability), we will notify you and issue a full refund.
+                </li>
+                <li>
+                  <strong>Incorrect or Damaged Product (Our Error):</strong> If you receive an item that is incorrect (wrong size, design, color) or damaged due to a mistake on our part, we will review the case. A replacement will be offered first. If a replacement is not feasible, a full refund will be issued.
                 </li>
               </ul>
 
-              <h2>3. Non-Refundable Situations</h2>
+              <h2>4. Non-Refundable Situations</h2>
               <p>Refunds will not be granted if:</p>
               <ul>
-                <li>You provided incorrect details (size, design, customization input, or delivery address).</li>
-                <li>You change your mind after placing a confirmed customized order.</li>
+                <li>You provided incorrect details (e.g., size, design, customization input, or delivery address).</li>
+                <li>You change your mind after the 24-hour cancellation period for a customized order.</li>
                 <li>The product has already been delivered successfully as per your customization request.</li>
               </ul>
 
-              <h2>4. Refund Process</h2>
-              <p>To request a refund, contact us at <a href="mailto:oktopusclothing.business@gmail.com">oktopusclothing.business@gmail.com</a> with your order details.</p>
-              <p>Once your request is reviewed and approved, refunds will be processed to your original payment method within 5–7 business days.</p>
+              <h2>5. Refund Process</h2>
+              <p>To request a refund, please contact us at <a href="mailto:oktopusclothing.business@gmail.com">oktopusclothing.business@gmail.com</a> with your order number and details.</p>
+              <p>Once your request is approved, the refund will be processed to your original payment method within <strong>5-7 business days</strong>. The time it takes for the amount to credit to your bank account may vary depending on your bank.</p>
 
-              <h2>5. Contact Us</h2>
-              <p>If you have any questions regarding our Return & Refund Policy, please reach out to us:</p>
+              <h2>6. Contact Us</h2>
+              <p>If you have any questions, please reach out to us:</p>
               <ul>
-                <li>📧 Email: <a href="mailto:oktopusclothing.business@gmail.com">oktopusclothing.business@gmail.com</a></li>
-                <li>📞 Phone: <a href="tel:6291337506">6291337506</a></li>
+                <li>📧 <strong>Email:</strong> <a href="mailto:oktopusclothing.business@gmail.com">oktopusclothing.business@gmail.com</a></li>
+                <li>📞 <strong>Phone:</strong> <a href="tel:6291337506">+91 62913 37506</a></li>
+                <li>🏢 <strong>Operating Address:</strong> Kolkata, West Bengal, India</li>
               </ul>
             </CardContent>
           </Card>
@@ -70,44 +76,34 @@ export default function ReturnPolicyPage() {
 
       {/* Mobile View */}
       <div className="md:hidden">
-        <MobileHeader title="Return & Refund Policy" />
+        <MobileHeader title="Refunds & Cancellations" />
         <main className="bg-secondary min-h-screen pb-24 p-4">
           <Card className="card-glass">
             <CardContent className="p-4 text-sm">
-                <p className="mb-4">At OKTOPUS CLOTHING, every product is crafted with care and attention to detail. Since we specialize in customized and made-to-order clothing, we want to ensure our customers clearly understand our Return & Refund Policy before placing an order.</p>
+                <p className="mb-4">Because our products are customized, please review our policy carefully.</p>
               
-                <h3 className="font-bold mt-4 mb-2">1. Returns Policy</h3>
-                <h4 className="font-semibold mt-2">Customized / Made-to-Order Products</h4>
-                <p>All customized products are made specifically according to the customer’s chosen design, size, and personalization. We do not accept returns or exchanges on customized products, as they are made uniquely for you and cannot be resold.</p>
+                <h3 className="font-bold mt-4 mb-2">1. Returns & Exchanges</h3>
+                <p>We do not accept returns or exchanges on customized products. Please verify all details before ordering.</p>
                 
-                <h4 className="font-semibold mt-2">Non-Customized Products</h4>
-                <p>Returns will only be accepted if the item is unused, unworn, and returned in its original packaging within 7 days of delivery. Customers must contact our support team before initiating any return.</p>
+                <h3 className="font-bold mt-4 mb-2">2. Cancellations</h3>
+                <p>Orders can be cancelled within 24 hours of placement.</p>
 
-                <h3 className="font-bold mt-4 mb-2">2. Refund Policy</h3>
-                <p>Refunds are only applicable under the following conditions:</p>
+                <h3 className="font-bold mt-4 mb-2">3. Refund Eligibility</h3>
+                <p>Refunds are provided for:</p>
                 <ul className="list-disc pl-5 space-y-2 mt-2">
-                  <li><strong>Product Not Delivered:</strong> If your order has not been delivered within the specified delivery time, you are eligible for a full refund.</li>
-                  <li><strong>Order Not Possible to Fulfill:</strong> In rare cases where we are unable to produce your order, we will notify you and issue a full refund.</li>
-                  <li><strong>Incorrect or Damaged Product:</strong> If you receive an incorrect or damaged item due to our error, a replacement or refund will be provided.</li>
+                    <li>Orders cancelled within 24 hours.</li>
+                    <li>Non-delivered items after the maximum timeline.</li>
+                    <li>Incorrect or damaged items due to our error (replacement offered first).</li>
                 </ul>
 
-                <h3 className="font-bold mt-4 mb-2">3. Non-Refundable Situations</h3>
-                <p>Refunds will not be granted if:</p>
-                 <ul className="list-disc pl-5 space-y-2 mt-2">
-                    <li>You provided incorrect details (size, address, etc.).</li>
-                    <li>You change your mind after placing a customized order.</li>
-                    <li>The product was successfully delivered as requested.</li>
-                </ul>
+                <h3 className="font-bold mt-4 mb-2">4. Non-Refundable Situations</h3>
+                <p>No refunds for incorrect details provided by you, or for change of mind after 24 hours.</p>
 
-                <h3 className="font-bold mt-4 mb-2">4. Refund Process</h3>
-                <p>To request a refund, contact us at <a href="mailto:oktopusclothing.business@gmail.com" className="text-primary">oktopusclothing.business@gmail.com</a>. Approved refunds are processed to the original payment method within 5–7 business days.</p>
+                <h3 className="font-bold mt-4 mb-2">5. Refund Process</h3>
+                <p>Approved refunds are processed within <strong>5-7 business days</strong> to your original payment method.</p>
 
-                <h3 className="font-bold mt-4 mb-2">5. Contact Us</h3>
-                <p>If you have any questions, please reach out:</p>
-                <ul className="list-disc pl-5 space-y-2 mt-2">
-                    <li>Email: <a href="mailto:oktopusclothing.business@gmail.com" className="text-primary">oktopusclothing.business@gmail.com</a></li>
-                    <li>Phone: <a href="tel:6291337506" className="text-primary">6291337506</a></li>
-                </ul>
+                <h3 className="font-bold mt-4 mb-2">6. Contact Us</h3>
+                <p>For questions, email <a href="mailto:oktopusclothing.business@gmail.com" className="text-primary">oktopusclothing.business@gmail.com</a> or call <a href="tel:6291337506" className="text-primary">+91 62913 37506</a>.</p>
             </CardContent>
           </Card>
         </main>

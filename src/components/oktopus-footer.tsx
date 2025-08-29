@@ -35,8 +35,10 @@ export function OktopusFooter() {
             <ul className="space-y-2">
               <li><Link href="/about" className="text-sm text-muted-foreground hover:text-accent">About</Link></li>
               <li><Link href="/contact" className="text-sm text-muted-foreground hover:text-accent">Contact</Link></li>
-              <li><Link href="/return-policy" className="text-sm text-muted-foreground hover:text-accent">Return Policy</Link></li>
-              <li><Link href="#" className="text-sm text-muted-foreground hover:text-accent">Blog</Link></li>
+              <li><Link href="/return-policy" className="text-sm text-muted-foreground hover:text-accent">Refunds & Cancellations</Link></li>
+              <li><Link href="/shipping-policy" className="text-sm text-muted-foreground hover:text-accent">Shipping Policy</Link></li>
+              <li><Link href="/privacy-policy" className="text-sm text-muted-foreground hover:text-accent">Privacy Policy</Link></li>
+              <li><Link href="/terms-and-conditions" className="text-sm text-muted-foreground hover:text-accent">Terms & Conditions</Link></li>
             </ul>
           </div>
           <div>
