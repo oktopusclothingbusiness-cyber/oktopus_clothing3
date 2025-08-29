@@ -179,7 +179,7 @@ export default function OktopusStorePage() {
             <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div className="space-y-6">
                     <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight animate-slide-in-from-left">
-                        Style That Speaks Volumes
+                        T-Shirts That Speaks Volumes
                     </h1>
                     <p className="text-lg text-muted-foreground animate-fade-in animation-delay-300">
                         Discover premium clothing collections tailored for a modern and stylish lifestyle. Find your perfect look for any occasion.
