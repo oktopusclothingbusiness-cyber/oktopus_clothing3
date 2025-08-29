@@ -68,25 +68,6 @@ export default function ProfilePage() {
             </div>
             
             <Card className="card-glass">
-                <CardContent className="p-4">
-                  <div className="flex justify-around text-center">
-                      <div>
-                          <p className="text-2xl font-bold">12</p>
-                          <p className="text-xs text-muted-foreground">Orders</p>
-                      </div>
-                       <div>
-                          <p className="text-2xl font-bold">5</p>
-                          <p className="text-xs text-muted-foreground">Wishlist</p>
-                      </div>
-                       <div>
-                          <p className="text-2xl font-bold">2</p>
-                          <p className="text-xs text-muted-foreground">Reviews</p>
-                      </div>
-                  </div>
-                </CardContent>
-            </Card>
-
-            <Card className="card-glass">
                 <CardContent className="p-2">
                     {menuItems.map((item, index) => (
                         <Link href={item.href} key={item.label}>
@@ -142,4 +123,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
