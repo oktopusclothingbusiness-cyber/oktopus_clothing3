@@ -4,8 +4,25 @@ import Link from "next/link";
 import { Button } from "./ui/button";
 import { Github, Twitter, Instagram } from "lucide-react";
 import { Input } from "./ui/input";
+import * as React from 'react';
+import { useToast } from "@/hooks/use-toast";
 
 export function StreetifyFooter() {
+  const { toast } = useToast();
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = (e.target as HTMLFormElement).email.value;
+    if (email) {
+      toast({
+        title: "Subscribed!",
+        description: "Thanks for joining our newsletter.",
+      });
+      (e.target as HTMLFormElement).reset();
+    }
+  };
+
+
   return (
     <footer className="bg-black text-white py-12">
       <div className="container mx-auto px-4">
@@ -49,8 +66,8 @@ export function StreetifyFooter() {
            <div>
             <h3 className="font-semibold mb-4 font-serif">JOIN OUR NEWSLETTER</h3>
             <p className="text-sm text-neutral-400 mb-4">Get E-mail updates about our latest shop and special offers.</p>
-            <form className="flex gap-2">
-                <Input type="email" placeholder="Enter your email" className="bg-neutral-900 border-neutral-700 rounded-full" />
+            <form className="flex gap-2" onSubmit={handleSubscribe}>
+                <Input name="email" type="email" placeholder="Enter your email" className="bg-neutral-900 border-neutral-700 rounded-full" required />
                 <Button type="submit" className="bg-primary text-black hover:bg-primary/90 rounded-full">Subscribe</Button>
             </form>
           </div>

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Link from "next/link";
@@ -8,10 +9,21 @@ import { Input } from "./ui/input";
 import * as React from 'react';
 import Image from "next/image";
 import { ThemeToggle } from "./theme-toggle";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/auth-context";
 
 export function StreetifyHeader() {
   const navLinks = ["Home", "Products", "About", "Contact"];
   const [logoUrl, setLogoUrl] = React.useState('');
+  const router = useRouter();
+  const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = React.useState('');
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter' && searchQuery.trim()) {
+          router.push(`/products?q=${encodeURIComponent(searchQuery)}`);
+      }
+  };
 
   React.useEffect(() => {
     const fetchSettings = async () => {
@@ -40,8 +52,10 @@ export function StreetifyHeader() {
           </div>
           <div className="flex gap-4 items-center">
             <span>Stay Connected</span>
-            <span className="flex items-center gap-1"><Heart className="w-3 h-3" /> Wishlist</span>
-            <span>Help</span>
+            <Link href="/favorites" className="flex items-center gap-1 hover:text-primary">
+              <Heart className="w-3 h-3" /> Wishlist
+            </Link>
+            <Link href="/contact" className="hover:text-primary">Help</Link>
           </div>
         </div>
         
@@ -66,12 +80,21 @@ export function StreetifyHeader() {
           </nav>
           <div className="flex items-center gap-4">
             <div className="relative">
-              <Input type="search" placeholder="Search..." className="bg-neutral-900 border-neutral-700 rounded-full h-9 pl-10 text-sm" />
+              <Input 
+                type="search" 
+                placeholder="Search..." 
+                className="bg-neutral-900 border-neutral-700 rounded-full h-9 pl-10 text-sm" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearch}
+              />
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
             </div>
              <ThemeToggle />
-             <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
+             <Button asChild variant="ghost" size="icon">
+                <Link href={user ? '/profile' : '/login'}>
+                  <User className="h-5 w-5" />
+                </Link>
              </Button>
           </div>
         </div>

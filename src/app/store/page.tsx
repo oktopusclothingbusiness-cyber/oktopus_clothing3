@@ -107,15 +107,19 @@ export default function StreetifyStorePage() {
         {/* Hero Section */}
         <section className="relative h-[600px] bg-black flex items-center">
             <div className="absolute inset-0">
-                 <Image src="https://picsum.photos/seed/hero/1600/600" layout="fill" objectFit="cover" alt="Background" className="opacity-30" data-ai-hint="urban street background" />
+                 <Image src="https://i.ibb.co/YyV3c0x/okto-main-1.png" layout="fill" objectFit="cover" alt="Background" className="opacity-30" data-ai-hint="urban street background" />
             </div>
             <div className="container mx-auto px-4 grid grid-cols-2 gap-8 items-center relative z-10">
                 <div className="bg-black/70 p-10 rounded-lg">
                     <h1 className="text-8xl font-black uppercase tracking-tighter">Streetwear</h1>
                     <p className="text-neutral-300 mt-4 max-w-sm">Explore our latest collection of streetwear that combines style and comfort. Be bold, be you.</p>
                     <div className="mt-8 flex items-center gap-4">
-                        <Button variant="outline" className="border-2 border-white text-white bg-transparent hover:bg-white hover:text-black rounded-sm px-8">EXPLORE</Button>
-                        <Button className="bg-primary hover:bg-primary/90 text-black rounded-sm px-8">SHOP NOW</Button>
+                        <Button asChild variant="outline" className="border-2 border-white text-white bg-transparent hover:bg-white hover:text-black rounded-sm px-8">
+                            <Link href="/products">EXPLORE</Link>
+                        </Button>
+                        <Button asChild className="bg-primary hover:bg-primary/90 text-black rounded-sm px-8">
+                            <Link href="/products">SHOP NOW</Link>
+                        </Button>
                     </div>
                 </div>
                  <div>
