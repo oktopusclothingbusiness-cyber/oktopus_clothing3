@@ -1,12 +1,14 @@
 
+
 'use client';
 
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { Search, Heart, User } from "lucide-react";
+import { Input } from "./ui/input";
 
 export function StreetifyHeader() {
-  const navLinks = ["Proce", "Home", "Vioes", "Stops", "Shops", "Highs", "Ofire"];
+  const navLinks = ["Home", "Products", "Categories", "About", "Contact"];
 
   return (
     <header className="bg-black text-white sticky top-0 z-50">
@@ -14,25 +16,25 @@ export function StreetifyHeader() {
         {/* Top Bar */}
         <div className="flex justify-between items-center text-xs text-neutral-400 py-2 border-b border-neutral-800">
           <div className="flex gap-4">
-            <span>Shopt Ilem</span>
+            <span>Free Shipping on Orders Over ₹500</span>
             <span>|</span>
-            <span>Polive Melees</span>
+            <span>Easy Returns & Exchanges</span>
           </div>
           <div className="flex gap-4 items-center">
-            <span>Stay Up</span>
-            <span className="flex items-center gap-1"><Heart className="w-3 h-3" /> Selects</span>
-            <span>Pursuites</span>
+            <span>Stay Connected</span>
+            <span className="flex items-center gap-1"><Heart className="w-3 h-3" /> Wishlist</span>
+            <span>Help</span>
           </div>
         </div>
         
         {/* Main Header */}
         <div className="flex justify-between items-center py-4">
           <Link href="/store" className="text-3xl font-black uppercase tracking-tight">
-            Streeilfy
+            OKTOPUS
           </Link>
           <nav className="hidden md:flex gap-6">
             {navLinks.map(link => (
-              <Link key={link} href="#" className="text-sm font-medium hover:text-primary transition-colors">
+              <Link key={link} href={`/${link.toLowerCase()}`} className="text-sm font-medium hover:text-primary transition-colors">
                 {link}
               </Link>
             ))}
@@ -51,8 +53,3 @@ export function StreetifyHeader() {
     </header>
   );
 }
-
-// Dummy Input component to avoid breaking the code.
-const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
-    <input {...props} />
-);

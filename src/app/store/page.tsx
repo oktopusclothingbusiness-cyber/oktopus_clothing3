@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Image from "next/image";
@@ -67,7 +68,7 @@ const StreetifyProductCard = ({ product, large = false }: { product: Product, la
                 </div>
                 <div className="p-4">
                     <h3 className="text-white font-semibold truncate">{product.name}</h3>
-                    <p className="text-white font-bold text-lg">${product.price.toFixed(2)}</p>
+                    <p className="text-white font-bold text-lg">₹{product.price.toFixed(2)}</p>
                 </div>
             </Link>
         </div>
@@ -83,18 +84,18 @@ export default function StreetifyStorePage() {
   const loading = productsLoading || promotionsLoading || categoriesLoading;
   const activePromotions = promotions.filter(p => p.isActive);
 
-  const animalstProducts = products.slice(0, 3);
-  const collecttronsProducts = products.slice(3, 12);
+  const newArrivals = products.slice(0, 3);
+  const featuredProducts = products.slice(3, 12);
   const largeProductIndex = 2;
 
 
   const featureIcons = [
-      { icon: LockIcon, label: "Top Selckal Ciolirs" },
-      { icon: WrenchIcon, label: "Werte Pattral Certs" },
-      { icon: CarIcon, label: "Preye cariving" },
-      { icon: SparklesIcon, label: "Chaing Cants" },
-      { icon: SlidersIcon, label: "Rele Tey Cools" },
-      { icon: TagIcon, label: "Kemp Fey Catort" },
+      { icon: LockIcon, label: "Premium Materials" },
+      { icon: WrenchIcon, label: "Custom Designs" },
+      { icon: CarIcon, label: "Fast Shipping" },
+      { icon: SparklesIcon, label: "Unique Styles" },
+      { icon: SlidersIcon, label: "Perfect Fit" },
+      { icon: TagIcon, label: "Exclusive Deals" },
   ];
 
   return (
@@ -110,10 +111,10 @@ export default function StreetifyStorePage() {
             </div>
             <div className="container mx-auto px-4 grid grid-cols-2 gap-8 items-center relative z-10">
                 <div className="bg-black/70 p-10 rounded-lg">
-                    <h1 className="text-8xl font-black uppercase tracking-tighter">Sartreet</h1>
-                    <p className="text-neutral-300 mt-4 max-w-sm">Frewe you a abprated tha is - may lord he dolto witing you the telly freess.</p>
+                    <h1 className="text-8xl font-black uppercase tracking-tighter">Streetwear</h1>
+                    <p className="text-neutral-300 mt-4 max-w-sm">Explore our latest collection of streetwear that combines style and comfort. Be bold, be you.</p>
                     <div className="mt-8 flex items-center gap-4">
-                        <Button variant="outline" className="border-2 border-white text-white bg-transparent hover:bg-white hover:text-black rounded-sm px-8">SHOP SHOPS</Button>
+                        <Button variant="outline" className="border-2 border-white text-white bg-transparent hover:bg-white hover:text-black rounded-sm px-8">EXPLORE</Button>
                         <Button className="bg-primary hover:bg-primary/90 text-black rounded-sm px-8">SHOP NOW</Button>
                     </div>
                 </div>
@@ -146,17 +147,17 @@ export default function StreetifyStorePage() {
             </div>
         </section>
 
-        {/* ANIMALST COLLSTENME Section */}
+        {/* New Arrivals Section */}
         <section className="bg-black py-20">
             <div className="container mx-auto px-4 grid grid-cols-2 gap-16 items-center">
                 <div className="space-y-4">
-                    <h2 className="text-4xl font-extrabold uppercase">Your Uptoior Your</h2>
-                    <h2 className="text-4xl font-extrabold uppercase">Animalst Collstenme</h2>
-                    <p className="text-neutral-400 max-w-md">Feary our yest ily our life os eral halhe selon in draad in linal tus fagy to liry opting Trescoting your to colecte any buy creone.</p>
+                    <h2 className="text-4xl font-extrabold uppercase">Fresh on the Scene</h2>
+                    <h2 className="text-4xl font-extrabold uppercase">New Arrivals</h2>
+                    <p className="text-neutral-400 max-w-md">Check out the latest additions to our collection. Don't miss out on these fresh styles.</p>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                     {productsLoading ? Array.from({length: 3}).map((_, i) => <Skeleton key={i} className="aspect-[3/4] rounded-lg" />) :
-                     animalstProducts.map((p, i) => (
+                     newArrivals.map((p, i) => (
                         <div key={p.id} className="relative aspect-[3/4] rounded-lg overflow-hidden group">
                              <Image src={p.imageUrls[0]} alt={p.name} layout="fill" objectFit="cover" data-ai-hint="fashion model" />
                              <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
@@ -168,13 +169,13 @@ export default function StreetifyStorePage() {
             </div>
         </section>
 
-        {/* COLLECTTRONS GINDS Section */}
+        {/* Featured Collection Section */}
         <section className="py-20">
              <div className="container mx-auto px-4">
-                <h2 className="text-4xl font-extrabold text-center mb-12 uppercase">Collecttrons Ginds</h2>
+                <h2 className="text-4xl font-extrabold text-center mb-12 uppercase">Featured Collection</h2>
                 <div className="grid grid-cols-4 grid-rows-2 gap-6">
                     {productsLoading ? Array.from({length: 8}).map((_, i) => <Skeleton key={i} className="aspect-[3/4] rounded-2xl" />) : 
-                    collecttronsProducts.map((p, i) => (
+                    featuredProducts.map((p, i) => (
                         <StreetifyProductCard key={p.id} product={p} large={i === largeProductIndex} />
                     ))}
                 </div>

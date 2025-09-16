@@ -1,4 +1,5 @@
 
+
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { Github, Twitter, Instagram } from "lucide-react";
@@ -10,7 +11,7 @@ export function StreetifyFooter() {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
-            <h3 className="font-bold text-lg mb-4 font-serif">STREEILFY</h3>
+            <h3 className="font-bold text-lg mb-4 font-serif">OKTOPUS</h3>
             <p className="text-sm text-neutral-400">Dive into a world of endless fashion possibilities.</p>
             <div className="flex items-center gap-2 mt-4">
                 <Button variant="ghost" size="icon" asChild>
@@ -55,7 +56,7 @@ export function StreetifyFooter() {
           </div>
         </div>
         <div className="mt-8 pt-8 border-t border-neutral-800 text-center text-sm text-neutral-500">
-          <p>Copyright © 2025 Streeilfy. All rights reserved.</p>
+          <p>Copyright © 2025 Oktopus. All rights reserved.</p>
         </div>
       </div>
     </footer>
