@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import Link from "next/link";
@@ -8,7 +7,7 @@ import { Search, Heart, User } from "lucide-react";
 import { Input } from "./ui/input";
 
 export function StreetifyHeader() {
-  const navLinks = ["Home", "Products", "Categories", "About", "Contact"];
+  const navLinks = ["Home", "Products", "About", "Contact"];
 
   return (
     <header className="bg-black text-white sticky top-0 z-50">
@@ -33,11 +32,14 @@ export function StreetifyHeader() {
             OKTOPUS
           </Link>
           <nav className="hidden md:flex gap-6">
-            {navLinks.map(link => (
-              <Link key={link} href={`/${link.toLowerCase()}`} className="text-sm font-medium hover:text-primary transition-colors">
-                {link}
-              </Link>
-            ))}
+            {navLinks.map(link => {
+              const href = link === 'Home' ? '/store' : `/${link.toLowerCase()}`;
+              return (
+                <Link key={link} href={href} className="text-sm font-medium hover:text-primary transition-colors">
+                  {link}
+                </Link>
+              )
+            })}
           </nav>
           <div className="flex items-center gap-4">
             <div className="relative">
