@@ -10,42 +10,42 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 35 68% 54%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 10% 94%;
-    --secondary-foreground: 240 5.9% 10%;
+    --primary: 48 96% 59%; /* Yellow */
+    --primary-foreground: 240 10% 3.9%; /* Dark Text for Yellow Buttons */
+    --secondary: 240 4% 12%;
+    --secondary-foreground: 0 0% 98%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 35 68% 54%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 48 96% 59%; /* Yellow */
+    --accent-foreground: 240 10% 3.9%; /* Dark Text for Yellow Accents */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 35 68% 54%;
+    --ring: 48 96% 59%;
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 240 5% 5%;
-    --foreground: 0 0% 98%;
+    --background: 0 0% 0%; /* Black */
+    --foreground: 0 0% 98%; /* White */
     --card: 240 4% 9%;
     --card-foreground: 0 0% 98%;
     --popover: 240 5% 5%;
     --popover-foreground: 0 0% 98%;
-    --primary: 35 68% 54%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 48 96% 59%; /* Yellow */
+    --primary-foreground: 240 10% 3.9%; /* Dark Text for Yellow Buttons */
     --secondary: 240 4% 12%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 4% 12%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 35 68% 54%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 48 96% 59%; /* Yellow */
+    --accent-foreground: 240 10% 3.9%; /* Dark Text for Yellow Accents */
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 4% 15%;
     --input: 240 4% 15%;
-    --ring: 35 68% 54%;
+    --ring: 48 96% 59%;
   }
 }
 

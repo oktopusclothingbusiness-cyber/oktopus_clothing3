@@ -1,6 +1,6 @@
 
 import type { Metadata } from "next";
-import { Inter, Poppins } from "next/font/google";
+import { Inter, Archivo } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { CartProvider } from "@/context/cart-context";
@@ -15,9 +15,9 @@ import { FloatingCartButton } from "@/components/floating-cart-button";
 import { CouponProvider } from "@/context/coupon-context";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-const poppins = Poppins({ 
+const archivo = Archivo({ 
   subsets: ["latin"], 
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800", "900"],
   variable: "--font-serif" 
 });
 
@@ -33,10 +33,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${poppins.variable} font-sans`}>
+      <body className={`${inter.variable} ${archivo.variable} font-sans`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
