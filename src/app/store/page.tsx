@@ -26,6 +26,8 @@ import { CarIcon } from "@/components/icons/car-icon";
 import { SparklesIcon } from "@/components/icons/sparkles-icon";
 import { SlidersIcon } from "@/components/icons/sliders-icon";
 import { TagIcon } from "@/components/icons/tag-icon";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 
 const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
@@ -97,6 +99,10 @@ export default function StreetifyStorePage() {
       { icon: SlidersIcon, label: "Perfect Fit" },
       { icon: TagIcon, label: "Exclusive Deals" },
   ];
+  
+  const autoplayPlugin = React.useRef(
+    Autoplay({ delay: 5000, stopOnInteraction: true })
+  );
 
   return (
     <>
@@ -106,35 +112,63 @@ export default function StreetifyStorePage() {
       <main>
         {/* Hero Section */}
         <section className="relative h-[600px] bg-black flex items-center">
-            <div className="absolute inset-0">
-                 <Image src="https://i.ibb.co/YyV3c0x/okto-main-1.png" layout="fill" objectFit="cover" alt="Background" className="opacity-30" data-ai-hint="urban street background" />
-            </div>
-            <div className="container mx-auto px-4 grid grid-cols-2 gap-8 items-center relative z-10">
-                <div className="bg-black/70 p-10 rounded-lg">
-                    <h1 className="text-8xl font-black uppercase tracking-tighter">Streetwear</h1>
-                    <p className="text-neutral-300 mt-4 max-w-sm">Explore our latest collection of streetwear that combines style and comfort. Be bold, be you.</p>
-                    <div className="mt-8 flex items-center gap-4">
-                        <Button asChild variant="outline" className="border-2 border-white text-white bg-transparent hover:bg-white hover:text-black rounded-sm px-8">
-                            <Link href="/products">EXPLORE</Link>
-                        </Button>
-                        <Button asChild className="bg-primary hover:bg-primary/90 text-black rounded-sm px-8">
-                            <Link href="/products">SHOP NOW</Link>
-                        </Button>
-                    </div>
-                </div>
-                 <div>
-                    <Image src="https://i.imgur.com/GkxG1d5.png" width={500} height={750} alt="Model in hoodie" className="object-contain" data-ai-hint="man hoodie fashion" />
-                 </div>
-            </div>
-             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-10">
-                <Button variant="ghost" size="icon"><ChevronLeft /></Button>
-                <div className="flex gap-2">
-                    <span className="w-3 h-3 bg-primary rounded-full"></span>
-                    <span className="w-3 h-3 bg-neutral-700 rounded-full"></span>
-                    <span className="w-3 h-3 bg-neutral-700 rounded-full"></span>
-                </div>
-                <Button variant="ghost" size="icon"><ChevronRight /></Button>
-            </div>
+             <Carousel 
+                className="w-full h-full"
+                plugins={[autoplayPlugin.current]}
+                onMouseEnter={autoplayPlugin.current.stop}
+                onMouseLeave={autoplayPlugin.current.reset}
+                opts={{ loop: true }}
+            >
+                <CarouselContent>
+                    {loading ? (
+                        <CarouselItem>
+                             <div className="w-full h-[600px] bg-neutral-900 animate-pulse" />
+                        </CarouselItem>
+                    ) : activePromotions.length > 0 ? (
+                        activePromotions.map((promo, index) => (
+                        <CarouselItem key={index}>
+                            <div className="relative w-full h-[600px]">
+                                <Image src={promo.imageUrl} layout="fill" objectFit="cover" alt={promo.title} className="opacity-30" data-ai-hint="urban street background" />
+                                <div className="absolute inset-0 bg-black/50" />
+                                <div className="container mx-auto h-full flex items-center relative z-10">
+                                    <div className="max-w-xl animate-fade-in">
+                                        <h1 className="text-8xl font-black uppercase tracking-tighter animate-slide-in-from-left">
+                                            {promo.title}
+                                        </h1>
+                                        <p className="text-neutral-300 mt-4 max-w-sm animate-slide-in-from-bottom" style={{ animationDelay: '0.2s' }}>
+                                            {promo.description}
+                                        </p>
+                                        <div className="mt-8 flex items-center gap-4 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                                             <Button asChild className="bg-primary hover:bg-primary/90 text-black rounded-sm px-8">
+                                                <Link href={promo.ctaLink}>{promo.ctaText}</Link>
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </CarouselItem>
+                        ))
+                    ) : (
+                         <CarouselItem>
+                             <div className="relative w-full h-[600px]">
+                                <Image src="https://i.ibb.co/YyV3c0x/okto-main-1.png" layout="fill" objectFit="cover" alt="Background" className="opacity-30" data-ai-hint="urban street background" />
+                                 <div className="absolute inset-0 bg-black/50" />
+                                 <div className="container mx-auto h-full flex items-center relative z-10">
+                                     <div className="max-w-xl">
+                                         <h1 className="text-8xl font-black uppercase tracking-tighter">Streetwear</h1>
+                                         <p className="text-neutral-300 mt-4 max-w-sm">Explore our latest collection of streetwear that combines style and comfort. Be bold, be you.</p>
+                                         <div className="mt-8 flex items-center gap-4">
+                                             <Button asChild className="bg-primary hover:bg-primary/90 text-black rounded-sm px-8">
+                                                <Link href="/products">Shop Now</Link>
+                                            </Button>
+                                         </div>
+                                     </div>
+                                 </div>
+                             </div>
+                         </CarouselItem>
+                    )}
+                </CarouselContent>
+            </Carousel>
         </section>
 
         {/* Features Section */}
@@ -333,3 +367,5 @@ export default function StreetifyStorePage() {
     </>
   );
 }
+
+    
