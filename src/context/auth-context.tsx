@@ -4,6 +4,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { auth } from "@/lib/firebase";
+import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 
 type User = {
     _id: string;
@@ -22,6 +24,7 @@ type AuthContextType = {
   login: (user: User) => void;
   logout: () => void;
   loading: boolean;
+  signInWithGoogle: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,12 +59,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
     setUser(null);
     try {
+        await signOut(auth);
         sessionStorage.removeItem('user');
     } catch (error) {
-        console.error("Failed to remove user from session storage", error);
+        console.error("Failed to sign out or remove user from session storage", error);
     }
     toast({
         title: "Logged Out",
@@ -70,8 +74,54 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     router.push('/login');
   };
 
+  const signInWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const googleUser = result.user;
+
+      if (googleUser) {
+        const response = await fetch('/api/auth/google', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: googleUser.email,
+            firstName: googleUser.displayName?.split(' ')[0] || '',
+            lastName: googleUser.displayName?.split(' ').slice(1).join(' ') || '',
+            profilePictureUrl: googleUser.photoURL,
+          }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          login(data.user);
+          toast({
+            title: "Sign-In Successful",
+            description: "Welcome!",
+          });
+          if (data.user.role === 'admin') {
+            router.push('/admin');
+          } else {
+            router.push('/store');
+          }
+        } else {
+          throw new Error(data.message || 'Failed to authenticate with Google');
+        }
+      }
+    } catch (error: any) {
+      console.error("Google Sign-In Error:", error);
+      toast({
+        title: "Google Sign-In Failed",
+        description: error.message || "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, signInWithGoogle }}>
       {children}
     </AuthContext.Provider>
   );

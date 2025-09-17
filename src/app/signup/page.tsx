@@ -15,6 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
+import { GoogleIcon } from "@/components/icons/google-icon";
+import { useAuth } from "@/context/auth-context";
 
 const formSchema = z.object({
   firstName: z.string().min(1, { message: "First name is required." }),
@@ -27,6 +29,7 @@ const formSchema = z.object({
 export default function SignupPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const { signInWithGoogle } = useAuth();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -85,35 +88,51 @@ export default function SignupPage() {
                 Enter your information to create an account.
               </CardDescription>
             </CardHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)}>
-                <CardContent className="grid gap-4">
-                  <FormField
-                    control={form.control}
-                    name="firstName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>First name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Max" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                   <FormField
-                    control={form.control}
-                    name="lastName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Last name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Robinson" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+            <CardContent className="grid gap-4">
+              <Button variant="outline" onClick={signInWithGoogle}>
+                <GoogleIcon className="mr-2 h-4 w-4" />
+                Sign up with Google
+              </Button>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>First name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Max" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                      control={form.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Robinson" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   <FormField
                     control={form.control}
                     name="email"
@@ -140,20 +159,20 @@ export default function SignupPage() {
                       </FormItem>
                     )}
                   />
-                </CardContent>
-                <CardFooter className="flex flex-col">
                   <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
                     {form.formState.isSubmitting ? 'Creating Account...' : 'Create account'}
                   </Button>
-                  <div className="mt-4 text-center text-sm">
-                    Already have an account?{" "}
-                    <Link href="/login" className="underline">
-                      Login
-                    </Link>
-                  </div>
-                </CardFooter>
-              </form>
-            </Form>
+                </form>
+              </Form>
+            </CardContent>
+            <CardFooter className="flex flex-col">
+              <div className="text-center text-sm">
+                Already have an account?{" "}
+                <Link href="/login" className="underline">
+                  Login
+                </Link>
+              </div>
+            </CardFooter>
           </Card>
         </main>
         <Footer />
@@ -170,10 +189,25 @@ export default function SignupPage() {
                 Let's get you started!
               </CardDescription>
             </CardHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)}>
-                <CardContent className="grid gap-4">
-                  <FormField
+            <CardContent className="grid gap-4">
+              <Button variant="outline" onClick={signInWithGoogle}>
+                  <GoogleIcon className="mr-2 h-4 w-4" />
+                  Sign up with Google
+              </Button>
+              <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-secondary px-2 text-muted-foreground">
+                      Or continue with
+                    </span>
+                  </div>
+              </div>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                   <div className="grid grid-cols-2 gap-4">
+                    <FormField
                       control={form.control}
                       name="firstName"
                       render={({ field }) => (
@@ -199,6 +233,7 @@ export default function SignupPage() {
                         </FormItem>
                       )}
                     />
+                  </div>
                     <FormField
                       control={form.control}
                       name="email"
@@ -225,20 +260,20 @@ export default function SignupPage() {
                         </FormItem>
                       )}
                     />
-                </CardContent>
-                <CardFooter className="flex flex-col gap-4">
-                  <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
-                    {form.formState.isSubmitting ? 'Creating Account...' : 'Create account'}
-                  </Button>
-                  <div className="text-center text-sm">
-                    Already have an account?{" "}
-                    <Link href="/login" className="text-primary font-semibold">
-                      Login
-                    </Link>
-                  </div>
-                </CardFooter>
-              </form>
-            </Form>
+                    <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
+                      {form.formState.isSubmitting ? 'Creating Account...' : 'Create account'}
+                    </Button>
+                </form>
+              </Form>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4">
+              <div className="text-center text-sm">
+                Already have an account?{" "}
+                <Link href="/login" className="text-primary font-semibold">
+                  Login
+                </Link>
+              </div>
+            </CardFooter>
           </Card>
         </main>
         <MobileFooter />
