@@ -13,6 +13,7 @@ import Script from "next/script";
 import { ThemeProvider } from "@/context/theme-provider";
 import { FloatingCartButton } from "@/components/floating-cart-button";
 import { CouponProvider } from "@/context/coupon-context";
+import clientPromise from "@/lib/mongodb";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const archivo = Archivo({ 
@@ -21,10 +22,32 @@ const archivo = Archivo({
   variable: "--font-serif" 
 });
 
-export const metadata: Metadata = {
-  title: "OKTOPUS CLOTHING",
-  description: "A modern fashion e-commerce website.",
-};
+async function getSettings() {
+  try {
+    const client = await clientPromise;
+    const db = client.db();
+    const settings = await db.collection('settings').findOne({ _id: 'global' });
+    return {
+      faviconUrl: settings?.faviconUrl || '/favicon.ico',
+    };
+  } catch (error) {
+    console.error('Failed to fetch settings for layout:', error);
+    return {
+      faviconUrl: '/favicon.ico',
+    };
+  }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSettings();
+  return {
+    title: "OKTOPUS CLOTHING",
+    description: "A modern fashion e-commerce website.",
+    icons: {
+      icon: settings.faviconUrl,
+    },
+  };
+}
 
 export default function RootLayout({
   children,
