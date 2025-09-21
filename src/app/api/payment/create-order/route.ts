@@ -6,8 +6,8 @@ import shortid from 'shortid';
 // The Razorpay keys are now hardcoded.
 // Replace with your actual keys.
 const instance = new Razorpay({
-  key_id: "rzp_test_R8uYO3NMQa71Id",
-  key_secret: "ZNsWsHhF6S22LymgEQugNZZ4",
+  key_id: "rzp_live_RKLAWS1cKI9YWZ",
+  key_secret: "I3hW7zcB4LYvNwO018cBDK2B",
 });
 
 export async function POST(request: Request) {
