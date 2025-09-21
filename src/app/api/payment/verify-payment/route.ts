@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
+import { sendOrderConfirmationEmail } from '@/lib/mail';
 
 // The Razorpay key secret is now hardcoded.
 // Replace with your actual key secret.
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
       const client = await clientPromise;
       const db = client.db();
 
-      await db.collection('orders').updateOne(
+      const updatedOrderResult = await db.collection('orders').findOneAndUpdate(
         { _id: new ObjectId(internal_order_id) },
         { 
           $set: { 
@@ -44,10 +45,29 @@ export async function POST(request: Request) {
               razorpay_signature,
               verifiedAt: new Date(),
               paymentStatus: 'paid'
-            }
+            },
+            status: 'accepted'
           }
-        }
+        },
+        { returnDocument: 'after' }
       );
+      
+      const updatedOrder = updatedOrderResult;
+
+      if (updatedOrder) {
+          const user = await db.collection('users').findOne({ _id: new ObjectId(updatedOrder.userId) });
+          if(user) {
+               await sendOrderConfirmationEmail({
+                    to: user.email,
+                    orderId: updatedOrder._id.toString(),
+                    userName: updatedOrder.userName,
+                    orderDate: updatedOrder.createdAt,
+                    total: updatedOrder.total,
+                    products: updatedOrder.products
+                });
+          }
+      }
+
 
       return NextResponse.json({ message: 'Payment verified successfully.' }, { status: 200 });
     } else {

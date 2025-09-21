@@ -156,7 +156,7 @@ export default function CartPage() {
           address: shippingAddress.address,
         },
         theme: {
-          color: "#000000"
+          color: "#FBBF24"
         }
       };
       

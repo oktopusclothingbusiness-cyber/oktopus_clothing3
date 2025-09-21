@@ -1,8 +1,6 @@
 
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
-import { sendOrderConfirmationEmail } from '@/lib/mail';
-import { ObjectId } from 'mongodb';
 
 // GET all orders (for admin)
 export async function GET(request: Request) {
@@ -43,19 +41,6 @@ export async function POST(request: Request) {
 
     const result = await db.collection('orders').insertOne(orderData);
     
-    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
-    
-    if (user) {
-        await sendOrderConfirmationEmail({
-            to: user.email,
-            orderId: result.insertedId.toString(),
-            userName,
-            orderDate: orderData.createdAt,
-            total,
-            products
-        });
-    }
-
     return NextResponse.json({ message: 'Order created successfully', orderId: result.insertedId }, { status: 201 });
 
   } catch (error) {

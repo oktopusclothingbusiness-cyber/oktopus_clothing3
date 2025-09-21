@@ -63,16 +63,20 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     
     const updatedOrder = result;
     
-    const user = await db.collection('users').findOne({ _id: new ObjectId(updatedOrder.userId) });
+    // Do not send mail if the order is just created from cart page.
+    if(updatedOrder.status !== 'pending') {
+      const user = await db.collection('users').findOne({ _id: new ObjectId(updatedOrder.userId) });
 
-    if(user) {
-        await sendOrderStatusUpdateEmail({
-            to: user.email,
-            orderId: updatedOrder._id.toString(),
-            orderStatus: updatedOrder.status,
-            userName: updatedOrder.userName
-        });
+      if(user) {
+          await sendOrderStatusUpdateEmail({
+              to: user.email,
+              orderId: updatedOrder._id.toString(),
+              orderStatus: updatedOrder.status,
+              userName: updatedOrder.userName
+          });
+      }
     }
+
 
     return NextResponse.json({ message: `Order status updated to ${status}.` }, { status: 200 });
 
