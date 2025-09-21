@@ -25,7 +25,7 @@ declare global {
   }
 }
 
-const RAZORPAY_KEY_ID = "rzp_test_R8uYO3NMQa71Id";
+const RAZORPAY_KEY_ID = "rzp_live_RKLAWS1cKI9YWZ";
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, clearCart, subtotal, discount, shipping, total, applyCoupon } = useCart();
