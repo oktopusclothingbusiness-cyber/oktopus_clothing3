@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { Loader2, LogOut, ChevronRight, ShoppingBag, Heart, Edit, Truck, Moon, Settings, FileText, User as UserIcon, Building } from 'lucide-react';
+import { Loader2, LogOut, ChevronRight, ShoppingBag, Heart, Edit, Truck, Moon, Settings, FileText, User as UserIcon, Building, Palette } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MobileFooter } from '@/components/mobile-footer';
 import Link from 'next/link';
@@ -27,6 +27,7 @@ export default function ProfilePage() {
 
   const menuItems = [
     { label: 'My Orders', icon: ShoppingBag, href: '/orders' },
+    { label: 'My Designs', icon: Palette, href: '/my-designs' },
     { label: 'Track Order', icon: Truck, href: '/track-order' },
     { label: 'Wishlist', icon: Heart, href: '/favorites' },
     { label: 'Edit Profile', icon: Edit, href: '/profile/edit' },
@@ -94,7 +95,7 @@ export default function ProfilePage() {
                 <div className="lg:col-span-2 p-6 space-y-4">
                     <div>
                         <h2 className="text-lg font-semibold px-4 mb-2">My Account</h2>
-                        {menuItems.slice(0, 3).map((item) => <ListItem key={item.label} item={item} />)}
+                        {menuItems.slice(0, 4).map((item) => <ListItem key={item.label} item={item} />)}
                     </div>
                      <div>
                         <h2 className="text-lg font-semibold px-4 mb-2">Settings</h2>
@@ -200,3 +201,5 @@ export default function ProfilePage() {
     </>
   );
 }
+
+    

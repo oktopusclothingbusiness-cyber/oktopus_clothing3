@@ -4,7 +4,7 @@
 import Link from "next/link";
 import * as React from 'react';
 import { Button } from "./ui/button";
-import { ShoppingCart, User, Shield, LogOut } from "lucide-react";
+import { ShoppingCart, User, Shield, LogOut, Palette } from "lucide-react";
 import { useCart } from "@/context/cart-context";
 import { useAuth } from "@/context/auth-context";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -91,6 +91,10 @@ export function Header() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.push('/profile')}>Profile</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/orders')}>My Orders</DropdownMenuItem>
+                 <DropdownMenuItem onClick={() => router.push('/my-designs')}>
+                    <Palette className="mr-2 h-4 w-4" />
+                    <span>My Designs</span>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout}>
                     <LogOut className="mr-2 h-4 w-4" />
@@ -119,3 +123,5 @@ export function Header() {
     </header>
   );
 }
+
+    

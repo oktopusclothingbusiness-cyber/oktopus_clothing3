@@ -13,9 +13,10 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Download, Trash2 } from 'lucide-react';
+import { Download, Trash2, IndianRupee } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
-type DesignStatus = 'pending' | 'approved' | 'rejected';
+type DesignStatus = 'pending' | 'approved' | 'rejected' | 'paid';
 
 type CustomDesign = {
   _id: string;
@@ -27,12 +28,14 @@ type CustomDesign = {
   printArea?: { width: number; height: number };
   notes: string;
   status: DesignStatus;
+  price?: number;
   createdAt: string;
 };
 
 export default function CustomDesignsPage() {
   const [designs, setDesigns] = React.useState<CustomDesign[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [priceInputs, setPriceInputs] = React.useState<{[key: string]: string}>({});
   const { toast } = useToast();
 
   const fetchDesigns = React.useCallback(async () => {
@@ -61,13 +64,39 @@ export default function CustomDesignsPage() {
   }, [fetchDesigns]);
 
   const handleStatusChange = async (designId: string, status: DesignStatus) => {
-    // This function would call a new API endpoint to update the status
-    // For now, we'll just show a toast and optimistically update the UI
-     setDesigns(prev => prev.map(d => d._id === designId ? {...d, status} : d));
-     toast({
-        title: 'Status Updated',
-        description: `Design status changed to ${status}.`,
-     });
+    const price = priceInputs[designId] ? parseFloat(priceInputs[designId]) : undefined;
+
+    if (status === 'approved' && (!price || price <= 0)) {
+        toast({
+            title: 'Invalid Price',
+            description: 'Please set a valid price before approving a design.',
+            variant: 'destructive',
+        });
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/custom-designs/${designId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status, price }),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to update status');
+        }
+        setDesigns(prev => prev.map(d => d._id === designId ? {...d, status, price} : d));
+        toast({
+            title: 'Status Updated',
+            description: `Design status changed to ${status}.`,
+        });
+    } catch (error) {
+        console.error(error);
+        toast({
+            title: 'Error',
+            description: 'Could not update design status.',
+            variant: 'destructive',
+        });
+    }
   };
 
   const handleDelete = async (designId: string) => {
@@ -93,6 +122,10 @@ export default function CustomDesignsPage() {
     }
   };
 
+  const handlePriceChange = (designId: string, value: string) => {
+    setPriceInputs(prev => ({...prev, [designId]: value}));
+  };
+
   const getStatusVariant = (status: string) => {
     switch (status) {
       case 'approved':
@@ -101,6 +134,8 @@ export default function CustomDesignsPage() {
         return 'secondary';
       case 'rejected':
         return 'destructive';
+      case 'paid':
+        return 'outline';
       default:
         return 'secondary';
     }
@@ -125,7 +160,7 @@ export default function CustomDesignsPage() {
                   <TableHead>User</TableHead>
                   <TableHead>Details</TableHead>
                   <TableHead>Submitted</TableHead>
-                  <TableHead>Notes</TableHead>
+                  <TableHead>Price</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -138,9 +173,9 @@ export default function CustomDesignsPage() {
                       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-48" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-28" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-10 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-10 w-32" /></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-8 w-20" /></TableCell>
                     </TableRow>
                   ))
                 ) : designs.length > 0 ? (
@@ -169,25 +204,45 @@ export default function CustomDesignsPage() {
                         </div>
                       </TableCell>
                       <TableCell>{format(new Date(design.createdAt), 'PP')}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">{design.notes || 'N/A'}</TableCell>
                       <TableCell>
-                        <Select
-                          defaultValue={design.status}
-                          onValueChange={(value: DesignStatus) => handleStatusChange(design._id, value)}
-                        >
-                           <SelectTrigger className="w-[140px]">
-                              <SelectValue>
-                                 <Badge variant={getStatusVariant(design.status)}>{design.status}</Badge>
-                              </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {statusOptions.map(status => (
-                                <SelectItem key={status} value={status}>
-                                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                                </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        {design.status === 'pending' || design.status === 'approved' ? (
+                          <div className="relative">
+                            <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input 
+                              type="number"
+                              className="pl-8"
+                              placeholder="Set Price"
+                              value={priceInputs[design._id] || design.price || ''}
+                              onChange={(e) => handlePriceChange(design._id, e.target.value)}
+                              disabled={design.status !== 'pending'}
+                            />
+                          </div>
+                        ) : design.price ? (
+                            `₹${design.price.toFixed(2)}`
+                        ) : 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        {design.status === 'paid' ? (
+                            <Badge variant={getStatusVariant(design.status)}>Paid</Badge>
+                        ) : (
+                          <Select
+                            value={design.status}
+                            onValueChange={(value: DesignStatus) => handleStatusChange(design._id, value)}
+                          >
+                            <SelectTrigger className="w-[140px]">
+                                <SelectValue>
+                                  <Badge variant={getStatusVariant(design.status)}>{design.status}</Badge>
+                                </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {statusOptions.map(status => (
+                                  <SelectItem key={status} value={status}>
+                                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                                  </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="icon" asChild>
@@ -232,3 +287,5 @@ export default function CustomDesignsPage() {
     </>
   );
 }
+
+    

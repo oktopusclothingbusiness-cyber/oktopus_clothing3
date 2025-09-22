@@ -11,7 +11,7 @@ const RAZORPAY_KEY_SECRET = "I3hW7zcB4LYvNwO018cBDK2B";
 
 export async function POST(request: Request) {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, internal_order_id } = await request.json();
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, internal_order_id, order_type } = await request.json();
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !internal_order_id) {
        return NextResponse.json({ message: 'Missing payment details.' }, { status: 400 });
@@ -31,43 +31,86 @@ export async function POST(request: Request) {
     const isAuthentic = expectedSignature === razorpay_signature;
 
     if (isAuthentic) {
-      // Payment is authentic, update the order in the database
       const client = await clientPromise;
       const db = client.db();
-
-      const updatedOrderResult = await db.collection('orders').findOneAndUpdate(
-        { _id: new ObjectId(internal_order_id) },
-        { 
-          $set: { 
-            paymentDetails: {
-              razorpay_order_id,
-              razorpay_payment_id,
-              razorpay_signature,
-              verifiedAt: new Date(),
-              paymentStatus: 'paid'
-            },
-            status: 'accepted'
-          }
-        },
-        { returnDocument: 'after' }
-      );
       
-      const updatedOrder = updatedOrderResult;
+      let finalOrder;
 
-      if (updatedOrder) {
-          const user = await db.collection('users').findOne({ _id: new ObjectId(updatedOrder.userId) });
+      if (order_type === 'custom_design') {
+        // Handle custom design payment
+        const customDesign = await db.collection('customDesigns').findOne({ _id: new ObjectId(internal_order_id) });
+        if (!customDesign) {
+            return NextResponse.json({ message: 'Custom design not found.' }, { status: 404 });
+        }
+
+        // Create a new order from the custom design
+        const orderData = {
+          userId: customDesign.userId,
+          userName: customDesign.userName,
+          products: [{
+            productId: customDesign._id.toString(),
+            name: `Custom Design: ${customDesign._id.toString().slice(-6)}`,
+            quantity: 1,
+            price: customDesign.price,
+            size: customDesign.tshirtSize,
+            color: customDesign.tshirtColor,
+          }],
+          total: customDesign.price,
+          shippingAddress: { mobile: 'N/A', address: 'N/A', instructions: 'From Custom Design' }, // Or fetch user's default address
+          status: 'accepted',
+          createdAt: new Date(),
+          paymentDetails: {
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature,
+            verifiedAt: new Date(),
+            paymentStatus: 'paid'
+          }
+        };
+        
+        const result = await db.collection('orders').insertOne(orderData);
+        finalOrder = { ...orderData, _id: result.insertedId };
+        
+        // Update custom design status to 'paid'
+        await db.collection('customDesigns').updateOne(
+            { _id: new ObjectId(internal_order_id) },
+            { $set: { status: 'paid', orderId: result.insertedId } }
+        );
+
+      } else {
+        // Handle regular cart payment
+         const updatedOrderResult = await db.collection('orders').findOneAndUpdate(
+            { _id: new ObjectId(internal_order_id) },
+            { 
+              $set: { 
+                paymentDetails: {
+                  razorpay_order_id,
+                  razorpay_payment_id,
+                  razorpay_signature,
+                  verifiedAt: new Date(),
+                  paymentStatus: 'paid'
+                },
+                status: 'accepted'
+              }
+            },
+            { returnDocument: 'after' }
+          );
+          finalOrder = updatedOrderResult;
+      }
+      
+      if (finalOrder) {
+          const user = await db.collection('users').findOne({ _id: new ObjectId(finalOrder.userId) });
           if(user) {
                await sendOrderConfirmationEmail({
                     to: user.email,
-                    orderId: updatedOrder._id.toString(),
-                    userName: updatedOrder.userName,
-                    orderDate: updatedOrder.createdAt,
-                    total: updatedOrder.total,
-                    products: updatedOrder.products
+                    orderId: finalOrder._id.toString(),
+                    userName: finalOrder.userName,
+                    orderDate: finalOrder.createdAt,
+                    total: finalOrder.total,
+                    products: finalOrder.products
                 });
           }
       }
-
 
       return NextResponse.json({ message: 'Payment verified successfully.' }, { status: 200 });
     } else {
@@ -79,3 +122,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
   }
 }
+
+    
