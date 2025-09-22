@@ -17,7 +17,14 @@ export async function POST(request: Request) {
     let user = await usersCollection.findOne({ email });
 
     if (user) {
-      // User exists, return their data
+      // User exists, update profile picture if it's missing
+      if (!user.profilePictureUrl && profilePictureUrl) {
+        await usersCollection.updateOne(
+          { _id: user._id },
+          { $set: { profilePictureUrl: profilePictureUrl } }
+        );
+        user.profilePictureUrl = profilePictureUrl;
+      }
       const { password, ...userWithoutPassword } = user;
       return NextResponse.json({ message: 'Login successful.', user: userWithoutPassword }, { status: 200 });
     } else {
