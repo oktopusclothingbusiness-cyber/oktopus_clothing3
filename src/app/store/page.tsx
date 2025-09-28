@@ -5,7 +5,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ShoppingCart, Heart, ChevronLeft, ChevronRight, Search, Settings2, Shirt, Radio, Watch, MessageCircle, User, Home, Star, Footprints, Shapes } from "lucide-react";
+import { ArrowRight, ShoppingCart, Heart, ChevronLeft, ChevronRight, Search, Settings2, Shirt, Radio, Watch, MessageCircle, User, Home, Star, Footprints, Shapes, TrendingUp } from "lucide-react";
 import { StreetifyHeader } from "@/components/streetify-header";
 import { StreetifyFooter } from "@/components/streetify-footer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,6 +16,7 @@ import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
 import { usePromotion } from "@/context/promotion-context";
 import { useCategory } from "@/context/category-context";
+import { useTrend } from "@/context/trend-context";
 import { format, addDays } from "date-fns";
 import * as React from "react";
 import { ProductCard } from "@/components/product-card";
@@ -81,10 +82,12 @@ export default function StreetifyStorePage() {
   const { products, loading: productsLoading } = useProduct();
   const { promotions, loading: promotionsLoading } = usePromotion();
   const { categories, loading: categoriesLoading } = useCategory();
+  const { trends, loading: trendsLoading } = useTrend();
   const [deliveryDate] = React.useState(format(addDays(new Date(), 5), 'MMM dd'));
 
-  const loading = productsLoading || promotionsLoading || categoriesLoading;
+  const loading = productsLoading || promotionsLoading || categoriesLoading || trendsLoading;
   const activePromotions = promotions.filter(p => p.isActive);
+  const activeTrends = trends.filter(t => t.isActive);
 
   const newArrivals = products.slice(0, 3);
   const featuredProducts = products.slice(3, 12);
@@ -340,6 +343,32 @@ export default function StreetifyStorePage() {
                     )) : products.slice(0, 4).map(product => (
                        <ProductCard key={product.id} product={product} isMobile={true} />
                     ))}
+                </div>
+            </section>
+
+             <section>
+                <div className="flex justify-between items-center mb-2">
+                    <h2 className="font-bold text-lg flex items-center gap-2"><TrendingUp className="h-5 w-5" /> #Trending</h2>
+                </div>
+                <div className="flex overflow-x-auto snap-x snap-mandatory -ml-4 pl-4 space-x-4">
+                    {trendsLoading ? (
+                        Array.from({ length: 4 }).map((_, i) => (
+                            <div key={i} className="snap-center flex-shrink-0 w-48">
+                                <Skeleton className="w-full aspect-square rounded-lg" />
+                            </div>
+                        ))
+                    ) : (
+                        activeTrends.map(trend => (
+                           <Link href={trend.ctaLink} key={trend.id} className="snap-center flex-shrink-0 w-48">
+                                <div className="relative aspect-square rounded-lg overflow-hidden group">
+                                    <Image src={trend.imageUrl} alt={trend.title} layout="fill" objectFit="cover" />
+                                    <div className="absolute inset-0 bg-black/40 flex items-end p-2">
+                                        <h3 className="text-white font-bold text-md">{trend.title}</h3>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))
+                    )}
                 </div>
             </section>
             

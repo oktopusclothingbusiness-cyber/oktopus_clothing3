@@ -14,6 +14,7 @@ import { ThemeProvider } from "@/context/theme-provider";
 import { FloatingCartButton } from "@/components/floating-cart-button";
 import { CouponProvider } from "@/context/coupon-context";
 import clientPromise from "@/lib/mongodb";
+import { TrendProvider } from "@/context/trend-context";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const archivo = Archivo({ 
@@ -69,10 +70,12 @@ export default function RootLayout({
                 <ProductProvider>
                   <PromotionProvider>
                     <CouponProvider>
-                      <CartProvider>
-                        {children}
-                        <FloatingCartButton />
-                      </CartProvider>
+                        <TrendProvider>
+                            <CartProvider>
+                                {children}
+                                <FloatingCartButton />
+                            </CartProvider>
+                        </TrendProvider>
                     </CouponProvider>
                   </PromotionProvider>
                 </ProductProvider>
