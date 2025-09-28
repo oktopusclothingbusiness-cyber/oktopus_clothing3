@@ -283,89 +283,49 @@ export default function StreetifyStorePage() {
                 </div>
             </section>
 
-            <section>
-                 <div className="flex justify-between items-center mb-2">
-                    <h2 className="font-bold text-lg">Flash Sale</h2>
-                    <Link href="/products" className="text-sm text-red-500 font-semibold flex items-center gap-1">
+             <section>
+                <div className="flex justify-between items-center mb-2">
+                    <h2 className="font-bold text-lg">New Arrivals</h2>
+                    <Link href="/products" className="text-sm text-primary font-semibold flex items-center gap-1">
                         See All
                     </Link>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                    {productsLoading ? Array.from({length: 4}).map((_, i) => (
-                        <Card key={i} className="rounded-2xl overflow-hidden border-none shadow-sm bg-white">
-                           <Skeleton className="w-full aspect-square" />
-                           <CardContent className="p-3 space-y-1">
-                               <Skeleton className="h-4 w-3/4"/>
-                               <Skeleton className="h-4 w-1/2"/>
-                               <div className="flex justify-between items-center pt-1">
-                                   <Skeleton className="h-5 w-1/3"/>
-                                   <Skeleton className="h-5 w-1/4"/>
-                               </div>
-                           </CardContent>
-                        </Card>
-                    )) : products.slice(0, 4).map(product => (
-                        <Link href={`/products/${product.id}`} key={product.id}>
-                        <Card className="rounded-2xl overflow-hidden border-none shadow-sm bg-white card-glass">
-                            <div className="relative aspect-square">
-                                <Image src={product.imageUrls[0]} alt={product.name} layout="fill" objectFit="cover" data-ai-hint="product image" />
-                                <Button size="icon" variant="secondary" className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur-sm">
-                                    <Heart className="h-4 w-4 text-gray-500" />
-                                </Button>
+                <div className="flex overflow-x-auto snap-x snap-mandatory -ml-4 pl-4 space-x-4">
+                    {productsLoading ? (
+                        Array.from({ length: 4 }).map((_, i) => (
+                            <div key={i} className="snap-center flex-shrink-0 w-40">
+                                <ProductCard product={{} as Product} isMobile={true} />
                             </div>
-                            <CardContent className="p-3 space-y-1">
-                                <h3 className="text-sm font-semibold truncate">{product.name}</h3>
-                                <div className="flex items-center gap-1 text-xs mt-1">
-                                    <Star className="w-3 h-3 text-yellow-400 fill-yellow-400"/>
-                                    <span className="font-bold">{product.rating?.toFixed(1)}</span>
-                                    <span className="text-gray-400">|</span>
-                                    <span className="text-gray-400">{product.stock} sold</span>
-                                </div>
-                                <div className="flex items-baseline gap-1">
-                                    <p className="text-md font-bold text-primary mt-1">₹{product.price.toFixed(2)}</p>
-                                    {product.originalPrice && (
-                                        <p className="text-xs text-muted-foreground line-through">₹{product.originalPrice.toFixed(2)}</p>
-                                    )}
-                                </div>
-                                <p className="text-xs text-green-600">Get it by {deliveryDate}</p>
-                            </CardContent>
-                        </Card>
-                        </Link>
-                    ))}
+                        ))
+                    ) : (
+                        products.slice(4, 8).map(product => (
+                            <div key={product.id} className="snap-center flex-shrink-0 w-40">
+                               <ProductCard product={product} isMobile={true} />
+                            </div>
+                        ))
+                    )}
                 </div>
             </section>
             
             <section>
                  <div className="flex justify-between items-center mb-2">
-                    <h2 className="font-bold text-lg">Hero Product</h2>
+                    <h2 className="font-bold text-lg">Featured Products</h2>
+                    <Link href="/products" className="text-sm text-primary font-semibold flex items-center gap-1">
+                        See All
+                    </Link>
                 </div>
-                {productsLoading ? (
-                    <Card className="rounded-2xl overflow-hidden border-none shadow-sm">
-                        <Skeleton className="w-full aspect-[4/3]" />
-                        <CardContent className="p-4 space-y-2">
-                            <Skeleton className="h-5 w-3/4"/>
-                            <Skeleton className="h-5 w-1/2"/>
-                        </CardContent>
-                    </Card>
-                ) : products.find(p => p.isHero) ? (
-                     <Card className="rounded-2xl overflow-hidden border-none shadow-sm card-glass">
-                        <Link href={`/products/${products.find(p => p.isHero)?.id}`}>
-                            <div className="relative aspect-[4/3]">
-                                <Image src={products.find(p => p.isHero)?.imageUrls[0] || ''} alt={products.find(p => p.isHero)?.name || ''} layout="fill" objectFit="cover" data-ai-hint="hero product" />
-                            </div>
-                            <CardContent className="p-4">
-                                <h3 className="text-lg font-bold">{products.find(p => p.isHero)?.name}</h3>
-                                <p className="text-xl font-bold text-primary">₹{products.find(p => p.isHero)?.price.toFixed(2)}</p>
-                                <Button className="w-full mt-4">Shop Now</Button>
-                            </CardContent>
-                        </Link>
-                    </Card>
-                ): null}
+                <div className="grid grid-cols-2 gap-4">
+                    {productsLoading ? Array.from({length: 4}).map((_, i) => (
+                        <ProductCard key={i} product={{} as Product} isMobile={true} />
+                    )) : products.slice(0, 4).map(product => (
+                       <ProductCard key={product.id} product={product} isMobile={true} />
+                    ))}
+                </div>
             </section>
+            
         </main>
         <MobileFooter/>
     </div>
     </>
   );
 }
-
-    
