@@ -135,9 +135,8 @@ export default function CartPage() {
                 });
 
                 if (verifyResponse.ok) {
-                    toast({ title: "Payment Successful", description: "Thank you for your purchase!" });
                     clearCart();
-                    router.push('/store');
+                    router.push('/payment-success');
                 } else {
                      throw new Error('Payment verification failed');
                 }

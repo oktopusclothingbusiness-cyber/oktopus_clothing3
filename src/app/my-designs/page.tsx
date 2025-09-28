@@ -116,8 +116,7 @@ export default function MyDesignsPage() {
                 });
 
                 if (verifyResponse.ok) {
-                    toast({ title: "Payment Successful", description: "Your custom order has been placed!" });
-                    fetchDesigns(); // Re-fetch designs to update status
+                    router.push('/payment-success');
                 } else {
                      throw new Error('Payment verification failed');
                 }
