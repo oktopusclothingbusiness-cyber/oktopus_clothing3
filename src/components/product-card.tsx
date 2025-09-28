@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Image from 'next/image';
@@ -17,29 +18,19 @@ const ProductImageSlider = ({ imageUrls, alt, isMobile }: { imageUrls: string[],
     const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
 
     React.useEffect(() => {
-        if (imageUrls.length > 1) {
+        if (imageUrls && imageUrls.length > 1) {
             const interval = setInterval(() => {
                 setCurrentImageIndex(prevIndex => (prevIndex + 1) % imageUrls.length);
             }, 3000); // Change image every 3 seconds
             return () => clearInterval(interval);
         }
-    }, [imageUrls, imageUrls.length]);
+    }, [imageUrls]);
     
-    if (!imageUrls || imageUrls.length === 0) {
-        return (
-             <Image
-                src="https://placehold.co/600x800.png"
-                alt={alt}
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                data-ai-hint="clothing item"
-            />
-        )
-    }
+    const imageUrl = (imageUrls && imageUrls.length > 0) ? imageUrls[currentImageIndex] : "https://placehold.co/600x800.png";
 
     return (
         <Image
-            src={imageUrls[currentImageIndex]}
+            src={imageUrl}
             alt={alt}
             fill
             className={cn("object-cover transition-all duration-500 ease-in-out", !isMobile && "group-hover:scale-105")}

@@ -294,7 +294,16 @@ export default function StreetifyStorePage() {
                     {productsLoading ? (
                         Array.from({ length: 4 }).map((_, i) => (
                             <div key={i} className="snap-center flex-shrink-0 w-40">
-                                <ProductCard product={{} as Product} isMobile={true} />
+                               <Card className="overflow-hidden group rounded-lg card-glass">
+                                  <div className="relative aspect-[3/4]">
+                                    <Skeleton className="w-full h-full" />
+                                  </div>
+                                  <div className="p-2 space-y-1">
+                                    <Skeleton className="h-4 w-3/4" />
+                                    <Skeleton className="h-4 w-1/2" />
+                                    <Skeleton className="h-3 w-1/3" />
+                                  </div>
+                                </Card>
                             </div>
                         ))
                     ) : (
@@ -316,7 +325,18 @@ export default function StreetifyStorePage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     {productsLoading ? Array.from({length: 4}).map((_, i) => (
-                        <ProductCard key={i} product={{} as Product} isMobile={true} />
+                        <div key={i}>
+                             <Card className="overflow-hidden group rounded-lg card-glass">
+                                <div className="relative aspect-[3/4]">
+                                  <Skeleton className="w-full h-full" />
+                                </div>
+                                <div className="p-2 space-y-1">
+                                  <Skeleton className="h-4 w-3/4" />
+                                  <Skeleton className="h-4 w-1/2" />
+                                  <Skeleton className="h-3 w-1/3" />
+                                </div>
+                              </Card>
+                        </div>
                     )) : products.slice(0, 4).map(product => (
                        <ProductCard key={product.id} product={product} isMobile={true} />
                     ))}
