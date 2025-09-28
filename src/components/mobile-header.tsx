@@ -10,6 +10,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { useCategory } from "@/context/category-context";
 
 
 type MobileHeaderProps = {
@@ -20,6 +29,7 @@ type MobileHeaderProps = {
 export const MobileHeader = ({ showCart = true, title }: MobileHeaderProps) => {
     const { user } = useAuth();
     const router = useRouter();
+    const { categories, loading: categoriesLoading } = useCategory();
     const [searchQuery, setSearchQuery] = React.useState('');
 
     const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -85,9 +95,33 @@ export const MobileHeader = ({ showCart = true, title }: MobileHeaderProps) => {
                         onKeyDown={handleSearch}
                     />
                 </div>
-                <Button variant="outline" size="icon" className="bg-secondary border-none">
-                    <SlidersHorizontal className="h-5 w-5 text-primary" />
-                </Button>
+                <Sheet>
+                    <SheetTrigger asChild>
+                         <Button variant="outline" size="icon" className="bg-secondary border-none">
+                            <SlidersHorizontal className="h-5 w-5 text-primary" />
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent side="bottom">
+                        <SheetHeader>
+                            <SheetTitle>Filter Products</SheetTitle>
+                            <SheetDescription>Select a category to narrow down your results.</SheetDescription>
+                        </SheetHeader>
+                        <div className="py-4">
+                            <h3 className="mb-4 font-semibold text-lg">Categories</h3>
+                            <div className="flex flex-wrap gap-3">
+                                {categoriesLoading ? (
+                                    <p>Loading categories...</p>
+                                ) : (
+                                    categories.map(category => (
+                                        <Button asChild key={category.id} variant="outline">
+                                            <Link href={`/products?category=${category.id}`}>{category.name}</Link>
+                                        </Button>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </SheetContent>
+                </Sheet>
             </div>
         </header>
     );
