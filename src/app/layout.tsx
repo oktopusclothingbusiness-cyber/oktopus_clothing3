@@ -15,6 +15,8 @@ import { FloatingCartButton } from "@/components/floating-cart-button";
 import { CouponProvider } from "@/context/coupon-context";
 import clientPromise from "@/lib/mongodb";
 import { TrendProvider } from "@/context/trend-context";
+import { PageTransitionProvider } from "@/context/page-transition-context";
+import { PageLoader } from "@/components/page-loader";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const archivo = Archivo({ 
@@ -72,8 +74,11 @@ export default function RootLayout({
                     <CouponProvider>
                         <TrendProvider>
                             <CartProvider>
+                              <PageTransitionProvider>
+                                <PageLoader />
                                 {children}
                                 <FloatingCartButton />
+                              </PageTransitionProvider>
                             </CartProvider>
                         </TrendProvider>
                     </CouponProvider>
