@@ -61,6 +61,7 @@ const nextConfig: NextConfig = {
       }
     ],
   },
+  serverComponentsExternalPackages: ['mapbox-gl'],
 };
 
 export default nextConfig;
