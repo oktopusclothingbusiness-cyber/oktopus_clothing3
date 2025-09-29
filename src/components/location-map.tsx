@@ -2,11 +2,9 @@
 'use client';
 
 import * as React from 'react';
-import { Map, Marker, type MapRef } from 'react-map-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import { Map, Marker } from 'react-map-gl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Pin } from 'lucide-react';
-import { createRef } from 'react';
 
 const MAPBOX_TOKEN = "pk.eyJ1Ijoib2t0b3B1c2MiLCJhIjoiY21keGUyNjU0MXhwYjJsc2FrcGZsd290eCJ9.mEjrHNxJYljQLhjVslo_iw";
 
@@ -16,17 +14,23 @@ interface LocationMapProps {
 }
 
 export default function LocationMap({ latitude, longitude }: LocationMapProps) {
-    const mapRef = createRef<MapRef>();
-    const [mapLib, setMapLib] = React.useState<any>();
+    const [mounted, setMounted] = React.useState(false);
 
     React.useEffect(() => {
-        import('mapbox-gl').then(mapLib => {
-            setMapLib(mapLib.default);
-        }).catch(err => console.error(err));
+        setMounted(true);
     }, []);
 
-    if (!mapLib) {
-        return <div>Loading map...</div>
+    if (!mounted) {
+        return (
+             <Card>
+                <CardHeader>
+                    <CardTitle>Location Map</CardTitle>
+                </CardHeader>
+                <CardContent className="h-64 w-full p-0 overflow-hidden rounded-b-lg flex items-center justify-center bg-secondary">
+                    <p className="text-muted-foreground">Loading map...</p>
+                </CardContent>
+            </Card>
+        );
     }
 
     return (
@@ -36,8 +40,6 @@ export default function LocationMap({ latitude, longitude }: LocationMapProps) {
             </CardHeader>
             <CardContent className="h-64 w-full p-0 overflow-hidden rounded-b-lg">
                 <Map
-                    ref={mapRef}
-                    mapLib={mapLib}
                     mapboxAccessToken={MAPBOX_TOKEN}
                     initialViewState={{
                         longitude: longitude,
