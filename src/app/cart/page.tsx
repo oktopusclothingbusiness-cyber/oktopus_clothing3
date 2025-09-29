@@ -41,7 +41,9 @@ export default function CartPage() {
   const [shippingAddress, setShippingAddress] = React.useState({
       mobile: '',
       address: '',
-      instructions: ''
+      instructions: '',
+      latitude: null as number | null,
+      longitude: null as number | null,
   });
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -66,7 +68,12 @@ export default function CartPage() {
                 const data = await response.json();
                 
                 if (data && data.display_name) {
-                    setShippingAddress(prev => ({...prev, address: data.display_name}));
+                    setShippingAddress(prev => ({
+                        ...prev, 
+                        address: data.display_name,
+                        latitude: latitude,
+                        longitude: longitude,
+                    }));
                     toast({ title: "Location fetched successfully!" });
                 } else {
                     throw new Error("Could not find address for this location.");
@@ -463,5 +470,3 @@ export default function CartPage() {
     </>
   );
 }
-
-    

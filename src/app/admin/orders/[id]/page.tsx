@@ -11,6 +11,10 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, User, MapPin, CreditCard, Package } from 'lucide-react';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Map, Marker } from 'react-map-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'packed' | 'shipped' | 'delivered';
 
@@ -33,6 +37,8 @@ type Order = {
     mobile: string;
     address: string;
     instructions: string;
+    latitude?: number;
+    longitude?: number;
   };
   status: OrderStatus;
   createdAt: string;
@@ -105,6 +111,7 @@ export default function OrderDetailsPage() {
                     <div className="space-y-8">
                         <Skeleton className="h-48 w-full" />
                         <Skeleton className="h-48 w-full" />
+                         <Skeleton className="h-64 w-full" />
                     </div>
                 </div>
             </div>
@@ -114,6 +121,9 @@ export default function OrderDetailsPage() {
     if (!order) {
         return <p>Order not found.</p>
     }
+
+    const { latitude, longitude } = order.shippingAddress;
+    const hasCoordinates = latitude && longitude;
 
     return (
         <>
@@ -184,12 +194,29 @@ export default function OrderDetailsPage() {
                     </Card>
                      <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5" />Shipping Address</CardTitle>
+                            <CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5" />Shipping Details</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-1">
-                            <p>{order.shippingAddress.address}</p>
-                            <p>Mobile: {order.shippingAddress.mobile}</p>
-                            {order.shippingAddress.instructions && <p className="text-sm text-muted-foreground pt-2"><strong>Instructions:</strong> {order.shippingAddress.instructions}</p>}
+                        <CardContent className="space-y-2">
+                            <div>
+                                <h4 className="font-semibold text-sm">Address</h4>
+                                <p className="text-sm">{order.shippingAddress.address}</p>
+                            </div>
+                             <div>
+                                <h4 className="font-semibold text-sm">Mobile</h4>
+                                <p className="text-sm">{order.shippingAddress.mobile}</p>
+                            </div>
+                            {order.shippingAddress.instructions && 
+                                <div>
+                                    <h4 className="font-semibold text-sm">Instructions</h4>
+                                    <p className="text-sm text-muted-foreground">{order.shippingAddress.instructions}</p>
+                                </div>
+                            }
+                             {hasCoordinates && (
+                                <div>
+                                    <h4 className="font-semibold text-sm">Coordinates</h4>
+                                    <p className="text-sm font-mono">{latitude?.toFixed(5)}, {longitude?.toFixed(5)}</p>
+                                </div>
+                             )}
                         </CardContent>
                     </Card>
                      <Card>
@@ -209,6 +236,27 @@ export default function OrderDetailsPage() {
                             )}
                         </CardContent>
                     </Card>
+
+                    {hasCoordinates && MAPBOX_TOKEN && (
+                        <Card>
+                             <CardHeader>
+                                <CardTitle>Location Map</CardTitle>
+                             </CardHeader>
+                             <CardContent className="h-64 w-full p-0 overflow-hidden">
+                                <Map
+                                    initialViewState={{
+                                        longitude: longitude,
+                                        latitude: latitude,
+                                        zoom: 14
+                                    }}
+                                    mapStyle="mapbox://styles/mapbox/streets-v9"
+                                    mapboxAccessToken={MAPBOX_TOKEN}
+                                >
+                                    <Marker longitude={longitude!} latitude={latitude!} />
+                                </Map>
+                             </CardContent>
+                        </Card>
+                    )}
                 </div>
             </div>
         </>
