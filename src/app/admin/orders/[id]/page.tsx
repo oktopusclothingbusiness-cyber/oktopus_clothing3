@@ -57,6 +57,11 @@ export default function OrderDetailsPage() {
     const { toast } = useToast();
     const [order, setOrder] = React.useState<Order | null>(null);
     const [loading, setLoading] = React.useState(true);
+    const [isClient, setIsClient] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     React.useEffect(() => {
         if (id) {
@@ -239,7 +244,7 @@ export default function OrderDetailsPage() {
                         </CardContent>
                     </Card>
 
-                    {hasCoordinates && (
+                    {isClient && hasCoordinates && (
                        <LocationMap latitude={latitude!} longitude={longitude!} />
                     )}
                 </div>
