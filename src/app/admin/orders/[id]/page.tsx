@@ -12,7 +12,6 @@ import { ArrowLeft, Loader2, User, MapPin, CreditCard, Package } from 'lucide-re
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Map, Marker } from 'react-map-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
 
 const MAPBOX_TOKEN = "pk.eyJ1Ijoib2t0b3B1c2MiLCJhIjoiY21keGUyNjU0MXhwYjJsc2FrcGZsd290eCJ9.mEjrHNxJYljQLhjVslo_iw";
 
