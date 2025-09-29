@@ -11,9 +11,12 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, User, MapPin, CreditCard, Package } from 'lucide-react';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Map, Marker } from 'react-map-gl';
+import dynamic from 'next/dynamic';
 
-const MAPBOX_TOKEN = "pk.eyJ1Ijoib2t0b3B1c2MiLCJhIjoiY21keGUyNjU0MXhwYjJsc2FrcGZsd290eCJ9.mEjrHNxJYljQLhjVslo_iw";
+const LocationMap = dynamic(() => import('@/components/location-map'), {
+  ssr: false,
+  loading: () => <Skeleton className="h-64 w-full" />,
+});
 
 type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'packed' | 'shipped' | 'delivered';
 
@@ -237,24 +240,7 @@ export default function OrderDetailsPage() {
                     </Card>
 
                     {hasCoordinates && (
-                        <Card>
-                             <CardHeader>
-                                <CardTitle>Location Map</CardTitle>
-                             </CardHeader>
-                             <CardContent className="h-64 w-full p-0 overflow-hidden">
-                                <Map
-                                    initialViewState={{
-                                        longitude: longitude,
-                                        latitude: latitude,
-                                        zoom: 14
-                                    }}
-                                    mapStyle="mapbox://styles/mapbox/streets-v9"
-                                    mapboxAccessToken={MAPBOX_TOKEN}
-                                >
-                                    <Marker longitude={longitude!} latitude={latitude!} />
-                                </Map>
-                             </CardContent>
-                        </Card>
+                       <LocationMap latitude={latitude!} longitude={longitude!} />
                     )}
                 </div>
             </div>
