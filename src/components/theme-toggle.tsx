@@ -10,22 +10,26 @@ import { Switch } from "@/components/ui/switch"
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
-  
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    // On the server or before hydration, render a placeholder or nothing
+    // to avoid mismatch. A disabled button is a good placeholder.
+    return <Button variant="ghost" size="icon" disabled className="h-9 w-9" />;
+  }
+
   const isDark = theme === "dark";
 
   const handleToggle = (checked: boolean) => {
     setTheme(checked ? 'dark' : 'light');
   };
 
-  // Avoid hydration mismatch
-  const [mounted, setMounted] = React.useState(false)
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
-
-
   // For Desktop in Header
-  if (mounted && typeof window !== 'undefined' && window.innerWidth >= 768) {
+  if (window.innerWidth >= 768) {
       return (
         <Button variant="ghost" size="icon" onClick={() => setTheme(isDark ? "light" : "dark")}>
           <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -36,15 +40,11 @@ export function ThemeToggle() {
   }
 
   // For Mobile on Profile Page
-  if (mounted) {
-      return (
-        <Switch
-          checked={isDark}
-          onCheckedChange={handleToggle}
-          aria-label="Toggle theme"
-        />
-      )
-  }
-  
-  return null;
+  return (
+    <Switch
+      checked={isDark}
+      onCheckedChange={handleToggle}
+      aria-label="Toggle theme"
+    />
+  )
 }
