@@ -17,7 +17,7 @@ export const PageLoader = () => {
     >
       <div className="animate-pulse-slow">
         <Image
-          src="https://i.ibb.co/bFv3cvY/okto-loader-logo.png"
+          src="https://i.ibb.co/m7cT70M/low-res-logo.png"
           alt="Loading..."
           width={80}
           height={80}
