@@ -14,7 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Map, Marker } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+const MAPBOX_TOKEN = "pk.eyJ1Ijoib2t0b3B1c2MiLCJhIjoiY21keGUyNjU0MXhwYjJsc2FrcGZsd290eCJ9.mEjrHNxJYljQLhjVslo_iw";
 
 type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'packed' | 'shipped' | 'delivered';
 
@@ -237,7 +237,7 @@ export default function OrderDetailsPage() {
                         </CardContent>
                     </Card>
 
-                    {hasCoordinates && MAPBOX_TOKEN && (
+                    {hasCoordinates && (
                         <Card>
                              <CardHeader>
                                 <CardTitle>Location Map</CardTitle>
