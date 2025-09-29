@@ -8,18 +8,21 @@ import { useState, useEffect } from 'react';
 
 export const PageLoader = () => {
   const { isTransitioning } = usePageTransition();
-  const [showLoader, setShowLoader] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // This effect runs only on the client, after hydration
-    setShowLoader(isTransitioning);
-  }, [isTransitioning]);
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div
       className={cn(
         'pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm transition-opacity duration-300',
-        showLoader ? 'opacity-100' : 'opacity-0'
+        isTransitioning ? 'opacity-100' : 'opacity-0'
       )}
     >
       <div className="animate-pulse-slow">
@@ -29,6 +32,7 @@ export const PageLoader = () => {
           width={80}
           height={80}
           className="h-20 w-20"
+          priority
         />
       </div>
     </div>
