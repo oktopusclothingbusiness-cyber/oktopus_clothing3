@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     }
 
     // Geocode address if coordinates are not provided
-    if (!shippingAddress.latitude || !shippingAddress.longitude) {
+    if ((!shippingAddress.latitude || !shippingAddress.longitude) && shippingAddress.address) {
         const coordinates = await geocodeAddress(shippingAddress.address);
         if (coordinates) {
             shippingAddress.latitude = coordinates.latitude;

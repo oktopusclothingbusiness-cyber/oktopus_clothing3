@@ -123,7 +123,7 @@ export default function OrderDetailsPage() {
     }
 
     const { latitude, longitude } = order.shippingAddress;
-    const hasCoordinates = latitude && longitude;
+    const hasCoordinates = typeof latitude === 'number' && typeof longitude === 'number';
 
     return (
         <>
