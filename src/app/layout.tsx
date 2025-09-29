@@ -52,6 +52,22 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+const VisitorTracker = () => {
+  return (
+    <Script id="visitor-tracker" strategy="afterInteractive">
+      {`
+        (function() {
+          const hasVisitedToday = sessionStorage.getItem('hasVisitedToday');
+          if (!hasVisitedToday) {
+            fetch('/api/visitors', { method: 'POST' });
+            sessionStorage.setItem('hasVisitedToday', 'true');
+          }
+        })();
+      `}
+    </Script>
+  )
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -92,6 +108,7 @@ export default function RootLayout({
             id="razorpay-checkout-js"
             src="https://checkout.razorpay.com/v1/checkout.js"
           />
+          <VisitorTracker />
         </ThemeProvider>
       </body>
     </html>

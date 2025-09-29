@@ -4,9 +4,9 @@
 import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Bar, BarChart, CartesianGrid, XAxis, Tooltip } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, Tooltip, Legend, YAxis } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { IndianRupee, Users, CreditCard, Activity, ShoppingBag } from 'lucide-react';
+import { IndianRupee, Users, CreditCard, Activity, ShoppingBag, Eye } from 'lucide-react';
 import { useUser } from '@/context/user-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format, subDays } from 'date-fns';
@@ -21,26 +21,40 @@ type Order = {
   createdAt: string;
 };
 
+type DailyVisitor = {
+  _id: string; // date string 'YYYY-MM-DD'
+  count: number;
+}
+
 const chartConfig = {
   revenue: {
     label: "Revenue",
     color: "hsl(var(--primary))",
   },
+  visitors: {
+    label: "Visitors",
+    color: "hsl(var(--muted-foreground))",
+  }
 };
 
 export default function AdminDashboardPage() {
   const { users, loading: usersLoading } = useUser();
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = React.useState(true);
+  const [visitors, setVisitors] = React.useState<DailyVisitor[]>([]);
+  const [visitorsLoading, setVisitorsLoading] = React.useState(true);
+  
+  const todaysVisitors = React.useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return visitors.find(v => v._id === today)?.count || 0;
+  }, [visitors]);
 
   React.useEffect(() => {
     const fetchOrders = async () => {
       try {
         setOrdersLoading(true);
         const response = await fetch('/api/orders');
-        if (!response.ok) {
-          throw new Error('Failed to fetch orders');
-        }
+        if (!response.ok) throw new Error('Failed to fetch orders');
         const data = await response.json();
         setOrders(data);
       } catch (error) {
@@ -49,7 +63,23 @@ export default function AdminDashboardPage() {
         setOrdersLoading(false);
       }
     };
+
+     const fetchVisitors = async () => {
+      try {
+        setVisitorsLoading(true);
+        const response = await fetch('/api/visitors');
+        if (!response.ok) throw new Error('Failed to fetch visitors');
+        const data = await response.json();
+        setVisitors(data);
+      } catch (error) {
+        console.error("Failed to fetch visitors:", error);
+      } finally {
+        setVisitorsLoading(false);
+      }
+    };
+
     fetchOrders();
+    fetchVisitors();
   }, []);
 
   const totalRevenue = React.useMemo(() => {
@@ -68,6 +98,8 @@ export default function AdminDashboardPage() {
 
   const salesChartData = React.useMemo(() => {
     const last7Days = Array.from({ length: 7 }, (_, i) => subDays(new Date(), i)).reverse();
+    const visitorMap = new Map(visitors.map(v => [v._id, v.count]));
+
     return last7Days.map(date => {
         const dateString = date.toISOString().split('T')[0];
         const dailyRevenue = orders
@@ -76,12 +108,13 @@ export default function AdminDashboardPage() {
         return {
             date: format(date, 'MMM d'),
             revenue: dailyRevenue,
+            visitors: visitorMap.get(dateString) || 0,
         }
     });
-}, [orders]);
+}, [orders, visitors]);
 
 
-  const loading = usersLoading || ordersLoading;
+  const loading = usersLoading || ordersLoading || visitorsLoading;
 
   return (
     <>
@@ -99,12 +132,12 @@ export default function AdminDashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Today's Visitors</CardTitle>
+            <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {loading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{users.length}</div>}
-             <p className="text-xs text-muted-foreground">Total registered users</p>
+             {loading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{todaysVisitors}</div>}
+            <p className="text-xs text-muted-foreground">Unique visits for today</p>
           </CardContent>
         </Card>
         <Card>
@@ -133,7 +166,7 @@ export default function AdminDashboardPage() {
         <Card className="col-span-4">
           <CardHeader>
             <CardTitle>Overview</CardTitle>
-            <CardDescription>Revenue for the last 7 days.</CardDescription>
+            <CardDescription>Revenue and visitors for the last 7 days.</CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
              <ChartContainer config={chartConfig} className="w-full h-[300px]">
@@ -145,14 +178,18 @@ export default function AdminDashboardPage() {
                   tickMargin={10}
                   axisLine={false}
                 />
+                 <YAxis yAxisId="left" stroke="hsl(var(--primary))" />
+                 <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--muted-foreground))" />
                 <Tooltip
                     cursor={false}
                     content={<ChartTooltipContent 
-                        formatter={(value) => `₹${Number(value).toFixed(2)}`} 
+                        formatter={(value, name) => (name === 'revenue' ? `₹${Number(value).toFixed(2)}` : value)} 
                         indicator="dot" 
                     />}
                 />
-                <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
+                <Legend />
+                <Bar dataKey="revenue" yAxisId="left" fill="var(--color-revenue)" radius={4} />
+                <Bar dataKey="visitors" yAxisId="right" fill="var(--color-visitors)" radius={4} />
               </BarChart>
             </ChartContainer>
           </CardContent>
