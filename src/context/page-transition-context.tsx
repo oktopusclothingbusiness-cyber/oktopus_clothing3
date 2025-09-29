@@ -18,7 +18,7 @@ export const PageTransitionProvider = ({ children }: { children: ReactNode }) =>
     // When the pathname changes, we start the transition.
     // We add a small delay to allow the new page to start rendering
     // and avoid flickering on very fast page loads.
-    const timer = setTimeout(() => setIsTransitioning(false), 300);
+    const timer = setTimeout(() => setIsTransitioning(false), 500);
     
     // On the initial load or when returning, there's no transition
     setIsTransitioning(false);
