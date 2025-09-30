@@ -8,10 +8,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, User, MapPin, CreditCard, Package } from 'lucide-react';
+import { ArrowLeft, Loader2, User, MapPin, CreditCard, Package, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 
 const LocationMap = dynamic(() => import('@/components/location-map'), {
   ssr: false,
@@ -134,14 +135,24 @@ export default function OrderDetailsPage() {
 
     return (
         <>
-            <div className="flex items-center gap-4 mb-8">
-                <Button variant="outline" size="icon" onClick={() => router.push('/admin/orders')}>
-                    <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <div>
-                    <h1 className="text-2xl font-bold">Order #{order._id.slice(-6)}</h1>
-                    <p className="text-muted-foreground">{format(new Date(order.createdAt), 'PPpp')}</p>
+            <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-4">
+                    <Button variant="outline" size="icon" onClick={() => router.push('/admin/orders')}>
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <div>
+                        <h1 className="text-2xl font-bold">Order #{order._id.slice(-6)}</h1>
+                        <p className="text-muted-foreground">{format(new Date(order.createdAt), 'PPpp')}</p>
+                    </div>
                 </div>
+                {order.paymentDetails?.paymentStatus === 'paid' && (
+                    <Button asChild>
+                        <Link href={`/invoice/${order._id}`} target="_blank">
+                            <FileText className="mr-2 h-4 w-4" />
+                            Invoice
+                        </Link>
+                    </Button>
+                )}
             </div>
 
             <div className="grid gap-8 md:grid-cols-3">

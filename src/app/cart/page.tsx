@@ -142,7 +142,10 @@ export default function CartPage() {
                 userId: user._id,
                 userName: `${user.firstName} ${user.lastName}`,
                 products,
-                total: total,
+                subtotal,
+                discount,
+                shipping,
+                total,
                 shippingAddress
             })
         });

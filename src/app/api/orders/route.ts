@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 // POST a new order
 export async function POST(request: Request) {
   try {
-    const { userId, userName, products, total, shippingAddress } = await request.json();
+    const { userId, userName, products, total, shippingAddress, subtotal, discount, shipping } = await request.json();
 
     if (!userId || !products || !total || !shippingAddress) {
       return NextResponse.json({ message: 'Missing required fields.' }, { status: 400 });
@@ -61,6 +61,9 @@ export async function POST(request: Request) {
       userId,
       userName,
       products,
+      subtotal,
+      discount,
+      shipping,
       total,
       shippingAddress,
       status: 'pending', // Initial status

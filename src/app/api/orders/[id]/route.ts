@@ -23,7 +23,10 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
     }
 
-    return NextResponse.json(order, { status: 200 });
+    // Add id field for client-side convenience
+    const orderWithId = { ...order, id: order._id.toString() };
+
+    return NextResponse.json(orderWithId, { status: 200 });
   } catch (error) {
     console.error('Failed to fetch order:', error);
     return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
