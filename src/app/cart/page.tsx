@@ -410,25 +410,6 @@ export default function CartPage() {
           )}
           {cart.length > 0 && (
             <>
-            <div className="fixed bottom-40 right-4 z-40">
-                <Dialog open={isCouponDialogOpen} onOpenChange={setIsCouponDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="rounded-full h-14 w-14 shadow-lg" size="icon">
-                      <Ticket className="h-6 w-6" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Apply Coupon</DialogTitle>
-                      <DialogDescription>Enter your coupon code below to get a discount.</DialogDescription>
-                    </DialogHeader>
-                    <div className="flex gap-2 mt-4">
-                      <Input value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} placeholder="COUPONCODE" />
-                      <Button onClick={handleApplyCoupon}>Apply</Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
               <div className="fixed bottom-16 left-0 right-0 bg-background/80 backdrop-blur-lg p-4 border-t shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
                  <div className="text-xs space-y-1 mb-2">
                     <div className="flex justify-between">
@@ -450,20 +431,40 @@ export default function CartPage() {
                   <span className="text-muted-foreground">Total</span>
                   <span className="text-xl font-bold">₹{total.toFixed(2)}</span>
                 </div>
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                      <Button className="w-full" size="lg" onClick={handleCheckoutClick}>
-                          Checkout
-                      </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                      <DialogHeader>
-                          <DialogTitle>Shipping Information</DialogTitle>
-                          <DialogDescription>Please provide your delivery details.</DialogDescription>
-                      </DialogHeader>
-                      <ShippingForm mobile={true} />
-                  </DialogContent>
-                </Dialog>
+                <div className="flex gap-2">
+                    <Dialog open={isCouponDialogOpen} onOpenChange={setIsCouponDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline" className="w-full">
+                                <Ticket className="mr-2 h-4 w-4" />
+                                Apply Coupon
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                            <DialogTitle>Apply Coupon</DialogTitle>
+                            <DialogDescription>Enter your coupon code below to get a discount.</DialogDescription>
+                            </DialogHeader>
+                            <div className="flex gap-2 mt-4">
+                            <Input value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} placeholder="COUPONCODE" />
+                            <Button onClick={handleApplyCoupon}>Apply</Button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                      <DialogTrigger asChild>
+                          <Button className="w-full" size="lg" onClick={handleCheckoutClick}>
+                              Checkout
+                          </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                          <DialogHeader>
+                              <DialogTitle>Shipping Information</DialogTitle>
+                              <DialogDescription>Please provide your delivery details.</DialogDescription>
+                          </DialogHeader>
+                          <ShippingForm mobile={true} />
+                      </DialogContent>
+                    </Dialog>
+                </div>
               </div>
             </>
           )}
