@@ -410,7 +410,7 @@ export default function CartPage() {
           )}
           {cart.length > 0 && (
             <>
-            <div className="fixed bottom-36 right-4 z-40">
+            <div className="fixed bottom-40 right-4 z-40">
                 <Dialog open={isCouponDialogOpen} onOpenChange={setIsCouponDialogOpen}>
                   <DialogTrigger asChild>
                     <Button className="rounded-full h-14 w-14 shadow-lg" size="icon">
