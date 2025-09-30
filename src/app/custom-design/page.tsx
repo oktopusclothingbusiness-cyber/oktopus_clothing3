@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { Loader2, Palette, Upload, Minus, Plus } from 'lucide-react';
+import { Loader2, Palette, Upload, Minus, Plus, CornerDownRight } from 'lucide-react';
 import { MobileHeader } from '@/components/mobile-header';
 import { MobileFooter } from '@/components/mobile-footer';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
-import { Slider } from '@/components/ui/slider';
 
 type ColorOption = {
     _id: string;
@@ -30,6 +29,7 @@ type ColorOption = {
 const tshirtSizes = ['S', 'M', 'L', 'XL', 'XXL'];
 const MAX_PRINT_WIDTH = 12; // inches
 const MIN_PRINT_WIDTH = 4; // inches
+const PREVIEW_CONTAINER_WIDTH = 500; // approx width of preview container in pixels
 
 export default function CustomDesignPage() {
   const { user, loading: authLoading } = useAuth();
@@ -45,6 +45,10 @@ export default function CustomDesignPage() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [colors, setColors] = React.useState<ColorOption[]>([]);
   const [colorsLoading, setColorsLoading] = React.useState(true);
+
+  const [isResizing, setIsResizing] = React.useState(false);
+  const [initialDragState, setInitialDragState] = React.useState<{ x: number, y: number, width: number, height: number} | null>(null);
+  const designContainerRef = React.useRef<HTMLDivElement>(null);
 
 
   React.useEffect(() => {
@@ -72,6 +76,54 @@ export default function CustomDesignPage() {
     };
     fetchColors();
   }, [toast]);
+  
+  const handleResizeStart = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsResizing(true);
+    setInitialDragState({
+      x: e.clientX,
+      y: e.clientY,
+      width: designContainerRef.current?.offsetWidth || 0,
+      height: designContainerRef.current?.offsetHeight || 0,
+    });
+  };
+
+  React.useEffect(() => {
+    const handleResizeMove = (e: MouseEvent) => {
+      if (!isResizing || !initialDragState || !designContainerRef.current) return;
+      
+      const dx = e.clientX - initialDragState.x;
+      let newPixelWidth = initialDragState.width + dx;
+      
+      const containerWidth = designContainerRef.current.parentElement?.offsetWidth || PREVIEW_CONTAINER_WIDTH;
+      const maxPixelWidth = containerWidth * 0.9;
+      const minPixelWidth = containerWidth * 0.2;
+
+      newPixelWidth = Math.max(minPixelWidth, Math.min(newPixelWidth, maxPixelWidth));
+
+      const newInchWidth = (newPixelWidth / containerWidth) * MAX_PRINT_WIDTH * 1.2;
+
+      setPrintArea({
+          width: Math.max(MIN_PRINT_WIDTH, Math.min(newInchWidth, MAX_PRINT_WIDTH)),
+          height: Math.max(MIN_PRINT_WIDTH, Math.min(newInchWidth, MAX_PRINT_WIDTH)) / designAspectRatio
+      });
+    };
+
+    const handleResizeEnd = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      window.addEventListener('mousemove', handleResizeMove);
+      window.addEventListener('mouseup', handleResizeEnd);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleResizeMove);
+      window.removeEventListener('mouseup', handleResizeEnd);
+    };
+  }, [isResizing, initialDragState, designAspectRatio]);
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -118,9 +170,10 @@ export default function CustomDesignPage() {
         const img = document.createElement('img');
         img.src = result;
         img.onload = () => {
-            setDesignAspectRatio(img.naturalWidth / img.naturalHeight);
-            const initialWidth = 8;
-            setPrintArea({ width: initialWidth, height: initialWidth / (img.naturalWidth / img.naturalHeight) });
+            const aspectRatio = img.naturalWidth / img.naturalHeight;
+            setDesignAspectRatio(aspectRatio);
+            const initialWidth = 8; // default 8 inches
+            setPrintArea({ width: initialWidth, height: initialWidth / aspectRatio });
         };
     };
     reader.readAsDataURL(selectedFile);
@@ -132,14 +185,6 @@ export default function CustomDesignPage() {
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = error => reject(error);
   });
-  
-  const handlePrintWidthChange = (value: number[]) => {
-      const newWidth = value[0];
-      setPrintArea({
-          width: newWidth,
-          height: newWidth / designAspectRatio
-      });
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -255,19 +300,6 @@ export default function CustomDesignPage() {
                   <Input value={`${printArea.width.toFixed(1)}" x ${printArea.height.toFixed(1)}"`} readOnly disabled />
               </div>
           </div>
-          
-           {isDesktop && filePreview && (
-                <div className="space-y-4">
-                    <Label>Adjust Design Size</Label>
-                    <Slider
-                        value={[printArea.width]}
-                        onValueChange={handlePrintWidthChange}
-                        min={MIN_PRINT_WIDTH}
-                        max={MAX_PRINT_WIDTH}
-                        step={0.5}
-                    />
-                </div>
-            )}
 
           <div className="space-y-2">
               <Label htmlFor={`notes-${isDesktop}`}>Notes or Instructions</Label>
@@ -300,27 +332,35 @@ export default function CustomDesignPage() {
                             <CardTitle>T-Shirt Preview</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="relative aspect-[4/5] w-full bg-muted rounded-lg overflow-hidden">
+                            <div className="relative aspect-[4/5] w-full bg-muted rounded-lg overflow-hidden flex items-center justify-center select-none">
                                 {tshirtColor && <Image src={tshirtColor} alt="T-Shirt Preview" layout="fill" objectFit="cover" />}
-                                {filePreview && (
-                                    <div 
-                                        className="absolute inset-0 flex items-center justify-center transition-all"
-                                        style={{ padding: `${100 - (printArea.width / MAX_PRINT_WIDTH) * 80}%` }}
+                                {filePreview ? (
+                                    <div
+                                      ref={designContainerRef}
+                                      className="absolute transition-all"
+                                      style={{
+                                        width: `${(printArea.width / MAX_PRINT_WIDTH) * 80}%`,
+                                        height: `${(printArea.height / (MAX_PRINT_WIDTH * (5/4))) * 80}%`,
+                                      }}
                                     >
-                                         <Image 
-                                            src={filePreview} 
-                                            alt="Design Preview" 
-                                            layout="fill" 
-                                            objectFit="contain"
-                                        />
+                                      <Image 
+                                          src={filePreview} 
+                                          alt="Design Preview" 
+                                          layout="fill" 
+                                          objectFit="contain"
+                                          className="pointer-events-none"
+                                      />
+                                      <div
+                                        onMouseDown={handleResizeStart}
+                                        className="absolute -bottom-2 -right-2 w-5 h-5 bg-primary rounded-full cursor-se-resize border-2 border-background flex items-center justify-center text-primary-foreground"
+                                      >
+                                        <CornerDownRight className="h-3 w-3 -rotate-90"/>
+                                      </div>
                                     </div>
-                                )}
-                                 {!filePreview && (
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="text-center text-muted-foreground p-4">
-                                            <Palette className="h-10 w-10 mx-auto mb-2" />
-                                            <p>Your design will appear here</p>
-                                        </div>
+                                ) : (
+                                    <div className="text-center text-muted-foreground p-4">
+                                        <Palette className="h-10 w-10 mx-auto mb-2" />
+                                        <p>Your design will appear here</p>
                                     </div>
                                 )}
                             </div>
