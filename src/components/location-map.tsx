@@ -9,6 +9,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
 
+// The following line is the official workaround for this issue.
+// @ts-ignore
+mapboxgl.workerClass = require('mapbox-gl/dist/mapbox-gl-csp-worker').default;
+
 const MAPBOX_TOKEN = "pk.eyJ1Ijoib2t0b3B1c2MiLCJhIjoiY21keGUyNjU0MXhwYjJsc2FrcGZsd290eCJ9.mEjrHNxJYljQLhjVslo_iw";
 
 interface LocationMapProps {
@@ -20,9 +24,6 @@ export default function LocationMap({ latitude, longitude }: LocationMapProps) {
     const [isClient, setIsClient] = React.useState(false);
     
     React.useEffect(() => {
-        // This is a common workaround for this exact issue with mapbox-gl in Next.js
-        // @ts-ignore
-        mapboxgl.workerClass = require('mapbox-gl/dist/mapbox-gl-csp-worker').default;
         setIsClient(true);
     }, []);
 
