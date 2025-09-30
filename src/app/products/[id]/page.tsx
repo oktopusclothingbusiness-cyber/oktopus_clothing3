@@ -1,4 +1,5 @@
 
+
 'use client'
 
 import * as React from "react";
@@ -73,6 +74,8 @@ export default function ProductDetailPage() {
   if (!product) {
     notFound();
   }
+  
+  const productImages = product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls : ["https://placehold.co/600x800"];
 
   return (
       <>
@@ -84,7 +87,7 @@ export default function ProductDetailPage() {
               <div>
                 <Carousel className="w-full">
                   <CarouselContent>
-                    {product.imageUrls.map((url, index) => (
+                    {productImages.map((url, index) => (
                       <CarouselItem key={index}>
                         <div className="relative aspect-square">
                           <Image
@@ -161,7 +164,7 @@ export default function ProductDetailPage() {
             <main className="pb-24">
                 <Carousel className="w-full">
                   <CarouselContent>
-                    {product.imageUrls.map((url, index) => (
+                    {productImages.map((url, index) => (
                       <CarouselItem key={index}>
                         <div className="relative aspect-square">
                           <Image
