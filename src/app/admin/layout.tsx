@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ShoppingBag, Users, PanelLeft, Package, Shirt, Megaphone, Shapes, Palette, Ticket, Settings, Truck, TrendingUp, FileText } from 'lucide-react';
+import { Home, ShoppingBag, Users, PanelLeft, Package, Shirt, Megaphone, Shapes, Palette, Ticket, Settings, Truck, TrendingUp, FileText, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
@@ -71,6 +71,7 @@ export default function AdminLayout({
     { href: '/admin/palette', label: 'Palette', icon: Palette },
     { href: '/admin/shipping', label: 'Shipping', icon: Truck },
     { href: '/admin/users', label: 'Users', icon: Users },
+    { href: '/admin/emails', label: 'Promotional Emails', icon: Mail },
     { href: '/admin/settings', label: 'Settings', icon: Settings },
   ];
 
