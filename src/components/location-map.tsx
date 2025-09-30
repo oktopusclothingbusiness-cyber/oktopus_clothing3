@@ -37,7 +37,6 @@ export default function LocationMap({ latitude, longitude }: LocationMapProps) {
                         zoom: 14
                     }}
                     mapStyle="mapbox://styles/mapbox/streets-v9"
-                    reuseMaps={false} 
                 >
                     <Marker longitude={longitude} latitude={latitude}>
                         <Pin className="h-8 w-8 text-red-500" fill="red" />
