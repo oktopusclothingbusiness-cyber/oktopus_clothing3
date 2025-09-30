@@ -190,8 +190,8 @@ export default function CustomDesignPage() {
     e.preventDefault();
     if (!file || !user) {
       toast({
-        title: 'Error',
-        description: 'Please select a design file and make sure you are logged in.',
+        title: 'Incomplete Submission',
+        description: 'Please select a design file to continue.',
         variant: 'destructive',
       });
       return;
@@ -257,7 +257,7 @@ export default function CustomDesignPage() {
           <div className="space-y-2">
               <Label htmlFor={`design-file-${isDesktop}`}>Design File</Label>
               <div className="relative">
-                  <Input id={`design-file-${isDesktop}`} type="file" onChange={handleFileChange} accept="image/png, image/jpeg, image/vnd.adobe.photoshop, image/webp" className="pr-16" required/>
+                  <Input id={`design-file-${isDesktop}`} type="file" onChange={handleFileChange} accept="image/png, image/jpeg, image/vnd.adobe.photoshop, image/webp" className="pr-16"/>
                    <Upload className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               </div>
               {file && <p className="text-sm text-muted-foreground">Selected: {file.name}</p>}
@@ -306,7 +306,7 @@ export default function CustomDesignPage() {
               <Textarea id={`notes-${isDesktop}`} placeholder="Any specific instructions? e.g., 'Place this on the center of a black T-shirt.'" value={notes} onChange={e => setNotes(e.target.value)} />
           </div>
 
-          <Button type="submit" className="w-full" size="lg" disabled={isSubmitting || !file}>
+          <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
               {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Submitting...</> : 'Submit for Approval'}
           </Button>
       </form>
