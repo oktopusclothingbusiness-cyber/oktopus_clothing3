@@ -23,7 +23,7 @@ type CustomDesign = {
   userId: string;
   userName: string;
   designUrl: string;
-  tshirtColor: string;
+  tshirtColor: string; // This is an image URL
   tshirtSize: string;
   printArea?: { width: number; height: number };
   notes: string;
@@ -198,7 +198,7 @@ export default function CustomDesignsPage() {
                       <TableCell className="font-medium">{design.userName}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                           <div className="h-4 w-4 rounded-full border" style={{ backgroundColor: design.tshirtColor }}></div>
+                           <Image src={design.tshirtColor} alt="T-shirt color" width={24} height={24} className="rounded-md object-cover border" />
                            <span>{design.tshirtSize}</span>
                            {design.printArea && <span>{design.printArea.width}"x{design.printArea.height}"</span>}
                         </div>
@@ -287,5 +287,3 @@ export default function CustomDesignsPage() {
     </>
   );
 }
-
-    

@@ -16,11 +16,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import Image from 'next/image';
 
 type ColorOption = {
     _id: string;
     name: string;
-    hex: string;
+    imageUrl: string;
 }
 
 const tshirtSizes = ['S', 'M', 'L', 'XL', 'XXL'];
@@ -54,7 +55,7 @@ export default function CustomDesignPage() {
             const data = await res.json();
             setColors(data);
             if (data.length > 0) {
-                setTshirtColor(data[0].hex);
+                setTshirtColor(data[0].imageUrl);
             }
         } catch (error) {
             toast({ title: "Error", description: "Could not load color options.", variant: "destructive" });
@@ -200,12 +201,14 @@ export default function CustomDesignPage() {
                         <Label>T-Shirt Color</Label>
                         {colorsLoading ? (
                              <div className="flex flex-wrap gap-2">
-                                {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-8 w-8 rounded-full" />)}
+                                {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16 w-16 rounded-md" />)}
                              </div>
                         ) : (
                              <div className="flex flex-wrap gap-2">
                                 {colors.map(color => (
-                                    <button key={color._id} type="button" onClick={() => setTshirtColor(color.hex)} className={cn('h-8 w-8 rounded-full border-2', tshirtColor === color.hex ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-gray-200')} style={{backgroundColor: color.hex}} aria-label={color.name} />
+                                    <button key={color._id} type="button" onClick={() => setTshirtColor(color.imageUrl)} className={cn('h-16 w-16 rounded-md border-2 overflow-hidden', tshirtColor === color.imageUrl ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-transparent')} aria-label={color.name}>
+                                        <Image src={color.imageUrl} alt={color.name} width={64} height={64} className="object-cover w-full h-full" />
+                                    </button>
                                 ))}
                             </div>
                         )}

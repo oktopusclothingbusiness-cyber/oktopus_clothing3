@@ -7,19 +7,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2, Loader2, PlusCircle, Palette, Droplets } from 'lucide-react';
+import { Trash2, Loader2, PlusCircle, Palette, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import Image from 'next/image';
 
 type ColorOption = {
     _id: string;
     name: string;
-    hex: string;
+    imageUrl: string;
 }
 
 const emptyColor = {
     name: '',
-    hex: '#000000',
+    imageUrl: '',
 };
 
 export default function AdminPalettePage() {
@@ -53,7 +54,7 @@ export default function AdminPalettePage() {
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (formData.name && formData.hex) {
+        if (formData.name && formData.imageUrl) {
             setIsSubmitting(true);
             try {
                 const response = await fetch('/api/palette', {
@@ -64,9 +65,9 @@ export default function AdminPalettePage() {
                 if (!response.ok) throw new Error('Failed to add color');
                 await fetchColors();
                 resetForm();
-                toast({ title: 'Success', description: 'Color added to palette.' });
+                toast({ title: 'Success', description: 'Color option added to palette.' });
             } catch (error) {
-                 toast({ title: 'Error', description: 'Could not add color.', variant: 'destructive'});
+                 toast({ title: 'Error', description: 'Could not add color option.', variant: 'destructive'});
             } finally {
                 setIsSubmitting(false);
             }
@@ -78,9 +79,9 @@ export default function AdminPalettePage() {
             const response = await fetch(`/api/palette/${colorId}`, { method: 'DELETE' });
             if (!response.ok) throw new Error('Failed to delete color');
             setColors(prev => prev.filter(c => c._id !== colorId));
-            toast({ title: 'Success', description: 'Color removed from palette.' });
+            toast({ title: 'Success', description: 'Color option removed from palette.' });
         } catch (error) {
-            toast({ title: 'Error', description: 'Could not delete color.', variant: 'destructive'});
+            toast({ title: 'Error', description: 'Could not delete color option.', variant: 'destructive'});
         }
     }
 
@@ -95,8 +96,8 @@ export default function AdminPalettePage() {
         <div className="md:col-span-1">
           <Card>
             <CardHeader>
-              <CardTitle>Add New Color</CardTitle>
-              <CardDescription>Add a new color to the custom design options.</CardDescription>
+              <CardTitle>Add T-shirt Color</CardTitle>
+              <CardDescription>Add a new T-shirt color image for the custom design page.</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleFormSubmit} className="space-y-4">
@@ -105,14 +106,11 @@ export default function AdminPalettePage() {
                   <Input id="name" name="name" value={formData.name} onChange={handleInputChange} placeholder="e.g., Midnight Blue" required disabled={isSubmitting} />
                 </div>
                  <div className="space-y-2">
-                  <Label htmlFor="hex">Color Hex Code</Label>
-                  <div className="flex items-center gap-2">
-                    <Input id="hex" name="hex" type="color" value={formData.hex} onChange={handleInputChange} className="w-12 h-10 p-1" disabled={isSubmitting}/>
-                    <Input value={formData.hex} onChange={handleInputChange} name="hex" placeholder="#000080" required disabled={isSubmitting} />
-                  </div>
+                  <Label htmlFor="imageUrl">T-shirt Image URL</Label>
+                  <Input id="imageUrl" name="imageUrl" value={formData.imageUrl} onChange={handleInputChange} placeholder="https://example.com/tshirt.png" required disabled={isSubmitting} />
                 </div>
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Adding...</> : <><PlusCircle className="mr-2 h-4 w-4" /> Add Color</>}
+                    {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Adding...</> : <><PlusCircle className="mr-2 h-4 w-4" /> Add Color Option</>}
                 </Button>
               </form>
             </CardContent>
@@ -122,16 +120,16 @@ export default function AdminPalettePage() {
           <Card>
             <CardHeader>
               <CardTitle>Available Colors</CardTitle>
-              <CardDescription>Colors available for custom T-shirts.</CardDescription>
+              <CardDescription>T-shirt colors available for custom designs.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="border rounded-lg overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Color</TableHead>
+                      <TableHead>Image</TableHead>
                       <TableHead>Name</TableHead>
-                      <TableHead>Hex Code</TableHead>
+                      <TableHead>Image URL</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -139,9 +137,9 @@ export default function AdminPalettePage() {
                     {loading ? (
                       Array.from({ length: 5 }).map((_, index) => (
                           <TableRow key={index}>
-                            <TableCell><Skeleton className="h-6 w-6 rounded-full" /></TableCell>
+                            <TableCell><Skeleton className="h-10 w-10 rounded-md" /></TableCell>
                             <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                             <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                             <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                             <TableCell className="text-right"><Skeleton className="h-8 w-8" /></TableCell>
                           </TableRow>
                       ))
@@ -149,10 +147,10 @@ export default function AdminPalettePage() {
                       colors.map((color) => (
                         <TableRow key={color._id}>
                           <TableCell>
-                            <div className="h-6 w-6 rounded-full border" style={{ backgroundColor: color.hex }}></div>
+                            <Image src={color.imageUrl} alt={color.name} width={40} height={40} className="rounded-md object-cover" />
                           </TableCell>
                           <TableCell className="font-medium">{color.name}</TableCell>
-                          <TableCell className="font-mono">{color.hex}</TableCell>
+                          <TableCell className="font-mono text-xs truncate max-w-[150px]">{color.imageUrl}</TableCell>
                           <TableCell className="text-right">
                             <Button variant="ghost" size="icon" onClick={() => handleDelete(color._id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
@@ -164,11 +162,11 @@ export default function AdminPalettePage() {
                       <TableRow>
                         <TableCell colSpan={4} className="text-center h-24">
                           <div className="flex flex-col items-center gap-2">
-                              <Droplets className="h-8 w-8 text-muted-foreground" />
-                              <p>No colors found.</p>
+                              <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                              <p>No color options found.</p>
                               <Button variant="outline" size="sm" onClick={() => document.getElementById('name')?.focus()}>
                                   <PlusCircle className="mr-2 h-4 w-4" />
-                                  Add New Color
+                                  Add New Color Option
                               </Button>
                           </div>
                         </TableCell>

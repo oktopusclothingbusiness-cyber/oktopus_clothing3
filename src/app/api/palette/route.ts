@@ -18,9 +18,9 @@ export async function GET() {
 // POST a new color
 export async function POST(request: Request) {
   try {
-    const { name, hex } = await request.json();
+    const { name, imageUrl } = await request.json();
     
-    if (!name || !hex) {
+    if (!name || !imageUrl) {
       return NextResponse.json({ message: 'Missing required fields.' }, { status: 400 });
     }
 
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
     const result = await db.collection('colors').insertOne({
       name,
-      hex,
+      imageUrl,
       createdAt: new Date(),
     });
 

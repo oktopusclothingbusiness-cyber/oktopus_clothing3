@@ -30,7 +30,7 @@ type DesignStatus = 'pending' | 'approved' | 'rejected' | 'paid';
 type CustomDesign = {
   _id: string;
   designUrl: string;
-  tshirtColor: string;
+  tshirtColor: string; // This is now an image URL
   tshirtSize: string;
   status: DesignStatus;
   price?: number;
@@ -267,7 +267,7 @@ export default function MyDesignsPage() {
                         <Image src={design.designUrl} alt={`Design ${design._id}`} width={80} height={80} className="rounded-md bg-muted" />
                         <div>
                             <p><strong>Size:</strong> {design.tshirtSize}</p>
-                            <p><strong>Color:</strong> <span className="inline-block h-4 w-4 rounded-full border" style={{backgroundColor: design.tshirtColor}} /></p>
+                            <p className="flex items-center gap-2"><strong>Color:</strong> <Image src={design.tshirtColor} alt="T-shirt color" width={24} height={24} className="rounded-md object-cover" /></p>
                             {design.price && <p className="font-bold text-lg mt-2">₹{design.price.toFixed(2)}</p>}
                         </div>
                     </div>
@@ -306,5 +306,3 @@ export default function MyDesignsPage() {
     </>
   );
 }
-
-    
