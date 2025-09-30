@@ -3,6 +3,7 @@ import { Resend } from 'resend';
 import { OrderConfirmationEmail } from '@/emails/order-confirmation';
 import { OrderStatusUpdateEmail } from '@/emails/order-status-update';
 import { PromotionalEmail } from '@/emails/promotional-email';
+import { InvoiceEmail } from '@/emails/invoice-email';
 import clientPromise from './mongodb';
 
 const resend = new Resend("re_hUGiai9e_8FKbk9HRaRFEpXHgnS755XGr");
@@ -12,7 +13,33 @@ type Product = {
   name: string;
   quantity: number;
   price: number;
+  size?: string;
+  color?: string;
 };
+
+type Order = {
+  _id: string;
+  userName: string;
+  products: Product[];
+  total: number;
+  shipping: number;
+  discount: number;
+  subtotal: number;
+  shippingAddress: {
+    address: string;
+    mobile: string;
+  };
+  createdAt: Date;
+  paymentDetails: {
+    razorpay_payment_id?: string;
+    paymentStatus?: 'paid' | 'pending';
+  };
+};
+
+
+type Settings = {
+    logoUrl?: string;
+}
 
 type OrderConfirmationProps = {
   to: string;
@@ -96,3 +123,27 @@ export const sendPromotionalEmail = async ({
     throw error;
   }
 }
+
+type InvoiceEmailProps = {
+  to: string;
+  order: Order;
+  settings: Settings | null;
+};
+
+export const sendInvoiceEmail = async ({
+  to,
+  order,
+  settings,
+}: InvoiceEmailProps) => {
+  try {
+    await resend.emails.send({
+      from: fromEmail,
+      to: to,
+      subject: `Invoice for your Order #${order._id.slice(-6)}`,
+      react: InvoiceEmail({ order, settings }),
+    });
+    console.log(`Invoice email sent to ${to}`);
+  } catch (error) {
+    console.error('Error sending invoice email:', error);
+  }
+};
