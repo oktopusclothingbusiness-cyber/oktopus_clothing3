@@ -244,7 +244,7 @@ export default function OrderDetailsPage() {
                 <div className="space-y-8">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><UserIcon className="h-5 w-5" />Customer</CardTitle>
+                            <CardTitle className="flex items-center gap-2"><User className="h-5 w-5" />Customer</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-1">
                             <p className="font-medium">{order.userName}</p>
@@ -304,5 +304,6 @@ export default function OrderDetailsPage() {
         </>
     )
 }
+    
 
     
