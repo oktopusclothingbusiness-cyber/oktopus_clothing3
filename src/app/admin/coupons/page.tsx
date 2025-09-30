@@ -36,7 +36,8 @@ export default function AdminCouponsPage() {
         if (type === 'checkbox') {
           setFormData(prev => ({ ...prev, [name]: checked }));
         } else if (type === 'number') {
-            setFormData(prev => ({ ...prev, [name]: parseFloat(value) }));
+            const numValue = value === '' ? 0 : parseFloat(value);
+            setFormData(prev => ({ ...prev, [name]: isNaN(numValue) ? 0 : numValue }));
         }
         else {
            setFormData(prev => ({ ...prev, [name]: value.toUpperCase() }));
