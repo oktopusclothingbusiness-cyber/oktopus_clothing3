@@ -133,10 +133,15 @@ export default function MyDesignsPage() {
     setIsProcessingPayment(design._id);
 
     try {
+      const settingsRes = await fetch('/api/settings');
+      const settings = await settingsRes.json();
+      const shippingCharge = settings?.deliveryCharge || 0;
+      const finalAmount = design.price + shippingCharge;
+
       const razorpayOrderResponse = await fetch('/api/payment/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: design.price }),
+        body: JSON.stringify({ amount: finalAmount }),
       });
 
       if (!razorpayOrderResponse.ok) throw new Error('Failed to create Razorpay order');

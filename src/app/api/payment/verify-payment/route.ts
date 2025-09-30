@@ -35,6 +35,8 @@ export async function POST(request: Request) {
       const db = client.db();
       
       let finalOrder;
+      const settings = await db.collection('settings').findOne({ _id: 'global' });
+      const shippingCharge = settings?.deliveryCharge || 0;
 
       if (order_type === 'custom_design') {
         // Handle custom design payment
@@ -51,6 +53,9 @@ export async function POST(request: Request) {
         const colorDoc = await db.collection('colors').findOne({ imageUrl: customDesign.tshirtColor });
         const colorName = colorDoc ? colorDoc.name : 'Custom Color';
 
+        const subtotal = customDesign.price;
+        const total = subtotal + shippingCharge;
+
         // Create a new order from the custom design
         const orderData = {
           userId: customDesign.userId,
@@ -63,7 +68,10 @@ export async function POST(request: Request) {
             size: customDesign.tshirtSize,
             color: colorName,
           }],
-          total: customDesign.price,
+          subtotal: subtotal,
+          discount: 0,
+          shipping: shippingCharge,
+          total: total,
           shippingAddress: customDesign.shippingAddress,
           status: 'accepted',
           createdAt: new Date(),
