@@ -47,6 +47,10 @@ export async function POST(request: Request) {
              return NextResponse.json({ message: 'Shipping address not found for this custom design.' }, { status: 400 });
         }
 
+        // Fetch color name from colors collection
+        const colorDoc = await db.collection('colors').findOne({ imageUrl: customDesign.tshirtColor });
+        const colorName = colorDoc ? colorDoc.name : 'Custom Color';
+
         // Create a new order from the custom design
         const orderData = {
           userId: customDesign.userId,
@@ -57,7 +61,7 @@ export async function POST(request: Request) {
             quantity: 1,
             price: customDesign.price,
             size: customDesign.tshirtSize,
-            color: customDesign.tshirtColor,
+            color: colorName,
           }],
           total: customDesign.price,
           shippingAddress: customDesign.shippingAddress,

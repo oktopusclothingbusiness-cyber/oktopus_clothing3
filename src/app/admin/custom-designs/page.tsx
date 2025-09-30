@@ -217,7 +217,7 @@ export default function CustomDesignsPage() {
                       <TableCell className="font-medium">{design.userName}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                           <div className="font-medium">{colorMap.get(design.tshirtColor) || 'Unknown Color'}</div>
+                           <div className="font-medium">{colorMap.get(design.tshirtColor) || design.tshirtColor}</div>
                            <span>({design.tshirtSize})</span>
                         </div>
                          {design.printArea && <div className="text-xs text-muted-foreground">{design.printArea.width}"x{design.printArea.height}"</div>}
