@@ -147,7 +147,7 @@ export default function AdminPalettePage() {
                       colors.map((color) => (
                         <TableRow key={color._id}>
                           <TableCell>
-                            <Image src={color.imageUrl} alt={color.name} width={40} height={40} className="rounded-md object-cover" />
+                            {color.imageUrl && <Image src={color.imageUrl} alt={color.name} width={40} height={40} className="rounded-md object-cover" />}
                           </TableCell>
                           <TableCell className="font-medium">{color.name}</TableCell>
                           <TableCell className="font-mono text-xs truncate max-w-[150px]">{color.imageUrl}</TableCell>
