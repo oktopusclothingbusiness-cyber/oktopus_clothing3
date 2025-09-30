@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, User, MapPin, CreditCard, Package, FileText } from 'lucide-react';
+import { ArrowLeft, Loader2, User, MapPin, CreditCard, Package, FileText, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
@@ -59,6 +59,7 @@ export default function OrderDetailsPage() {
     const [order, setOrder] = React.useState<Order | null>(null);
     const [loading, setLoading] = React.useState(true);
     const [isClient, setIsClient] = React.useState(false);
+    const [isSendingInvoice, setIsSendingInvoice] = React.useState(false);
 
     React.useEffect(() => {
         setIsClient(true);
@@ -87,6 +88,34 @@ export default function OrderDetailsPage() {
             fetchOrder();
         }
     }, [id, toast]);
+
+    const handleSendInvoice = async () => {
+        if (!id) return;
+        setIsSendingInvoice(true);
+        try {
+            const response = await fetch('/api/emails/send-invoice', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: id }),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to send invoice');
+            }
+            toast({
+                title: 'Invoice Sent',
+                description: 'The invoice has been successfully emailed to the customer.',
+            });
+        } catch (error: any) {
+            toast({
+                title: 'Error',
+                description: error.message || 'Could not send the invoice.',
+                variant: 'destructive'
+            });
+        } finally {
+            setIsSendingInvoice(false);
+        }
+    }
     
     const getStatusVariant = (status: string) => {
         switch (status) {
@@ -145,14 +174,26 @@ export default function OrderDetailsPage() {
                         <p className="text-muted-foreground">{format(new Date(order.createdAt), 'PPpp')}</p>
                     </div>
                 </div>
-                {order.paymentDetails?.paymentStatus === 'paid' && (
-                    <Button asChild>
-                        <Link href={`/invoice/${order._id}`} target="_blank">
-                            <FileText className="mr-2 h-4 w-4" />
-                            Invoice
-                        </Link>
-                    </Button>
-                )}
+                 <div className="flex items-center gap-2">
+                    {order.paymentDetails?.paymentStatus === 'paid' && (
+                        <>
+                            <Button asChild>
+                                <Link href={`/invoice/${order._id}`} target="_blank">
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    View Invoice
+                                </Link>
+                            </Button>
+                            <Button variant="outline" onClick={handleSendInvoice} disabled={isSendingInvoice}>
+                                {isSendingInvoice ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Send className="mr-2 h-4 w-4" />
+                                )}
+                                Send Invoice
+                            </Button>
+                        </>
+                    )}
+                </div>
             </div>
 
             <div className="grid gap-8 md:grid-cols-3">
@@ -203,7 +244,7 @@ export default function OrderDetailsPage() {
                 <div className="space-y-8">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><User className="h-5 w-5" />Customer</CardTitle>
+                            <CardTitle className="flex items-center gap-2"><UserIcon className="h-5 w-5" />Customer</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-1">
                             <p className="font-medium">{order.userName}</p>
@@ -263,3 +304,5 @@ export default function OrderDetailsPage() {
         </>
     )
 }
+
+    
