@@ -19,6 +19,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
+import { Slider } from '@/components/ui/slider';
 
 type ColorOption = {
     _id: string;
@@ -27,6 +28,8 @@ type ColorOption = {
 }
 
 const tshirtSizes = ['S', 'M', 'L', 'XL', 'XXL'];
+const MAX_PRINT_WIDTH = 12; // inches
+const MIN_PRINT_WIDTH = 4; // inches
 
 export default function CustomDesignPage() {
   const { user, loading: authLoading } = useAuth();
@@ -34,10 +37,11 @@ export default function CustomDesignPage() {
   const { toast } = useToast();
   const [file, setFile] = React.useState<File | null>(null);
   const [filePreview, setFilePreview] = React.useState<string | null>(null);
+  const [designAspectRatio, setDesignAspectRatio] = React.useState(1);
   const [notes, setNotes] = React.useState('');
   const [tshirtColor, setTshirtColor] = React.useState('');
   const [tshirtSize, setTshirtSize] = React.useState('M');
-  const [printArea, setPrintArea] = React.useState({ width: 8, height: 10 });
+  const [printArea, setPrintArea] = React.useState({ width: 8, height: 8 });
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [colors, setColors] = React.useState<ColorOption[]>([]);
   const [colorsLoading, setColorsLoading] = React.useState(true);
@@ -79,7 +83,7 @@ export default function CustomDesignPage() {
     }
 
     const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-    const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/vnd.adobe.photoshop'];
+    const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/vnd.adobe.photoshop', 'image/webp'];
 
     if (selectedFile.size > MAX_FILE_SIZE) {
         toast({
@@ -96,7 +100,7 @@ export default function CustomDesignPage() {
     if (!ALLOWED_FILE_TYPES.includes(selectedFile.type)) {
         toast({
             title: 'Invalid File Type',
-            description: 'Please upload a .jpg, .jpeg, .png, or .psd file.',
+            description: 'Please upload a .jpg, .png, .webp, or .psd file.',
             variant: 'destructive',
         });
         e.target.value = ''; // Reset the input
@@ -109,7 +113,15 @@ export default function CustomDesignPage() {
 
     const reader = new FileReader();
     reader.onloadend = () => {
-        setFilePreview(reader.result as string);
+        const result = reader.result as string;
+        setFilePreview(result);
+        const img = document.createElement('img');
+        img.src = result;
+        img.onload = () => {
+            setDesignAspectRatio(img.naturalWidth / img.naturalHeight);
+            const initialWidth = 8;
+            setPrintArea({ width: initialWidth, height: initialWidth / (img.naturalWidth / img.naturalHeight) });
+        };
     };
     reader.readAsDataURL(selectedFile);
   };
@@ -120,6 +132,14 @@ export default function CustomDesignPage() {
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = error => reject(error);
   });
+  
+  const handlePrintWidthChange = (value: number[]) => {
+      const newWidth = value[0];
+      setPrintArea({
+          width: newWidth,
+          height: newWidth / designAspectRatio
+      });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,7 +166,10 @@ export default function CustomDesignPage() {
           designUrl: designDataUrl,
           tshirtColor,
           tshirtSize,
-          printArea,
+          printArea: {
+            width: parseFloat(printArea.width.toFixed(2)),
+            height: parseFloat(printArea.height.toFixed(2))
+          },
           notes,
         }),
       });
@@ -189,11 +212,11 @@ export default function CustomDesignPage() {
           <div className="space-y-2">
               <Label htmlFor={`design-file-${isDesktop}`}>Design File</Label>
               <div className="relative">
-                  <Input id={`design-file-${isDesktop}`} type="file" onChange={handleFileChange} accept="image/png, image/jpeg, image/vnd.adobe.photoshop" className="pr-16" required/>
+                  <Input id={`design-file-${isDesktop}`} type="file" onChange={handleFileChange} accept="image/png, image/jpeg, image/vnd.adobe.photoshop, image/webp" className="pr-16" required/>
                    <Upload className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               </div>
               {file && <p className="text-sm text-muted-foreground">Selected: {file.name}</p>}
-              <p className="text-xs text-muted-foreground">.png, .jpg, .psd accepted. Max 10MB.</p>
+              <p className="text-xs text-muted-foreground">.png, .jpg, .webp, .psd accepted. Max 10MB.</p>
           </div>
 
           <div className="space-y-2">
@@ -227,14 +250,24 @@ export default function CustomDesignPage() {
                      </SelectContent>
                  </Select>
               </div>
-              <div className="space-y-2">
-                  <Label>Print Area (inches)</Label>
-                  <div className="flex gap-2">
-                      <Input type="number" value={printArea.width} onChange={e => setPrintArea(p => ({...p, width: parseInt(e.target.value)}))} placeholder="W" />
-                      <Input type="number" value={printArea.height} onChange={e => setPrintArea(p => ({...p, height: parseInt(e.target.value)}))} placeholder="H" />
-                  </div>
+               <div className="space-y-2">
+                  <Label>Print Area</Label>
+                  <Input value={`${printArea.width.toFixed(1)}" x ${printArea.height.toFixed(1)}"`} readOnly disabled />
               </div>
           </div>
+          
+           {isDesktop && filePreview && (
+                <div className="space-y-4">
+                    <Label>Adjust Design Size</Label>
+                    <Slider
+                        value={[printArea.width]}
+                        onValueChange={handlePrintWidthChange}
+                        min={MIN_PRINT_WIDTH}
+                        max={MAX_PRINT_WIDTH}
+                        step={0.5}
+                    />
+                </div>
+            )}
 
           <div className="space-y-2">
               <Label htmlFor={`notes-${isDesktop}`}>Notes or Instructions</Label>
@@ -270,8 +303,16 @@ export default function CustomDesignPage() {
                             <div className="relative aspect-[4/5] w-full bg-muted rounded-lg overflow-hidden">
                                 {tshirtColor && <Image src={tshirtColor} alt="T-Shirt Preview" layout="fill" objectFit="cover" />}
                                 {filePreview && (
-                                    <div className="absolute inset-0 flex items-center justify-center p-8">
-                                         <Image src={filePreview} alt="Design Preview" layout="fill" objectFit="contain" className="max-w-full max-h-full" />
+                                    <div 
+                                        className="absolute inset-0 flex items-center justify-center transition-all"
+                                        style={{ padding: `${100 - (printArea.width / MAX_PRINT_WIDTH) * 80}%` }}
+                                    >
+                                         <Image 
+                                            src={filePreview} 
+                                            alt="Design Preview" 
+                                            layout="fill" 
+                                            objectFit="contain"
+                                        />
                                     </div>
                                 )}
                                  {!filePreview && (
