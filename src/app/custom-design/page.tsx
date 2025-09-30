@@ -77,22 +77,27 @@ export default function CustomDesignPage() {
     fetchColors();
   }, [toast]);
   
-  const handleResizeStart = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleResizeStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsResizing(true);
+
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
     setInitialDragState({
-      x: e.clientX,
-      y: e.clientY,
+      x: clientX,
+      y: clientY,
       width: designContainerRef.current?.offsetWidth || 0,
       height: designContainerRef.current?.offsetHeight || 0,
     });
   };
 
   React.useEffect(() => {
-    const handleResizeMove = (e: MouseEvent) => {
+    const handleResizeMove = (e: MouseEvent | TouchEvent) => {
       if (!isResizing || !initialDragState || !designContainerRef.current) return;
       
-      const dx = e.clientX - initialDragState.x;
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const dx = clientX - initialDragState.x;
       let newPixelWidth = initialDragState.width + dx;
       
       const containerWidth = designContainerRef.current.parentElement?.offsetWidth || PREVIEW_CONTAINER_WIDTH;
@@ -115,12 +120,16 @@ export default function CustomDesignPage() {
 
     if (isResizing) {
       window.addEventListener('mousemove', handleResizeMove);
+      window.addEventListener('touchmove', handleResizeMove);
       window.addEventListener('mouseup', handleResizeEnd);
+      window.addEventListener('touchend', handleResizeEnd);
     }
 
     return () => {
       window.removeEventListener('mousemove', handleResizeMove);
+      window.removeEventListener('touchmove', handleResizeMove);
       window.removeEventListener('mouseup', handleResizeEnd);
+      window.removeEventListener('touchend', handleResizeEnd);
     };
   }, [isResizing, initialDragState, designAspectRatio]);
 
@@ -306,11 +315,55 @@ export default function CustomDesignPage() {
               <Textarea id={`notes-${isDesktop}`} placeholder="Any specific instructions? e.g., 'Place this on the center of a black T-shirt.'" value={notes} onChange={e => setNotes(e.target.value)} />
           </div>
 
-          <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+          <Button type="submit" className="w-full" size="lg" disabled={!file || isSubmitting}>
               {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Submitting...</> : 'Submit for Approval'}
           </Button>
       </form>
   );
+
+  const PreviewSection = () => (
+      <Card>
+          <CardHeader>
+              <CardTitle>T-Shirt Preview</CardTitle>
+          </CardHeader>
+          <CardContent>
+              <div className="relative aspect-[4/5] w-full bg-muted rounded-lg overflow-hidden flex items-center justify-center select-none">
+                  {tshirtColor && <Image src={tshirtColor} alt="T-Shirt Preview" layout="fill" objectFit="cover" />}
+                  {filePreview ? (
+                      <div
+                        ref={designContainerRef}
+                        className="absolute transition-all"
+                        style={{
+                          width: `${(printArea.width / MAX_PRINT_WIDTH) * 80}%`,
+                          height: `${(printArea.height / (MAX_PRINT_WIDTH * (5/4))) * 80}%`,
+                        }}
+                      >
+                        <Image 
+                            src={filePreview} 
+                            alt="Design Preview" 
+                            layout="fill" 
+                            objectFit="contain"
+                            className="pointer-events-none"
+                        />
+                        <div
+                          onMouseDown={handleResizeStart}
+                          onTouchStart={handleResizeStart}
+                          className="absolute -bottom-2 -right-2 w-5 h-5 bg-primary rounded-full cursor-se-resize border-2 border-background flex items-center justify-center text-primary-foreground"
+                        >
+                          <CornerDownRight className="h-3 w-3 -rotate-90"/>
+                        </div>
+                      </div>
+                  ) : (
+                      <div className="text-center text-muted-foreground p-4">
+                          <Palette className="h-10 w-10 mx-auto mb-2" />
+                          <p>Your design will appear here</p>
+                      </div>
+                  )}
+              </div>
+          </CardContent>
+      </Card>
+  );
+
 
   return (
     <>
@@ -327,45 +380,7 @@ export default function CustomDesignPage() {
 
             <div className="grid md:grid-cols-2 gap-16 items-start">
                 <div className="sticky top-28">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>T-Shirt Preview</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="relative aspect-[4/5] w-full bg-muted rounded-lg overflow-hidden flex items-center justify-center select-none">
-                                {tshirtColor && <Image src={tshirtColor} alt="T-Shirt Preview" layout="fill" objectFit="cover" />}
-                                {filePreview ? (
-                                    <div
-                                      ref={designContainerRef}
-                                      className="absolute transition-all"
-                                      style={{
-                                        width: `${(printArea.width / MAX_PRINT_WIDTH) * 80}%`,
-                                        height: `${(printArea.height / (MAX_PRINT_WIDTH * (5/4))) * 80}%`,
-                                      }}
-                                    >
-                                      <Image 
-                                          src={filePreview} 
-                                          alt="Design Preview" 
-                                          layout="fill" 
-                                          objectFit="contain"
-                                          className="pointer-events-none"
-                                      />
-                                      <div
-                                        onMouseDown={handleResizeStart}
-                                        className="absolute -bottom-2 -right-2 w-5 h-5 bg-primary rounded-full cursor-se-resize border-2 border-background flex items-center justify-center text-primary-foreground"
-                                      >
-                                        <CornerDownRight className="h-3 w-3 -rotate-90"/>
-                                      </div>
-                                    </div>
-                                ) : (
-                                    <div className="text-center text-muted-foreground p-4">
-                                        <Palette className="h-10 w-10 mx-auto mb-2" />
-                                        <p>Your design will appear here</p>
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <PreviewSection />
                 </div>
                 <Card>
                     <CardHeader>
@@ -385,15 +400,18 @@ export default function CustomDesignPage() {
       {/* Mobile View */}
       <div className="md:hidden">
         <MobileHeader title="Custom Design" />
-        <main className="bg-secondary min-h-screen pb-24 p-4">
+        <main className="bg-secondary min-h-screen pb-24 p-4 space-y-4">
+          <div className="card-glass rounded-xl p-4">
+            <PreviewSection />
+          </div>
           <Card className="card-glass">
               <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                       <Palette />
-                      Upload Your Design
+                      Design Options
                   </CardTitle>
                   <CardDescription>
-                      Have a design in mind? Upload it here and we'll get it printed for you. Our team will review it and get back to you for confirmation.
+                      Upload your art and pick your options.
                   </CardDescription>
               </CardHeader>
               <CardContent>
