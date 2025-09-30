@@ -68,6 +68,7 @@ export default function AdminLayout({
     { href: '/admin/trends', label: 'Trends', icon: TrendingUp },
     { href: '/admin/coupons', label: 'Coupons', icon: Ticket },
     { href: '/admin/custom-designs', label: 'Custom Designs', icon: Palette },
+    { href: '/admin/palette', label: 'Palette', icon: Palette },
     { href: '/admin/shipping', label: 'Shipping', icon: Truck },
     { href: '/admin/users', label: 'Users', icon: Users },
     { href: '/admin/settings', label: 'Settings', icon: Settings },

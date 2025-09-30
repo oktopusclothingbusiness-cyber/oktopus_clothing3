@@ -15,15 +15,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const tshirtColors = [
-  { name: 'White', value: '#FFFFFF' },
-  { name: 'Black', value: '#000000' },
-  { name: 'Navy', value: '#000080' },
-  { name: 'Gray', value: '#808080' },
-  { name: 'Red', value: '#FF0000' },
-  { name: 'Blue', value: '#0000FF' },
-];
+type ColorOption = {
+    _id: string;
+    name: string;
+    hex: string;
+}
 
 const tshirtSizes = ['S', 'M', 'L', 'XL', 'XXL'];
 
@@ -33,16 +31,39 @@ export default function CustomDesignPage() {
   const { toast } = useToast();
   const [file, setFile] = React.useState<File | null>(null);
   const [notes, setNotes] = React.useState('');
-  const [tshirtColor, setTshirtColor] = React.useState('#FFFFFF');
+  const [tshirtColor, setTshirtColor] = React.useState('');
   const [tshirtSize, setTshirtSize] = React.useState('M');
   const [printArea, setPrintArea] = React.useState({ width: 8, height: 10 });
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [colors, setColors] = React.useState<ColorOption[]>([]);
+  const [colorsLoading, setColorsLoading] = React.useState(true);
+
 
   React.useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login');
     }
   }, [user, authLoading, router]);
+
+  React.useEffect(() => {
+    const fetchColors = async () => {
+        try {
+            setColorsLoading(true);
+            const res = await fetch('/api/palette');
+            if (!res.ok) throw new Error('Failed to fetch colors');
+            const data = await res.json();
+            setColors(data);
+            if (data.length > 0) {
+                setTshirtColor(data[0].hex);
+            }
+        } catch (error) {
+            toast({ title: "Error", description: "Could not load color options.", variant: "destructive" });
+        } finally {
+            setColorsLoading(false);
+        }
+    };
+    fetchColors();
+  }, [toast]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -177,11 +198,17 @@ export default function CustomDesignPage() {
 
                     <div className="space-y-2">
                         <Label>T-Shirt Color</Label>
-                        <div className="flex flex-wrap gap-2">
-                            {tshirtColors.map(color => (
-                                <button key={color.name} type="button" onClick={() => setTshirtColor(color.value)} className={cn('h-8 w-8 rounded-full border-2', tshirtColor === color.value ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-gray-200')} style={{backgroundColor: color.value}} aria-label={color.name} />
-                            ))}
-                        </div>
+                        {colorsLoading ? (
+                             <div className="flex flex-wrap gap-2">
+                                {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-8 w-8 rounded-full" />)}
+                             </div>
+                        ) : (
+                             <div className="flex flex-wrap gap-2">
+                                {colors.map(color => (
+                                    <button key={color._id} type="button" onClick={() => setTshirtColor(color.hex)} className={cn('h-8 w-8 rounded-full border-2', tshirtColor === color.hex ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-gray-200')} style={{backgroundColor: color.hex}} aria-label={color.name} />
+                                ))}
+                            </div>
+                        )}
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
