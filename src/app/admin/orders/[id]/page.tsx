@@ -11,13 +11,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, User, MapPin, CreditCard, Package, FileText, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
-import dynamic from 'next/dynamic';
+import LocationMap from '@/components/location-map';
 import Link from 'next/link';
-
-const LocationMap = dynamic(() => import('@/components/location-map'), {
-  ssr: false,
-  loading: () => <Skeleton className="h-64 w-full" />,
-});
 
 type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'packed' | 'shipped' | 'delivered';
 
@@ -58,12 +53,7 @@ export default function OrderDetailsPage() {
     const { toast } = useToast();
     const [order, setOrder] = React.useState<Order | null>(null);
     const [loading, setLoading] = React.useState(true);
-    const [isClient, setIsClient] = React.useState(false);
     const [isSendingInvoice, setIsSendingInvoice] = React.useState(false);
-
-    React.useEffect(() => {
-        setIsClient(true);
-    }, []);
 
     React.useEffect(() => {
         if (id) {
@@ -296,7 +286,7 @@ export default function OrderDetailsPage() {
                         </CardContent>
                     </Card>
 
-                    {isClient && hasCoordinates && (
+                    {hasCoordinates && (
                        <LocationMap latitude={latitude!} longitude={longitude!} />
                     )}
                 </div>
