@@ -17,6 +17,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
+import { Header } from '@/components/header';
+import { Footer } from '@/components/footer';
 
 type ColorOption = {
     _id: string;
@@ -31,6 +33,7 @@ export default function CustomDesignPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [file, setFile] = React.useState<File | null>(null);
+  const [filePreview, setFilePreview] = React.useState<string | null>(null);
   const [notes, setNotes] = React.useState('');
   const [tshirtColor, setTshirtColor] = React.useState('');
   const [tshirtSize, setTshirtSize] = React.useState('M');
@@ -71,6 +74,7 @@ export default function CustomDesignPage() {
 
     if (!selectedFile) {
         setFile(null);
+        setFilePreview(null);
         return;
     }
 
@@ -85,6 +89,7 @@ export default function CustomDesignPage() {
         });
         e.target.value = ''; // Reset the input
         setFile(null);
+        setFilePreview(null);
         return;
     }
 
@@ -96,10 +101,17 @@ export default function CustomDesignPage() {
         });
         e.target.value = ''; // Reset the input
         setFile(null);
+        setFilePreview(null);
         return;
     }
     
     setFile(selectedFile);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+        setFilePreview(reader.result as string);
+    };
+    reader.readAsDataURL(selectedFile);
   };
   
   const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
@@ -148,6 +160,7 @@ export default function CustomDesignPage() {
         description: 'Your design has been sent for approval. We will contact you shortly.',
       });
       setFile(null);
+      setFilePreview(null);
       setNotes('');
       router.push('/store');
 
@@ -170,86 +183,145 @@ export default function CustomDesignPage() {
       </div>
     );
   }
+  
+  const FormControls = ({ isDesktop = false }: { isDesktop?: boolean }) => (
+      <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+              <Label htmlFor={`design-file-${isDesktop}`}>Design File</Label>
+              <div className="relative">
+                  <Input id={`design-file-${isDesktop}`} type="file" onChange={handleFileChange} accept="image/png, image/jpeg, image/vnd.adobe.photoshop" className="pr-16" required/>
+                   <Upload className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              </div>
+              {file && <p className="text-sm text-muted-foreground">Selected: {file.name}</p>}
+              <p className="text-xs text-muted-foreground">.png, .jpg, .psd accepted. Max 10MB.</p>
+          </div>
+
+          <div className="space-y-2">
+              <Label>T-Shirt Color</Label>
+              {colorsLoading ? (
+                   <div className="flex flex-wrap gap-2">
+                      {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16 w-16 rounded-md" />)}
+                   </div>
+              ) : (
+                   <div className="flex flex-wrap gap-2">
+                      {colors.map(color => (
+                          <button key={color._id} type="button" onClick={() => setTshirtColor(color.imageUrl)} className={cn('h-16 w-16 rounded-md border-2 overflow-hidden', tshirtColor === color.imageUrl ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-transparent')} aria-label={color.name}>
+                              {color.imageUrl && <Image src={color.imageUrl} alt={color.name} width={64} height={64} className="object-cover w-full h-full" />}
+                          </button>
+                      ))}
+                  </div>
+              )}
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                 <Label htmlFor={`tshirt-size-${isDesktop}`}>T-Shirt Size</Label>
+                 <Select value={tshirtSize} onValueChange={setTshirtSize}>
+                     <SelectTrigger id={`tshirt-size-${isDesktop}`}>
+                         <SelectValue placeholder="Select size" />
+                     </SelectTrigger>
+                     <SelectContent>
+                         {tshirtSizes.map(size => (
+                             <SelectItem key={size} value={size}>{size}</SelectItem>
+                         ))}
+                     </SelectContent>
+                 </Select>
+              </div>
+              <div className="space-y-2">
+                  <Label>Print Area (inches)</Label>
+                  <div className="flex gap-2">
+                      <Input type="number" value={printArea.width} onChange={e => setPrintArea(p => ({...p, width: parseInt(e.target.value)}))} placeholder="W" />
+                      <Input type="number" value={printArea.height} onChange={e => setPrintArea(p => ({...p, height: parseInt(e.target.value)}))} placeholder="H" />
+                  </div>
+              </div>
+          </div>
+
+          <div className="space-y-2">
+              <Label htmlFor={`notes-${isDesktop}`}>Notes or Instructions</Label>
+              <Textarea id={`notes-${isDesktop}`} placeholder="Any specific instructions? e.g., 'Place this on the center of a black T-shirt.'" value={notes} onChange={e => setNotes(e.target.value)} />
+          </div>
+
+          <Button type="submit" className="w-full" size="lg" disabled={isSubmitting || !file}>
+              {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Submitting...</> : 'Submit for Approval'}
+          </Button>
+      </form>
+  );
 
   return (
-    <div className="md:hidden">
-      <MobileHeader title="Custom Design" />
-      <main className="bg-secondary min-h-screen pb-24 p-4">
-        <Card className="card-glass">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Palette />
-                    Upload Your Design
-                </CardTitle>
-                <CardDescription>
-                    Have a design in mind? Upload it here and we'll get it printed for you. Our team will review it and get back to you for confirmation.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="design-file">Design File</Label>
-                        <div className="relative">
-                            <Input id="design-file" type="file" onChange={handleFileChange} accept="image/png, image/jpeg, image/vnd.adobe.photoshop" className="pr-16" required/>
-                             <Upload className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        </div>
-                        {file && <p className="text-sm text-muted-foreground">Selected: {file.name}</p>}
-                        <p className="text-xs text-muted-foreground">.png, .jpg, .psd accepted. Max 10MB.</p>
-                    </div>
+    <>
+      {/* Desktop View */}
+      <div className="hidden md:flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-grow container mx-auto px-4 py-12">
+            <div className="text-center mb-12">
+                <h1 className="text-4xl md:text-5xl font-bold mb-4">Create Your Custom T-Shirt</h1>
+                <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+                    Bring your vision to life. Upload your design, choose your options, and we'll handle the rest.
+                </p>
+            </div>
 
-                    <div className="space-y-2">
-                        <Label>T-Shirt Color</Label>
-                        {colorsLoading ? (
-                             <div className="flex flex-wrap gap-2">
-                                {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16 w-16 rounded-md" />)}
-                             </div>
-                        ) : (
-                             <div className="flex flex-wrap gap-2">
-                                {colors.map(color => (
-                                    <button key={color._id} type="button" onClick={() => setTshirtColor(color.imageUrl)} className={cn('h-16 w-16 rounded-md border-2 overflow-hidden', tshirtColor === color.imageUrl ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-transparent')} aria-label={color.name}>
-                                        {color.imageUrl && <Image src={color.imageUrl} alt={color.name} width={64} height={64} className="object-cover w-full h-full" />}
-                                    </button>
-                                ))}
+            <div className="grid md:grid-cols-2 gap-16 items-start">
+                <div className="sticky top-28">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>T-Shirt Preview</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="relative aspect-[4/5] w-full bg-muted rounded-lg overflow-hidden">
+                                {tshirtColor && <Image src={tshirtColor} alt="T-Shirt Preview" layout="fill" objectFit="cover" />}
+                                {filePreview && (
+                                    <div className="absolute inset-0 flex items-center justify-center p-8">
+                                         <Image src={filePreview} alt="Design Preview" layout="fill" objectFit="contain" className="max-w-full max-h-full" />
+                                    </div>
+                                )}
+                                 {!filePreview && (
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="text-center text-muted-foreground p-4">
+                                            <Palette className="h-10 w-10 mx-auto mb-2" />
+                                            <p>Your design will appear here</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                           <Label htmlFor="tshirt-size">T-Shirt Size</Label>
-                           <Select value={tshirtSize} onValueChange={setTshirtSize}>
-                               <SelectTrigger id="tshirt-size">
-                                   <SelectValue placeholder="Select size" />
-                               </SelectTrigger>
-                               <SelectContent>
-                                   {tshirtSizes.map(size => (
-                                       <SelectItem key={size} value={size}>{size}</SelectItem>
-                                   ))}
-                               </SelectContent>
-                           </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Print Area (inches)</Label>
-                            <div className="flex gap-2">
-                                <Input type="number" value={printArea.width} onChange={e => setPrintArea(p => ({...p, width: parseInt(e.target.value)}))} placeholder="W" />
-                                <Input type="number" value={printArea.height} onChange={e => setPrintArea(p => ({...p, height: parseInt(e.target.value)}))} placeholder="H" />
-                            </div>
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
+                </div>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Design Options</CardTitle>
+                        <CardDescription>Upload your art, pick your options, and submit for approval.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <FormControls isDesktop={true} />
+                    </CardContent>
+                </Card>
+            </div>
+        </main>
+        <Footer />
+      </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="notes">Notes or Instructions</Label>
-                        <Textarea id="notes" placeholder="Any specific instructions? e.g., 'Place this on the center of a black T-shirt.'" value={notes} onChange={e => setNotes(e.target.value)} />
-                    </div>
 
-                    <Button type="submit" className="w-full" size="lg" disabled={isSubmitting || !file}>
-                        {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Submitting...</> : 'Submit for Approval'}
-                    </Button>
-                </form>
-            </CardContent>
-        </Card>
-      </main>
-      <MobileFooter />
-    </div>
+      {/* Mobile View */}
+      <div className="md:hidden">
+        <MobileHeader title="Custom Design" />
+        <main className="bg-secondary min-h-screen pb-24 p-4">
+          <Card className="card-glass">
+              <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                      <Palette />
+                      Upload Your Design
+                  </CardTitle>
+                  <CardDescription>
+                      Have a design in mind? Upload it here and we'll get it printed for you. Our team will review it and get back to you for confirmation.
+                  </CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <FormControls />
+              </CardContent>
+          </Card>
+        </main>
+        <MobileFooter />
+      </div>
+    </>
   );
 }
