@@ -207,7 +207,7 @@ export default function CustomDesignPage() {
                              <div className="flex flex-wrap gap-2">
                                 {colors.map(color => (
                                     <button key={color._id} type="button" onClick={() => setTshirtColor(color.imageUrl)} className={cn('h-16 w-16 rounded-md border-2 overflow-hidden', tshirtColor === color.imageUrl ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-transparent')} aria-label={color.name}>
-                                        <Image src={color.imageUrl} alt={color.name} width={64} height={64} className="object-cover w-full h-full" />
+                                        {color.imageUrl && <Image src={color.imageUrl} alt={color.name} width={64} height={64} className="object-cover w-full h-full" />}
                                     </button>
                                 ))}
                             </div>
