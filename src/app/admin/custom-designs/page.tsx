@@ -32,26 +32,45 @@ type CustomDesign = {
   createdAt: string;
 };
 
+type ColorOption = {
+  _id: string;
+  name: string;
+  imageUrl: string;
+};
+
 export default function CustomDesignsPage() {
   const [designs, setDesigns] = React.useState<CustomDesign[]>([]);
+  const [colors, setColors] = React.useState<ColorOption[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [priceInputs, setPriceInputs] = React.useState<{[key: string]: string}>({});
   const { toast } = useToast();
 
-  const fetchDesigns = React.useCallback(async () => {
+  const colorMap = React.useMemo(() => {
+    return new Map(colors.map(c => [c.imageUrl, c.name]));
+  }, [colors]);
+
+  const fetchDesignsAndColors = React.useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/custom-designs');
-      if (!response.ok) {
-        throw new Error('Failed to fetch custom designs');
-      }
-      const data = await response.json();
-      setDesigns(data);
+      const [designsRes, colorsRes] = await Promise.all([
+        fetch('/api/custom-designs'),
+        fetch('/api/palette'),
+      ]);
+
+      if (!designsRes.ok) throw new Error('Failed to fetch custom designs');
+      if (!colorsRes.ok) throw new Error('Failed to fetch colors');
+
+      const designsData = await designsRes.json();
+      const colorsData = await colorsRes.json();
+      
+      setDesigns(designsData);
+      setColors(colorsData);
+
     } catch (error) {
       console.error(error);
       toast({
-        title: 'Error fetching designs',
-        description: 'Could not load custom designs.',
+        title: 'Error fetching data',
+        description: 'Could not load designs or colors.',
         variant: 'destructive',
       });
     } finally {
@@ -60,8 +79,8 @@ export default function CustomDesignsPage() {
   }, [toast]);
 
   React.useEffect(() => {
-    fetchDesigns();
-  }, [fetchDesigns]);
+    fetchDesignsAndColors();
+  }, [fetchDesignsAndColors]);
 
   const handleStatusChange = async (designId: string, status: DesignStatus) => {
     const price = priceInputs[designId] ? parseFloat(priceInputs[designId]) : undefined;
@@ -198,10 +217,10 @@ export default function CustomDesignsPage() {
                       <TableCell className="font-medium">{design.userName}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                           <Image src={design.tshirtColor} alt="T-shirt color" width={24} height={24} className="rounded-md object-cover border" />
-                           <span>{design.tshirtSize}</span>
-                           {design.printArea && <span>{design.printArea.width}"x{design.printArea.height}"</span>}
+                           <div className="font-medium">{colorMap.get(design.tshirtColor) || 'Unknown Color'}</div>
+                           <span>({design.tshirtSize})</span>
                         </div>
+                         {design.printArea && <div className="text-xs text-muted-foreground">{design.printArea.width}"x{design.printArea.height}"</div>}
                       </TableCell>
                       <TableCell>{format(new Date(design.createdAt), 'PP')}</TableCell>
                       <TableCell>

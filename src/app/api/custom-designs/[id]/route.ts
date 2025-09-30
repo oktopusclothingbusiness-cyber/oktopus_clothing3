@@ -28,7 +28,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
   }
 }
 
-// PUT (update) a custom design status by ID
+// PUT (update) a custom design status or shipping address by ID
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
     try {
         const { id } = params;
@@ -36,18 +36,33 @@ export async function PUT(request: Request, { params }: { params: { id: string }
             return NextResponse.json({ message: 'Invalid design ID.' }, { status: 400 });
         }
 
-        const { status, price } = await request.json();
+        const body = await request.json();
+        const { status, price, shippingAddress } = body;
         
-        // In a real app, you would add authentication to ensure only admins can do this.
+        const updateData: { [key: string]: any } = {};
 
-        const validStatuses = ['pending', 'approved', 'rejected', 'paid'];
-        if (!status || !validStatuses.includes(status)) {
-            return NextResponse.json({ message: 'Invalid status provided.' }, { status: 400 });
+        if (status) {
+             const validStatuses = ['pending', 'approved', 'rejected', 'paid'];
+            if (!validStatuses.includes(status)) {
+                return NextResponse.json({ message: 'Invalid status provided.' }, { status: 400 });
+            }
+            updateData.status = status;
         }
-        
-        const updateData: { status: string, price?: number } = { status };
+
         if (status === 'approved' && price) {
             updateData.price = price;
+        }
+        
+        if (shippingAddress) {
+            // User is adding their shipping address before payment
+             if (!shippingAddress.mobile || !shippingAddress.address) {
+                return NextResponse.json({ message: 'Mobile and address are required.' }, { status: 400 });
+            }
+            updateData.shippingAddress = shippingAddress;
+        }
+
+        if (Object.keys(updateData).length === 0) {
+            return NextResponse.json({ message: 'No update data provided.' }, { status: 400 });
         }
 
         const client = await clientPromise;
@@ -64,12 +79,10 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
         // TODO: Send email notification to user about status update
         
-        return NextResponse.json({ message: 'Design status updated successfully.' }, { status: 200 });
+        return NextResponse.json({ message: 'Design updated successfully.' }, { status: 200 });
 
     } catch (error) {
         console.error('Failed to update design status:', error);
         return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
     }
 }
-
-    

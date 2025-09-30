@@ -42,6 +42,10 @@ export async function POST(request: Request) {
         if (!customDesign) {
             return NextResponse.json({ message: 'Custom design not found.' }, { status: 404 });
         }
+        
+        if (!customDesign.shippingAddress) {
+             return NextResponse.json({ message: 'Shipping address not found for this custom design.' }, { status: 400 });
+        }
 
         // Create a new order from the custom design
         const orderData = {
@@ -56,7 +60,7 @@ export async function POST(request: Request) {
             color: customDesign.tshirtColor,
           }],
           total: customDesign.price,
-          shippingAddress: { mobile: 'N/A', address: 'N/A', instructions: 'From Custom Design' }, // Or fetch user's default address
+          shippingAddress: customDesign.shippingAddress,
           status: 'accepted',
           createdAt: new Date(),
           paymentDetails: {
@@ -122,5 +126,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
   }
 }
-
-    

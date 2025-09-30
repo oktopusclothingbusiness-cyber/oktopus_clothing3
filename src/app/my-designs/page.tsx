@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { Loader2, Palette, XCircle, CheckCircle, Clock } from 'lucide-react';
+import { Loader2, Palette, XCircle, CheckCircle, Clock, MapPin } from 'lucide-react';
 import { MobileHeader } from '@/components/mobile-header';
 import { MobileFooter } from '@/components/mobile-footer';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
@@ -16,6 +16,10 @@ import Link from 'next/link';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import Image from 'next/image';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 declare global {
   interface Window {
@@ -30,7 +34,7 @@ type DesignStatus = 'pending' | 'approved' | 'rejected' | 'paid';
 type CustomDesign = {
   _id: string;
   designUrl: string;
-  tshirtColor: string; // This is now an image URL
+  tshirtColor: string; // This is an image URL
   tshirtSize: string;
   status: DesignStatus;
   price?: number;
@@ -44,6 +48,14 @@ export default function MyDesignsPage() {
   const [loading, setLoading] = React.useState(true);
   const [isProcessingPayment, setIsProcessingPayment] = React.useState<string | null>(null);
   const { toast } = useToast();
+  
+  const [isAddressDialogOpen, setIsAddressDialogOpen] = React.useState(false);
+  const [selectedDesign, setSelectedDesign] = React.useState<CustomDesign | null>(null);
+  const [shippingAddress, setShippingAddress] = React.useState({
+      mobile: '',
+      address: '',
+      instructions: '',
+  });
 
   React.useEffect(() => {
     if (!authLoading && !user) {
@@ -78,6 +90,42 @@ export default function MyDesignsPage() {
   React.useEffect(() => {
     fetchDesigns();
   }, [fetchDesigns]);
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = e.target;
+      setShippingAddress(prev => ({...prev, [name]: value}));
+  }
+
+  const handleOpenAddressDialog = (design: CustomDesign) => {
+    setSelectedDesign(design);
+    setIsAddressDialogOpen(true);
+  }
+
+  const handleAddressSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedDesign || !shippingAddress.mobile || !shippingAddress.address) {
+      toast({ title: "Address Required", description: "Please fill in your mobile number and address.", variant: "destructive" });
+      return;
+    }
+    
+    try {
+      // Save address to the custom design document
+      const res = await fetch(`/api/custom-designs/${selectedDesign._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shippingAddress })
+      });
+      if (!res.ok) throw new Error('Failed to save shipping address');
+
+      // Address saved, now proceed to payment
+      setIsAddressDialogOpen(false);
+      await handlePayNow(selectedDesign);
+
+    } catch (error) {
+        toast({ title: "Error", description: "Could not save shipping address. Please try again.", variant: "destructive" });
+    }
+  }
+
 
   const handlePayNow = async (design: CustomDesign) => {
     if (!user || !design.price) return;
@@ -217,7 +265,7 @@ export default function MyDesignsPage() {
                                         <Badge variant={getStatusVariant(design.status)}>{design.status}</Badge>
                                     </div>
                                     {design.status === 'approved' && design.price && (
-                                        <Button onClick={() => handlePayNow(design)} disabled={isProcessingPayment === design._id}>
+                                        <Button onClick={() => handleOpenAddressDialog(design)} disabled={isProcessingPayment === design._id}>
                                             {isProcessingPayment === design._id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                             Pay ₹{design.price.toFixed(2)}
                                         </Button>
@@ -274,7 +322,7 @@ export default function MyDesignsPage() {
                   </CardContent>
                   {design.status === 'approved' && design.price && (
                       <CardFooter>
-                        <Button className="w-full" onClick={() => handlePayNow(design)} disabled={isProcessingPayment === design._id}>
+                        <Button className="w-full" onClick={() => handleOpenAddressDialog(design)} disabled={isProcessingPayment === design._id}>
                              {isProcessingPayment === design._id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                             Proceed to Payment
                         </Button>
@@ -303,6 +351,33 @@ export default function MyDesignsPage() {
         </main>
         <MobileFooter />
       </div>
+
+       <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Shipping Information</DialogTitle>
+                    <DialogDescription>Please provide your delivery details for this custom order.</DialogDescription>
+                </DialogHeader>
+                 <form onSubmit={handleAddressSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="mobile">Mobile Number</Label>
+                        <Input id="mobile" name="mobile" value={shippingAddress.mobile} onChange={handleAddressChange} required />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="address">Full Address</Label>
+                        <Textarea id="address" name="address" value={shippingAddress.address} onChange={handleAddressChange} required />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="instructions">Any Instructions (Optional)</Label>
+                        <Textarea id="instructions" name="instructions" value={shippingAddress.instructions} onChange={handleAddressChange} />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={!!isProcessingPayment}>
+                         {isProcessingPayment ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : 'Save and Proceed to Payment'}
+                    </Button>
+                </form>
+            </DialogContent>
+        </Dialog>
+
     </>
   );
 }
