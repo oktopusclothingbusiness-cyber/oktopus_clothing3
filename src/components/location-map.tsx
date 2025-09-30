@@ -6,11 +6,14 @@ import { Map, Marker } from 'react-map-gl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Pin } from 'lucide-react';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import mapboxgl from 'mapbox-gl';
 
+// WORKAROUND: Prevent mapbox-gl from using Web Worker which leads to CSP errors
+// see https://github.com/mapbox/mapbox-gl-js/issues/10173
 // @ts-ignore
+import mapboxgl from 'mapbox-gl';
 // eslint-disable-next-line import/no-webpack-loader-syntax
 mapboxgl.workerClass = require('mapbox-gl/dist/mapbox-gl-csp-worker').default;
+
 
 const MAPBOX_TOKEN = "pk.eyJ1Ijoib2t0b3B1c2MiLCJhIjoiY21keGUyNjU0MXhwYjJsc2FrcGZsd290eCJ9.mEjrHNxJYljQLhjVslo_iw";
 
@@ -34,6 +37,7 @@ export default function LocationMap({ latitude, longitude }: LocationMapProps) {
                         zoom: 14
                     }}
                     mapStyle="mapbox://styles/mapbox/streets-v9"
+                    reuseMaps={false} 
                 >
                     <Marker longitude={longitude} latitude={latitude}>
                         <Pin className="h-8 w-8 text-red-500" fill="red" />
