@@ -79,7 +79,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${archivo.variable} font-sans`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
