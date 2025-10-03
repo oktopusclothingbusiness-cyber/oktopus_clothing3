@@ -54,6 +54,11 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
                 <div className="relative aspect-[3/4]">
                     <ProductImageSlider imageUrls={product.imageUrls} alt={product.name} isMobile={isMobile} />
                      {isNew && <Badge variant="destructive" className="absolute top-2 left-2">Fresh</Badge>}
+                      {product.discountPercentage && product.discountPercentage > 0 && (
+                        <Badge variant="destructive" className="absolute top-2 right-2">
+                            {product.discountPercentage}% OFF
+                        </Badge>
+                    )}
                 </div>
                 <div className="p-2 space-y-1">
                   <h3 className="truncate text-sm font-semibold">{product.name}</h3>
@@ -76,6 +81,11 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
                 <div className="relative aspect-[3/4] bg-gray-100">
                     <ProductImageSlider imageUrls={product.imageUrls} alt={product.name} isMobile={isMobile} />
                      {isNew && <Badge variant="default" className="absolute top-3 left-3 bg-stone-900 text-white">New</Badge>}
+                      {product.discountPercentage && product.discountPercentage > 0 && (
+                        <Badge variant="destructive" className="absolute top-3 right-3">
+                            {product.discountPercentage}% OFF
+                        </Badge>
+                    )}
                 </div>
                 <CardContent className="p-4 text-center">
                     <h3 className="font-bold text-lg truncate font-serif">{product.name}</h3>
