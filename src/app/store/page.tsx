@@ -63,6 +63,7 @@ export default function StreetifyStorePage() {
   
   const loading = productsLoading || promotionsLoading || categoriesLoading || trendsLoading;
   const activePromotions = promotions.filter(p => p.isActive);
+  const activeTrends = trends.filter(t => t.isActive);
   
   const autoplayPlugin = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: true })
@@ -320,5 +321,3 @@ export default function StreetifyStorePage() {
     </>
   );
 }
-
-    
