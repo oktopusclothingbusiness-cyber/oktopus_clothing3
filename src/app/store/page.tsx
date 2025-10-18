@@ -1,12 +1,11 @@
 
-
 'use client';
 
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ShoppingCart, Heart, ChevronLeft, ChevronRight, Search, Settings2, Shirt, Radio, Watch, MessageCircle, User, Home, Star, Footprints, Shapes, TrendingUp } from "lucide-react";
-import { StreetifyHeader } from "@/components/streetify-header";
+import { DolengaHeader } from "@/components/dolenga-header";
 import { StreetifyFooter } from "@/components/streetify-footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { useProduct, Product } from "@/context/product-context";
@@ -20,6 +19,7 @@ import { useTrend } from "@/context/trend-context";
 import { format, addDays } from "date-fns";
 import * as React from "react";
 import { ProductCard } from "@/components/product-card";
+import { DolengaProductCard } from "@/components/dolenga-product-card";
 import { cn } from "@/lib/utils";
 import { LockIcon } from "@/components/icons/lock-icon";
 import { WrenchIcon } from "@/components/icons/wrench-icon";
@@ -27,9 +27,9 @@ import { CarIcon } from "@/components/icons/car-icon";
 import { SparklesIcon } from "@/components/icons/sparkles-icon";
 import { SlidersIcon } from "@/components/icons/sliders-icon";
 import { TagIcon } from "@/components/icons/tag-icon";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
-
+import placeholderImages from '@/app/lib/placeholder-images.json';
 
 const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
     <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg mr-4 flex-shrink-0 bg-red-500 text-white p-6 flex flex-col justify-between">
@@ -55,171 +55,113 @@ const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
     </div>
 )
 
-const StreetifyProductCard = ({ product, large = false }: { product: Product, large?: boolean }) => {
-    return (
-        <div className={cn("bg-stone-900 rounded-2xl overflow-hidden group", large && "row-span-2")}>
-            <Link href={`/products/${product.id}`}>
-                <div className={cn("relative bg-white", large ? "aspect-[3/4]" : "aspect-square")}>
-                    <Image
-                        src={product.imageUrls[0]}
-                        alt={product.name}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        data-ai-hint="fashion product"
-                    />
-                    {product.discountPercentage && <Badge className="absolute top-3 right-3 bg-red-600 text-white">HOT</Badge>}
-                </div>
-                <div className="p-4">
-                    <h3 className="text-white font-semibold truncate">{product.name}</h3>
-                    <p className="text-white font-bold text-lg">₹{product.price.toFixed(2)}</p>
-                </div>
-            </Link>
-        </div>
-    )
-}
-
 export default function StreetifyStorePage() {
   const { products, loading: productsLoading } = useProduct();
   const { promotions, loading: promotionsLoading } = usePromotion();
   const { categories, loading: categoriesLoading } = useCategory();
   const { trends, loading: trendsLoading } = useTrend();
-  const [deliveryDate] = React.useState(format(addDays(new Date(), 5), 'MMM dd'));
-
+  
   const loading = productsLoading || promotionsLoading || categoriesLoading || trendsLoading;
   const activePromotions = promotions.filter(p => p.isActive);
-  const activeTrends = trends.filter(t => t.isActive);
-
-  const newArrivals = products.slice(0, 3);
-  const featuredProducts = products.slice(3, 12);
-  const largeProductIndex = 2;
-
-
-  const featureIcons = [
-      { icon: LockIcon, label: "Premium Materials" },
-      { icon: WrenchIcon, label: "Custom Designs" },
-      { icon: CarIcon, label: "Fast Shipping" },
-      { icon: SparklesIcon, label: "Unique Styles" },
-      { icon: SlidersIcon, label: "Perfect Fit" },
-      { icon: TagIcon, label: "Exclusive Deals" },
-  ];
   
   const autoplayPlugin = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: true })
   );
 
+  const bestSellers = products.slice(0, 8);
+
   return (
     <>
     {/* Desktop View */}
-    <div className="hidden md:block bg-black text-white font-serif">
-      <StreetifyHeader />
+    <div className="hidden md:block bg-background text-foreground font-sans">
+      <DolengaHeader />
       <main>
         {/* Hero Section */}
-        <section className="relative h-[600px] bg-black flex items-center">
-             <Carousel 
-                className="w-full h-full"
-                plugins={[autoplayPlugin.current]}
-                onMouseEnter={autoplayPlugin.current.stop}
-                onMouseLeave={autoplayPlugin.current.reset}
-                opts={{ loop: true }}
-            >
-                <CarouselContent>
-                    {loading ? (
-                        <CarouselItem>
-                             <div className="w-full h-[600px] bg-neutral-900 animate-pulse" />
-                        </CarouselItem>
-                    ) : activePromotions.length > 0 ? (
-                        activePromotions.map((promo, index) => (
-                        <CarouselItem key={index}>
-                            <div className="relative w-full h-[600px]">
-                                <Image src={promo.imageUrl} layout="fill" objectFit="cover" alt={promo.title} className="opacity-30" data-ai-hint="urban street background" />
-                                <div className="absolute inset-0 bg-black/50" />
-                                <div className="container mx-auto h-full flex items-center relative z-10">
-                                    <div className="max-w-xl animate-fade-in">
-                                        <h1 className="text-8xl font-black uppercase tracking-tighter animate-slide-in-from-left">
-                                            {promo.title}
-                                        </h1>
-                                        <p className="text-neutral-300 mt-4 max-w-sm animate-slide-in-from-bottom" style={{ animationDelay: '0.2s' }}>
-                                            {promo.description}
-                                        </p>
-                                        <div className="mt-8 flex items-center gap-4 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                                             <Button asChild className="bg-primary hover:bg-primary/90 text-black rounded-sm px-8">
-                                                <Link href={promo.ctaLink}>{promo.ctaText}</Link>
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </CarouselItem>
-                        ))
-                    ) : (
-                         <CarouselItem>
-                             <div className="relative w-full h-[600px]">
-                                <Image src="https://i.ibb.co/YyV3c0x/okto-main-1.png" layout="fill" objectFit="cover" alt="Background" className="opacity-30" data-ai-hint="urban street background" />
-                                 <div className="absolute inset-0 bg-black/50" />
-                                 <div className="container mx-auto h-full flex items-center relative z-10">
-                                     <div className="max-w-xl">
-                                         <h1 className="text-8xl font-black uppercase tracking-tighter">Streetwear</h1>
-                                         <p className="text-neutral-300 mt-4 max-w-sm">Explore our latest collection of streetwear that combines style and comfort. Be bold, be you.</p>
-                                         <div className="mt-8 flex items-center gap-4">
-                                             <Button asChild className="bg-primary hover:bg-primary/90 text-black rounded-sm px-8">
-                                                <Link href="/products">Shop Now</Link>
-                                            </Button>
-                                         </div>
-                                     </div>
-                                 </div>
-                             </div>
-                         </CarouselItem>
-                    )}
-                </CarouselContent>
-            </Carousel>
-        </section>
-
-        {/* Features Section */}
-        <section className="bg-black py-16">
-            <div className="container mx-auto px-4">
-                <div className="grid grid-cols-6 gap-8">
-                    {featureIcons.map((feature, index) => (
-                        <div key={index} className="flex flex-col items-center text-center gap-4">
-                            <feature.icon className="w-8 h-8 text-primary" />
-                            <p className="text-neutral-300 text-sm">{feature.label}</p>
-                        </div>
-                    ))}
+        <section className="bg-background">
+            <div className="container mx-auto px-4 py-20 flex items-center justify-between">
+                <div className="max-w-md">
+                    <h1 className="text-8xl font-black uppercase tracking-tighter font-bebas">DOLENGA</h1>
+                    <h1 className="text-8xl font-black uppercase tracking-tighter font-bebas">WEAR</h1>
+                    <p className="text-muted-foreground mt-4">Бренд функциональной одежды для активного образа жизни</p>
+                </div>
+                <div className="relative w-1/2 h-[600px]">
+                     <Image src={placeholderImages.dolenga.hero} alt="Model wearing Dolenga wear" layout="fill" objectFit="contain" />
+                </div>
+                 <div className="absolute right-48 bottom-48">
+                    <Button variant="secondary" size="lg" className="rounded-full h-16 px-10 text-lg">В КАТАЛОГ</Button>
                 </div>
             </div>
         </section>
 
-        {/* New Arrivals Section */}
-        <section className="bg-black py-20">
-            <div className="container mx-auto px-4 grid grid-cols-2 gap-16 items-center">
-                <div className="space-y-4">
-                    <h2 className="text-4xl font-extrabold uppercase">Fresh on the Scene</h2>
-                    <h2 className="text-4xl font-extrabold uppercase">New Arrivals</h2>
-                    <p className="text-neutral-400 max-w-md">Check out the latest additions to our collection. Don't miss out on these fresh styles.</p>
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                    {productsLoading ? Array.from({length: 3}).map((_, i) => <Skeleton key={i} className="aspect-[3/4] rounded-lg" />) :
-                     newArrivals.map((p, i) => (
-                        <div key={p.id} className="relative aspect-[3/4] rounded-lg overflow-hidden group">
-                             <Image src={p.imageUrls[0]} alt={p.name} layout="fill" objectFit="cover" data-ai-hint="fashion model" />
-                             <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
-                             {p.discountPercentage && <Badge className="absolute top-2 right-2 bg-red-600 text-white">SALE</Badge>}
+        {/* Summer Collection Section */}
+        <section className="bg-background py-10">
+            <div className="container mx-auto px-4 grid grid-cols-2 gap-8">
+                <div className="relative h-[70vh]">
+                     <Image src={placeholderImages.dolenga.collection1} alt="Summer collection 1" layout="fill" objectFit="cover" />
+                     <div className="absolute inset-0 flex flex-col justify-between p-8 text-white">
+                        <ul className="space-y-1">
+                            <li>ФУТБОЛКИ</li>
+                            <li>ХУДИ</li>
+                            <li>ЗИП ХУДИ</li>
+                            <li>СВИТШОТЫ</li>
+                            <li>БОМБЕРЫ</li>
+                            <li>ВЕТРОВКИ</li>
+                            <li>АНОРАКИ</li>
+                        </ul>
+                        <div>
+                            <h2 className="text-6xl font-black font-bebas">ЛЕТНЯЯ</h2>
+                            <h2 className="text-6xl font-black font-bebas">КОЛЛЕКЦИЯ</h2>
+                            <p className="mt-2">2023</p>
                         </div>
-                     ))
-                    }
+                    </div>
+                </div>
+                <div className="relative h-[70vh]">
+                    <Image src={placeholderImages.dolenga.collection2} alt="Summer collection 2" layout="fill" objectFit="cover" />
+                    <div className="absolute inset-0 flex flex-col justify-between p-8 text-white">
+                        <ul className="space-y-1 text-right">
+                           <li>ДЖОГГЕРЫ</li>
+                            <li>ШОРТЫ</li>
+                            <li>ТРУСЫ</li>
+                            <li>НОСКИ</li>
+                            <li>БЕЙСБОЛКИ</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </section>
 
-        {/* Featured Collection Section */}
+
+        {/* Bestsellers Section */}
         <section className="py-20">
              <div className="container mx-auto px-4">
-                <h2 className="text-4xl font-extrabold text-center mb-12 uppercase">Featured Collection</h2>
-                <div className="grid grid-cols-4 grid-rows-2 gap-6">
-                    {productsLoading ? Array.from({length: 8}).map((_, i) => <Skeleton key={i} className="aspect-[3/4] rounded-2xl" />) : 
-                    featuredProducts.map((p, i) => (
-                        <StreetifyProductCard key={p.id} product={p} large={i === largeProductIndex} />
-                    ))}
+                <div className="flex justify-between items-center mb-12">
+                    <h2 className="text-5xl font-black font-bebas">БЕСТСЕЛЛЕРЫ</h2>
+                    <Button variant="outline" className="rounded-full h-12 px-8">В КАТАЛОГ</Button>
                 </div>
+                
+                 <Carousel
+                    opts={{
+                        align: "start",
+                        loop: true,
+                    }}
+                    className="w-full"
+                    >
+                    <CarouselContent>
+                        {loading ? 
+                            Array.from({ length: 4 }).map((_, i) => (
+                                <CarouselItem key={i} className="md:basis-1/4">
+                                    <Skeleton className="aspect-[3/4]" />
+                                </CarouselItem>
+                            ))
+                        : bestSellers.map((product) => (
+                            <CarouselItem key={product.id} className="md:basis-1/4">
+                                <DolengaProductCard product={product} />
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12" />
+                    <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12" />
+                </Carousel>
             </div>
         </section>
 
@@ -227,7 +169,7 @@ export default function StreetifyStorePage() {
       <StreetifyFooter />
     </div>
 
-    {/* Mobile View */}
+    {/* Mobile View (unchanged) */}
     <div className="md:hidden bg-background font-sans">
         <MobileHeader/>
         <main className="p-4 space-y-6 pb-24">
@@ -378,3 +320,5 @@ export default function StreetifyStorePage() {
     </>
   );
 }
+
+    
