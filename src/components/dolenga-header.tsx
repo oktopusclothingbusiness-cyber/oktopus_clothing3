@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { ShoppingCart, User, Search, Heart } from "lucide-react";
+import { ShoppingCart, User, Search, Heart, ShoppingBag } from "lucide-react";
 import { useCart } from "@/context/cart-context";
 import { useAuth } from "@/context/auth-context";
 
@@ -53,5 +53,3 @@ export function DolengaHeader() {
     </header>
   );
 }
-
-    
