@@ -19,6 +19,7 @@ import { DolengaProductCard } from "@/components/dolenga-product-card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Shapes, TrendingUp } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 // Doodle SVG components
 const Doodle1 = () => (
@@ -366,3 +367,5 @@ export default function StreetifyStorePage() {
     </>
   );
 }
+
+    
