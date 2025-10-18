@@ -1,36 +1,48 @@
 
-
 'use client';
 
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ShoppingCart, Heart, ChevronLeft, ChevronRight, Search, Settings2, Shirt, Radio, Watch, MessageCircle, User, Home, Star, Footprints, Shapes, TrendingUp } from "lucide-react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { Card, CardContent } from "@/components/ui/card";
-import { useProduct, Product } from "@/context/product-context";
+import { useProduct } from "@/context/product-context";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
 import { usePromotion } from "@/context/promotion-context";
 import { useCategory } from "@/context/category-context";
 import { useTrend } from "@/context/trend-context";
-import { format, addDays } from "date-fns";
 import * as React from "react";
 import { ProductCard } from "@/components/product-card";
 import { DolengaProductCard } from "@/components/dolenga-product-card";
-import { cn } from "@/lib/utils";
-import { LockIcon } from "@/components/icons/lock-icon";
-import { WrenchIcon } from "@/components/icons/wrench-icon";
-import { CarIcon } from "@/components/icons/car-icon";
-import { SparklesIcon } from "@/components/icons/sparkles-icon";
-import { SlidersIcon } from "@/components/icons/sliders-icon";
-import { TagIcon } from "@/components/icons/tag-icon";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
-import placeholderImages from '@/app/lib/placeholder-images.json';
+import { Shapes, TrendingUp } from "lucide-react";
+
+// Doodle SVG components
+const Doodle1 = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 30 L50 20 L80 30 V70 L50 80 L20 70 Z" />
+    <path d="M20 30 L50 40 L80 30" />
+    <path d="M50 20 L50 40" />
+  </svg>
+);
+
+const Doodle2 = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+     <path d="M25 25 L75 25 L85 45 L75 80 L25 80 L15 45 Z" />
+     <path d="M40 25 C40 35, 60 35, 60 25" />
+  </svg>
+);
+
+const Doodle3 = () => (
+    <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 20h60v60H20z" transform="rotate(10 50 50)" />
+        <path d="M40 40h20" transform="rotate(10 50 50)" />
+        <path d="M40 55h20" transform="rotate(10 50 50)" />
+    </svg>
+);
 
 const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
     <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg mr-4 flex-shrink-0 bg-red-500 text-white p-6 flex flex-col justify-between">
@@ -61,6 +73,7 @@ export default function StreetifyStorePage() {
   const { promotions, loading: promotionsLoading } = usePromotion();
   const { categories, loading: categoriesLoading } = useCategory();
   const { trends, loading: trendsLoading } = useTrend();
+  const heroRef = React.useRef<HTMLDivElement>(null);
   
   const loading = productsLoading || promotionsLoading || categoriesLoading || trendsLoading;
   const activePromotions = promotions.filter(p => p.isActive);
@@ -69,6 +82,20 @@ export default function StreetifyStorePage() {
   const autoplayPlugin = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: true })
   );
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const { clientX, clientY, currentTarget } = e;
+    const { offsetWidth, offsetHeight } = currentTarget;
+    const xPos = (clientX / offsetWidth - 0.5) * 40; // Multiplier for parallax effect
+    const yPos = (clientY / offsetHeight - 0.5) * 40;
+
+    const layers = heroRef.current?.querySelectorAll('[data-layer]');
+    layers?.forEach(layer => {
+      const speed = parseFloat(layer.getAttribute('data-speed') || "0");
+      const htmlLayer = layer as HTMLElement;
+      htmlLayer.style.transform = `translateX(${xPos * speed}px) translateY(${yPos * speed}px)`;
+    });
+  };
 
   const heroProduct = products.find(p => p.isHero) || products[0];
   const collection1Product = products.length > 1 ? products[1] : heroProduct;
@@ -82,22 +109,25 @@ export default function StreetifyStorePage() {
     <div className="hidden md:block bg-background text-foreground font-sans">
       <Header />
       <main>
-        {/* Hero Section */}
-        <section className="bg-background">
-            <div className="container mx-auto px-4 py-20 flex items-center justify-between">
-                <div className="max-w-md">
-                    <h1 className="text-8xl font-black uppercase tracking-tighter font-bebas">OKTOPUS</h1>
-                    <h1 className="text-8xl font-black uppercase tracking-tighter font-bebas">WEAR</h1>
-                    <p className="text-muted-foreground mt-4">Functional clothing for an active lifestyle.</p>
+         {/* Hero Section */}
+        <section className="bg-background relative overflow-hidden" ref={heroRef} onMouseMove={handleMouseMove}>
+            <div className="absolute inset-0 opacity-10 dark:opacity-5">
+                 <div data-layer data-speed="0.3" className="absolute top-[10%] left-[5%] w-24 h-24 animate-float"><Doodle1 /></div>
+                 <div data-layer data-speed="-0.2" className="absolute top-[20%] right-[10%] w-32 h-32 animate-float-delay-1"><Doodle2 /></div>
+                 <div data-layer data-speed="0.4" className="absolute bottom-[15%] left-[15%] w-20 h-20 animate-float-delay-2"><Doodle3 /></div>
+                 <div data-layer data-speed="-0.3" className="absolute bottom-[20%] right-[25%] w-28 h-28 animate-float"><Doodle1 /></div>
+                 <div data-layer data-speed="0.2" className="absolute top-[50%] left-[20%] w-16 h-16 animate-float-delay-1"><Doodle2 /></div>
+            </div>
+
+            <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center text-center relative z-10 min-h-[70vh]">
+                <div data-layer data-speed="0.1">
+                    <h1 className="text-8xl md:text-9xl font-black uppercase tracking-tighter font-bebas">OKTOPUS</h1>
+                    <h1 className="text-8xl md:text-9xl font-black uppercase tracking-tighter font-bebas -mt-8">WEAR</h1>
+                    <p className="text-muted-foreground mt-4 max-w-md mx-auto">Functional clothing for an active lifestyle, designed to make you stand out.</p>
                 </div>
-                <div className="relative w-1/2 h-[600px]">
-                    {heroProduct && 
-                        <Image src={heroProduct.imageUrls[0]} alt={heroProduct.name} layout="fill" objectFit="contain" />
-                    }
-                </div>
-                 <div className="absolute right-48 bottom-48">
-                    <Button asChild variant="secondary" size="lg" className="rounded-full h-16 px-10 text-lg">
-                        <Link href="/products">TO CATALOG</Link>
+                 <div data-layer data-speed="-0.1" className="mt-12">
+                    <Button asChild variant="default" size="lg" className="rounded-full h-16 px-10 text-lg shadow-lg hover:scale-105 transition-transform">
+                        <Link href="/products">EXPLORE CATALOG</Link>
                     </Button>
                 </div>
             </div>
@@ -106,12 +136,12 @@ export default function StreetifyStorePage() {
         {/* Summer Collection Section */}
         <section className="bg-background py-10">
             <div className="container mx-auto px-4 grid grid-cols-2 gap-8">
-                <div className="relative h-[70vh]">
+                <div className="relative h-[70vh] group">
                     {collection1Product && 
-                        <Image src={collection1Product.imageUrls[0]} alt={collection1Product.name} layout="fill" objectFit="cover" />
+                        <Image src={collection1Product.imageUrls[0]} alt={collection1Product.name} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105"/>
                     }
-                     <div className="absolute inset-0 flex flex-col justify-between p-8 text-white bg-black/20">
-                        <ul className="space-y-1">
+                     <div className="absolute inset-0 flex flex-col justify-between p-8 text-white bg-black/30 transition-colors duration-500 group-hover:bg-black/40">
+                        <ul className="space-y-1 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                             <li>T-SHIRTS</li>
                             <li>HOODIES</li>
                             <li>ZIP HOODIES</li>
@@ -126,12 +156,12 @@ export default function StreetifyStorePage() {
                         </div>
                     </div>
                 </div>
-                <div className="relative h-[70vh]">
+                <div className="relative h-[70vh] group">
                     {collection2Product &&
-                        <Image src={collection2Product.imageUrls[0]} alt={collection2Product.name} layout="fill" objectFit="cover" />
+                        <Image src={collection2Product.imageUrls[0]} alt={collection2Product.name} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105"/>
                     }
-                    <div className="absolute inset-0 flex flex-col justify-between p-8 text-white bg-black/20">
-                        <ul className="space-y-1 text-right">
+                    <div className="absolute inset-0 flex flex-col justify-between p-8 text-white bg-black/30 transition-colors duration-500 group-hover:bg-black/40">
+                        <ul className="space-y-1 text-right opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                            <li>JOGGERS</li>
                             <li>SHORTS</li>
                             <li>UNDERWEAR</li>
@@ -159,6 +189,7 @@ export default function StreetifyStorePage() {
                         align: "start",
                         loop: true,
                     }}
+                    plugins={[autoplayPlugin.current]}
                     className="w-full"
                     >
                     <CarouselContent>

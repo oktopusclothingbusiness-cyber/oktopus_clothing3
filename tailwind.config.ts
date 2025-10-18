@@ -79,11 +79,18 @@ const config = {
           "50%": { transform: "scale(1.1) rotate(5deg)" },
           "75%": { transform: "scale(1.1) rotate(-5deg)" },
         },
+        "float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-20px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "jiggle": "jiggle 0.7s ease-in-out",
+        "float": "float 8s ease-in-out infinite",
+        "float-delay-1": "float 8s 2s ease-in-out infinite",
+        "float-delay-2": "float 8s 4s ease-in-out infinite",
       },
     },
   },
@@ -91,5 +98,3 @@ const config = {
 } satisfies Config
 
 export default config
-
-    
