@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Image from 'next/image';
@@ -21,7 +22,7 @@ export function DolengaProductCard({ product }: { product: Product }) {
                 </div>
                 <div className="mt-4">
                     <h3 className="text-sm text-muted-foreground">{product.name}</h3>
-                    <p className="font-medium">₽{product.price.toFixed(0)}</p>
+                    <p className="font-medium">₹{product.price.toFixed(0)}</p>
                 </div>
             </Link>
         </div>

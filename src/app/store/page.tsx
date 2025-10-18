@@ -1,12 +1,13 @@
 
+
 'use client';
 
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ShoppingCart, Heart, ChevronLeft, ChevronRight, Search, Settings2, Shirt, Radio, Watch, MessageCircle, User, Home, Star, Footprints, Shapes, TrendingUp } from "lucide-react";
-import { DolengaHeader } from "@/components/dolenga-header";
-import { StreetifyFooter } from "@/components/streetify-footer";
+import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { useProduct, Product } from "@/context/product-context";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -69,27 +70,35 @@ export default function StreetifyStorePage() {
     Autoplay({ delay: 5000, stopOnInteraction: true })
   );
 
+  const heroProduct = products.find(p => p.isHero) || products[0];
+  const collection1Product = products.length > 1 ? products[1] : heroProduct;
+  const collection2Product = products.length > 2 ? products[2] : heroProduct;
+
   const bestSellers = products.slice(0, 8);
 
   return (
     <>
     {/* Desktop View */}
     <div className="hidden md:block bg-background text-foreground font-sans">
-      <DolengaHeader />
+      <Header />
       <main>
         {/* Hero Section */}
         <section className="bg-background">
             <div className="container mx-auto px-4 py-20 flex items-center justify-between">
                 <div className="max-w-md">
-                    <h1 className="text-8xl font-black uppercase tracking-tighter font-bebas">DOLENGA</h1>
+                    <h1 className="text-8xl font-black uppercase tracking-tighter font-bebas">OKTOPUS</h1>
                     <h1 className="text-8xl font-black uppercase tracking-tighter font-bebas">WEAR</h1>
-                    <p className="text-muted-foreground mt-4">Бренд функциональной одежды для активного образа жизни</p>
+                    <p className="text-muted-foreground mt-4">Functional clothing for an active lifestyle.</p>
                 </div>
                 <div className="relative w-1/2 h-[600px]">
-                     <Image src={placeholderImages.dolenga.hero} alt="Model wearing Dolenga wear" layout="fill" objectFit="contain" />
+                    {heroProduct && 
+                        <Image src={heroProduct.imageUrls[0]} alt={heroProduct.name} layout="fill" objectFit="contain" />
+                    }
                 </div>
                  <div className="absolute right-48 bottom-48">
-                    <Button variant="secondary" size="lg" className="rounded-full h-16 px-10 text-lg">В КАТАЛОГ</Button>
+                    <Button asChild variant="secondary" size="lg" className="rounded-full h-16 px-10 text-lg">
+                        <Link href="/products">TO CATALOG</Link>
+                    </Button>
                 </div>
             </div>
         </section>
@@ -98,33 +107,36 @@ export default function StreetifyStorePage() {
         <section className="bg-background py-10">
             <div className="container mx-auto px-4 grid grid-cols-2 gap-8">
                 <div className="relative h-[70vh]">
-                     <Image src={placeholderImages.dolenga.collection1} alt="Summer collection 1" layout="fill" objectFit="cover" />
-                     <div className="absolute inset-0 flex flex-col justify-between p-8 text-white">
+                    {collection1Product && 
+                        <Image src={collection1Product.imageUrls[0]} alt={collection1Product.name} layout="fill" objectFit="cover" />
+                    }
+                     <div className="absolute inset-0 flex flex-col justify-between p-8 text-white bg-black/20">
                         <ul className="space-y-1">
-                            <li>ФУТБОЛКИ</li>
-                            <li>ХУДИ</li>
-                            <li>ЗИП ХУДИ</li>
-                            <li>СВИТШОТЫ</li>
-                            <li>БОМБЕРЫ</li>
-                            <li>ВЕТРОВКИ</li>
-                            <li>АНОРАКИ</li>
+                            <li>T-SHIRTS</li>
+                            <li>HOODIES</li>
+                            <li>ZIP HOODIES</li>
+                            <li>SWEATSHIRTS</li>
+                            <li>BOMBERS</li>
+                            <li>WINDBREAKERS</li>
                         </ul>
                         <div>
-                            <h2 className="text-6xl font-black font-bebas">ЛЕТНЯЯ</h2>
-                            <h2 className="text-6xl font-black font-bebas">КОЛЛЕКЦИЯ</h2>
-                            <p className="mt-2">2023</p>
+                            <h2 className="text-6xl font-black font-bebas">SUMMER</h2>
+                            <h2 className="text-6xl font-black font-bebas">COLLECTION</h2>
+                            <p className="mt-2">2024</p>
                         </div>
                     </div>
                 </div>
                 <div className="relative h-[70vh]">
-                    <Image src={placeholderImages.dolenga.collection2} alt="Summer collection 2" layout="fill" objectFit="cover" />
-                    <div className="absolute inset-0 flex flex-col justify-between p-8 text-white">
+                    {collection2Product &&
+                        <Image src={collection2Product.imageUrls[0]} alt={collection2Product.name} layout="fill" objectFit="cover" />
+                    }
+                    <div className="absolute inset-0 flex flex-col justify-between p-8 text-white bg-black/20">
                         <ul className="space-y-1 text-right">
-                           <li>ДЖОГГЕРЫ</li>
-                            <li>ШОРТЫ</li>
-                            <li>ТРУСЫ</li>
-                            <li>НОСКИ</li>
-                            <li>БЕЙСБОЛКИ</li>
+                           <li>JOGGERS</li>
+                            <li>SHORTS</li>
+                            <li>UNDERWEAR</li>
+                            <li>SOCKS</li>
+                            <li>CAPS</li>
                         </ul>
                     </div>
                 </div>
@@ -136,8 +148,10 @@ export default function StreetifyStorePage() {
         <section className="py-20">
              <div className="container mx-auto px-4">
                 <div className="flex justify-between items-center mb-12">
-                    <h2 className="text-5xl font-black font-bebas">БЕСТСЕЛЛЕРЫ</h2>
-                    <Button variant="outline" className="rounded-full h-12 px-8">В КАТАЛОГ</Button>
+                    <h2 className="text-5xl font-black font-bebas">BESTSELLERS</h2>
+                    <Button asChild variant="outline" className="rounded-full h-12 px-8">
+                        <Link href="/products">TO CATALOG</Link>
+                    </Button>
                 </div>
                 
                  <Carousel
@@ -167,7 +181,7 @@ export default function StreetifyStorePage() {
         </section>
 
       </main>
-      <StreetifyFooter />
+      <Footer />
     </div>
 
     {/* Mobile View (unchanged) */}
