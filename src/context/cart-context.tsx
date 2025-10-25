@@ -2,8 +2,9 @@
 "use client";
 
 import { useToast } from "@/hooks/use-toast";
-import React, { createContext, useContext, useState, useMemo, useEffect } from "react";
+import React, { createContext, useContext, useState, useMemo, useEffect, useCallback } from "react";
 import { useCoupon, Coupon } from "./coupon-context";
+import { useAuth } from "./auth-context";
 
 
 type Product = {
@@ -42,9 +43,24 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const { coupons } = useCoupon();
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [shipping, setShipping] = useState(0);
+  const { user, loading: authLoading } = useAuth();
+
+  const saveCartToDb = useCallback(async (updatedCart: CartItem[]) => {
+    if (user) {
+      try {
+        await fetch(`/api/users/${user._id}/cart`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cart: updatedCart }),
+        });
+      } catch (error) {
+        console.error("Failed to save cart to DB", error);
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
-    const fetchSettings = async () => {
+    const fetchSettingsAndCart = async () => {
         try {
             const response = await fetch('/api/settings');
             if (response.ok) {
@@ -55,9 +71,29 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
             console.error("Failed to fetch settings for shipping:", error);
             setShipping(0); // Default to free shipping on error
         }
+
+        if (user?._id) {
+            try {
+                const res = await fetch(`/api/users/${user._id}/cart`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.cart) {
+                        setCart(data.cart);
+                    }
+                }
+            } catch (error) {
+                 console.error("Failed to fetch cart from DB", error);
+            }
+        } else {
+          // If no user, clear the cart
+          setCart([]);
+        }
     };
-    fetchSettings();
-  }, []);
+    
+    if (!authLoading) {
+        fetchSettingsAndCart();
+    }
+  }, [user, authLoading]);
 
   const subtotal = useMemo(() => {
       return cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -97,14 +133,18 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
 
   const addToCart = (product: Product, size: string, color: string) => {
+    let updatedCart: CartItem[] = [];
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === product.id && item.size === size && item.color === color);
       if (existingItem) {
-        return prevCart.map((item) =>
+        updatedCart = prevCart.map((item) =>
           item.id === product.id && item.size === size && item.color === color ? { ...item, quantity: item.quantity + 1 } : item
         );
+      } else {
+        updatedCart = [...prevCart, { ...product, quantity: 1, size, color }];
       }
-      return [...prevCart, { ...product, quantity: 1, size, color }];
+      saveCartToDb(updatedCart);
+      return updatedCart;
     });
     toast({
       title: "Added to cart",
@@ -115,7 +155,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const removeFromCart = (productId: string, size: string, color: string) => {
-    setCart((prevCart) => prevCart.filter((item) => !(item.id === productId && item.size === size && item.color === color)));
+    let updatedCart: CartItem[] = [];
+    setCart((prevCart) => {
+      updatedCart = prevCart.filter((item) => !(item.id === productId && item.size === size && item.color === color));
+      saveCartToDb(updatedCart);
+      return updatedCart;
+    });
      toast({
       title: "Removed from cart",
       description: `Item has been removed from your cart.`,
@@ -125,15 +170,19 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   const updateQuantity = (productId: string, size: string, color: string, quantity: number) => {
     if (quantity > 0) {
-      setCart((prevCart) =>
-        prevCart.map((item) => (item.id === productId && item.size === size && item.color === color ? { ...item, quantity } : item))
-      );
+      let updatedCart: CartItem[] = [];
+      setCart((prevCart) => {
+        updatedCart = prevCart.map((item) => (item.id === productId && item.size === size && item.color === color ? { ...item, quantity } : item));
+        saveCartToDb(updatedCart);
+        return updatedCart;
+      });
     }
   };
   
   const clearCart = () => {
     setCart([]);
     setAppliedCoupon(null);
+    saveCartToDb([]);
     toast({
       title: "Cart cleared",
       description: "Your cart has been emptied.",
