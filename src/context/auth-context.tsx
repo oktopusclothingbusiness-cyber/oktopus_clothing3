@@ -5,7 +5,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from "firebase/auth";
 
 type User = {
     _id: string;
@@ -36,16 +36,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   
   useEffect(() => {
-    try {
-      const storedUser = sessionStorage.getItem('user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+    const initializeAuth = async () => {
+      try {
+        await setPersistence(auth, browserLocalPersistence);
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (error) {
+        console.error("Failed to set auth persistence or parse user from local storage", error);
+      } finally {
+          setLoading(false);
       }
-    } catch (error) {
-      console.error("Failed to parse user from session storage", error);
-    } finally {
-        setLoading(false);
-    }
+    };
+    initializeAuth();
   }, []);
 
   const login = (userData: User) => {
@@ -53,9 +57,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const userToStore = { ...userData, id: userData._id };
     setUser(userToStore);
     try {
-      sessionStorage.setItem('user', JSON.stringify(userToStore));
+      localStorage.setItem('user', JSON.stringify(userToStore));
     } catch (error) {
-        console.error("Failed to save user to session storage", error);
+        console.error("Failed to save user to local storage", error);
     }
   };
 
@@ -63,9 +67,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     try {
         await signOut(auth);
-        sessionStorage.removeItem('user');
+        localStorage.removeItem('user');
     } catch (error) {
-        console.error("Failed to sign out or remove user from session storage", error);
+        console.error("Failed to sign out or remove user from local storage", error);
     }
     toast({
         title: "Logged Out",
@@ -77,6 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
+      await setPersistence(auth, browserLocalPersistence);
       const result = await signInWithPopup(auth, provider);
       const googleUser = result.user;
 
