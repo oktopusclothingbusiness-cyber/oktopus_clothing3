@@ -26,35 +26,27 @@ declare global {
 
 const RAZORPAY_KEY_ID = 'rzp_live_RKLAWS1cKI9YWZ';
 
-export default function CheckoutPage() {
-  const { cart, subtotal, discount, shipping, total, clearCart } = useCart();
-  const { toast } = useToast();
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
-  const [isProcessing, setIsProcessing] = React.useState(false);
-  const [isFetchingLocation, setIsFetchingLocation] = React.useState(false);
-
-  const [shippingAddress, setShippingAddress] = React.useState({
-    mobile: '',
-    address: '',
-    instructions: '',
-    latitude: null as number | null,
-    longitude: null as number | null,
-  });
-
-  React.useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-    if (!authLoading && cart.length === 0) {
-      router.push('/cart');
-    }
-  }, [user, authLoading, cart, router]);
-
-  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setShippingAddress((prev) => ({ ...prev, [name]: value }));
+type ShippingFormProps = {
+  shippingAddress: {
+    mobile: string;
+    address: string;
+    instructions: string;
   };
+  handleAddressChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  handleProceedToPayment: (e: React.FormEvent) => void;
+  isProcessing: boolean;
+  isMobile?: boolean;
+};
+
+const ShippingForm = ({
+  shippingAddress,
+  handleAddressChange,
+  handleProceedToPayment,
+  isProcessing,
+  isMobile = false,
+}: ShippingFormProps) => {
+  const { toast } = useToast();
+  const [isFetchingLocation, setIsFetchingLocation] = React.useState(false);
 
   const handleFetchLocation = async () => {
     if (!navigator.geolocation) {
@@ -73,12 +65,15 @@ export default function CheckoutPage() {
           const data = await response.json();
 
           if (data && data.display_name) {
-            setShippingAddress((prev) => ({
-              ...prev,
-              address: data.display_name,
-              latitude: latitude,
-              longitude: longitude,
-            }));
+            handleAddressChange({
+                target: { name: 'address', value: data.display_name }
+            } as React.ChangeEvent<HTMLInputElement>);
+             handleAddressChange({
+                target: { name: 'latitude', value: latitude }
+            } as any);
+             handleAddressChange({
+                target: { name: 'longitude', value: longitude }
+            } as any);
             toast({ title: 'Location fetched successfully!' });
           } else {
             throw new Error('Could not find address for this location.');
@@ -99,6 +94,64 @@ export default function CheckoutPage() {
       }
     );
   };
+
+  return (
+    <form onSubmit={handleProceedToPayment} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor={`mobile${isMobile ? '-mob' : ''}`}>Mobile Number</Label>
+        <Input id={`mobile${isMobile ? '-mob' : ''}`} name="mobile" value={shippingAddress.mobile} onChange={handleAddressChange} required />
+      </div>
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <Label htmlFor={`address${isMobile ? '-mob' : ''}`}>Full Address</Label>
+          <Button type="button" variant="outline" size="sm" onClick={handleFetchLocation} disabled={isFetchingLocation}>
+            {isFetchingLocation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MapPin className="mr-2 h-4 w-4" />}
+            Fetch Location
+          </Button>
+        </div>
+        <Textarea id={`address${isMobile ? '-mob' : ''}`} name="address" value={shippingAddress.address} onChange={handleAddressChange} required />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`instructions${isMobile ? '-mob' : ''}`}>Any Instructions (Optional)</Label>
+        <Textarea id={`instructions${isMobile ? '-mob' : ''}`} name="instructions" value={shippingAddress.instructions} onChange={handleAddressChange} />
+      </div>
+      <Button type="submit" className="w-full" disabled={isProcessing}>
+        {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : 'Proceed to Payment'}
+      </Button>
+    </form>
+  );
+}
+
+
+export default function CheckoutPage() {
+  const { cart, subtotal, discount, shipping, total, clearCart } = useCart();
+  const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+  const [isProcessing, setIsProcessing] = React.useState(false);
+
+  const [shippingAddress, setShippingAddress] = React.useState({
+    mobile: '',
+    address: '',
+    instructions: '',
+    latitude: null as number | null,
+    longitude: null as number | null,
+  });
+
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+    }
+    if (!authLoading && cart.length === 0) {
+      router.push('/cart');
+    }
+  }, [user, authLoading, cart, router]);
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string, value: any }}) => {
+    const { name, value } = e.target;
+    setShippingAddress((prev) => ({ ...prev, [name]: value }));
+  };
+
 
   const handleProceedToPayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -215,31 +268,6 @@ export default function CheckoutPage() {
     }
   };
 
-  const ShippingForm = ({ mobile = false }) => (
-    <form onSubmit={handleProceedToPayment} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor={`mobile${mobile ? '-mob' : ''}`}>Mobile Number</Label>
-        <Input id={`mobile${mobile ? '-mob' : ''}`} name="mobile" value={shippingAddress.mobile} onChange={handleAddressChange} required />
-      </div>
-      <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <Label htmlFor={`address${mobile ? '-mob' : ''}`}>Full Address</Label>
-          <Button type="button" variant="outline" size="sm" onClick={handleFetchLocation} disabled={isFetchingLocation}>
-            {isFetchingLocation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MapPin className="mr-2 h-4 w-4" />}
-            Fetch Location
-          </Button>
-        </div>
-        <Textarea id={`address${mobile ? '-mob' : ''}`} name="address" value={shippingAddress.address} onChange={handleAddressChange} required />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor={`instructions${mobile ? '-mob' : ''}`}>Any Instructions (Optional)</Label>
-        <Textarea id={`instructions${mobile ? '-mob' : ''}`} name="instructions" value={shippingAddress.instructions} onChange={handleAddressChange} />
-      </div>
-      <Button type="submit" className="w-full" disabled={isProcessing}>
-        {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : 'Proceed to Payment'}
-      </Button>
-    </form>
-  );
 
   return (
     <>
@@ -256,7 +284,12 @@ export default function CheckoutPage() {
                   <CardDescription>Please provide your delivery details.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ShippingForm />
+                  <ShippingForm 
+                     shippingAddress={shippingAddress}
+                     handleAddressChange={handleAddressChange}
+                     handleProceedToPayment={handleProceedToPayment}
+                     isProcessing={isProcessing}
+                  />
                 </CardContent>
               </Card>
             </div>
@@ -311,7 +344,13 @@ export default function CheckoutPage() {
                   <CardTitle>Shipping Information</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ShippingForm mobile={true} />
+                  <ShippingForm 
+                    shippingAddress={shippingAddress}
+                    handleAddressChange={handleAddressChange}
+                    handleProceedToPayment={handleProceedToPayment}
+                    isProcessing={isProcessing}
+                    isMobile={true}
+                  />
                 </CardContent>
             </Card>
             <Card className="card-glass">
