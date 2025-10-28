@@ -24,6 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { cn } from "@/lib/utils";
 import { usePopup } from "@/context/popup-context";
 import { useCoupon } from "@/context/coupon-context";
+import { useRouter } from "next/navigation";
 
 // Doodle SVG components
 const Doodle1 = () => (
@@ -109,31 +110,26 @@ const PromoPopup = () => {
 
 
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+       <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className="bg-transparent border-none shadow-none p-0 max-w-sm w-full">
                 <div className="relative">
-                     {activePopup.imageUrl && (
-                        <div className="absolute inset-x-0 -top-20 flex justify-center items-center">
+                    {activePopup.imageUrl && (
+                        <div className="absolute -top-20 inset-x-0 flex justify-center items-center">
                             <Image
                                 src={activePopup.imageUrl}
                                 alt="Promotion"
-                                width={300}
-                                height={200}
+                                width={180}
+                                height={180}
                                 className="object-contain"
                             />
                         </div>
                     )}
-                    <div className="absolute -top-10 inset-x-0 flex justify-center z-10">
-                        <Image
-                            src="https://i.ibb.co/hK0gqjC/tickets-image.png"
-                            alt="Tickets"
-                            width={100}
-                            height={100}
-                        />
-                    </div>
                     
-                    <div className="relative mt-16 bg-background rounded-2xl p-6 text-center shadow-2xl z-0">
-                        <DialogTitle className="text-2xl font-bold mb-1 mt-4">{activePopup.title}</DialogTitle>
+                    <div className={cn(
+                        "relative bg-background rounded-2xl p-6 text-center shadow-2xl z-0",
+                        activePopup.imageUrl ? "mt-16" : "mt-0"
+                    )}>
+                        <DialogTitle className={cn("text-2xl font-bold mb-1", activePopup.imageUrl ? "mt-4" : "mt-0")}>{activePopup.title}</DialogTitle>
                         <DialogDescription className="text-muted-foreground mb-6">{activePopup.description}</DialogDescription>
 
                         {displayedCoupons.length > 0 && (
