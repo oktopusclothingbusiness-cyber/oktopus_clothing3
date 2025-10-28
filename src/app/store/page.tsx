@@ -15,7 +15,6 @@ import { useCategory } from "@/context/category-context";
 import { useTrend } from "@/context/trend-context";
 import * as React from "react";
 import { ProductCard } from "@/components/product-card";
-import { DolengaProductCard } from "@/components/dolenga-product-card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Shapes, TrendingUp, X } from "lucide-react";
@@ -252,7 +251,7 @@ export default function StreetifyStorePage() {
                             ))
                         : bestSellers.map((product) => (
                             <CarouselItem key={product.id} className="md:basis-1/4">
-                                <DolengaProductCard product={product} />
+                                <ProductCard product={product} />
                             </CarouselItem>
                         ))}
                     </CarouselContent>
