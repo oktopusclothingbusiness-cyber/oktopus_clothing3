@@ -18,8 +18,11 @@ import { ProductCard } from "@/components/product-card";
 import { DolengaProductCard } from "@/components/dolenga-product-card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
-import { Shapes, TrendingUp } from "lucide-react";
+import { Shapes, TrendingUp, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+
 
 // Doodle SVG components
 const Doodle1 = () => (
@@ -69,6 +72,53 @@ const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
     </div>
 )
 
+const PromoPopup = () => {
+    const { promotions, loading } = usePromotion();
+    const [isOpen, setIsOpen] = React.useState(false);
+
+    React.useEffect(() => {
+        const hasSeenPopup = sessionStorage.getItem('promoPopupSeen');
+        const activePromotion = promotions.find(p => p.isActive);
+        if (!loading && activePromotion && !hasSeenPopup) {
+            const timer = setTimeout(() => {
+                setIsOpen(true);
+                sessionStorage.setItem('promoPopupSeen', 'true');
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [loading, promotions]);
+
+    const activePromotion = promotions.find(p => p.isActive);
+
+    if (!activePromotion) return null;
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogContent className="p-0 border-0 max-w-md w-full overflow-hidden">
+                <div className="relative aspect-video">
+                    <Image src={activePromotion.imageUrl} alt={activePromotion.title} layout="fill" objectFit="cover" />
+                </div>
+                <div className="p-6 text-center">
+                    <DialogTitle className="text-2xl font-bold mb-2">{activePromotion.title}</DialogTitle>
+                    <DialogDescription className="text-muted-foreground mb-4">{activePromotion.description}</DialogDescription>
+                    {activePromotion.ctaText && activePromotion.ctaLink && (
+                        <Button asChild>
+                            <Link href={activePromotion.ctaLink}>{activePromotion.ctaText}</Link>
+                        </Button>
+                    )}
+                </div>
+                <button
+                    onClick={() => setIsOpen(false)}
+                    className="absolute top-2 right-2 p-1 rounded-full bg-background/50 text-foreground/70 hover:bg-background/80 hover:text-foreground transition-all duration-200"
+                >
+                    <X className="h-5 w-5" />
+                </button>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+
 export default function StreetifyStorePage() {
   const { products, loading: productsLoading } = useProduct();
   const { promotions, loading: promotionsLoading } = usePromotion();
@@ -109,6 +159,7 @@ export default function StreetifyStorePage() {
     {/* Desktop View */}
     <div className="hidden md:block bg-background text-foreground font-sans">
       <Header />
+      <PromoPopup />
       <main>
          {/* Hero Section */}
         <section className="bg-background relative overflow-hidden" ref={heroRef} onMouseMove={handleMouseMove}>
@@ -122,8 +173,7 @@ export default function StreetifyStorePage() {
 
             <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center text-center relative z-10 min-h-[70vh]">
                 <div data-layer data-speed="0.1">
-                    <h1 className="text-8xl md:text-9xl font-black uppercase tracking-tighter font-bebas">OKTOPUS</h1>
-                    <h1 className="text-8xl md:text-9xl font-black uppercase tracking-tighter font-bebas -mt-8">WEAR</h1>
+                    <h1 className="text-8xl md:text-9xl font-black uppercase tracking-tighter font-bebas">WEAR</h1>
                     <p className="text-muted-foreground mt-4 max-w-md mx-auto">Functional clothing for an active lifestyle, designed to make you stand out.</p>
                 </div>
                  <div data-layer data-speed="-0.1" className="mt-12">
@@ -219,6 +269,7 @@ export default function StreetifyStorePage() {
     {/* Mobile View (unchanged) */}
     <div className="md:hidden bg-background font-sans">
         <MobileHeader/>
+        <PromoPopup />
         <main className="p-4 space-y-6 pb-24">
             <section>
                 <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -ml-4 pl-4">
@@ -367,5 +418,3 @@ export default function StreetifyStorePage() {
     </>
   );
 }
-
-    
