@@ -18,6 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
 
 const emptyPopup: Omit<Popup, '_id' | 'id'> = {
     title: '',
@@ -32,7 +33,7 @@ const emptyPopup: Omit<Popup, '_id' | 'id'> = {
 export default function AdminPopupsPage() {
     const { popups, addPopup, deletePopup, updatePopup, loading } = usePopup();
     const { coupons, loading: couponsLoading } = useCoupon();
-    const [formData, setFormData] = React.useState<Omit<Popup, '_id' | 'id'>>(emptyPopup);
+    const [formData, setFormData] = React.useState<Omit<Popup, '_id' | 'id' | 'coupons'>>(emptyPopup);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isEditing, setIsEditing] = React.useState(false);
     const [openCouponSelector, setOpenCouponSelector] = React.useState(false);

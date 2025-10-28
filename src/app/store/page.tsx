@@ -77,6 +77,7 @@ const PromoPopup = () => {
     const { popups, loading: popupsLoading } = usePopup();
     const { coupons, loading: couponsLoading } = useCoupon();
     const [isOpen, setIsOpen] = React.useState(false);
+    const router = useRouter();
 
     React.useEffect(() => {
         const hasSeenPopup = sessionStorage.getItem('promoPopupSeen');
@@ -98,13 +99,21 @@ const PromoPopup = () => {
     }, [activePopup, coupons, couponsLoading]);
 
     if (!activePopup) return null;
+    
+    const handleCtaClick = () => {
+        if(activePopup.ctaLink) {
+            router.push(activePopup.ctaLink);
+        }
+        setIsOpen(false);
+    }
+
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className="bg-transparent border-none shadow-none p-0 max-w-sm w-full">
                 <div className="relative">
-                    {activePopup.imageUrl && (
-                        <div className="absolute inset-x-0 -top-20 flex justify-center items-center opacity-80">
+                     {activePopup.imageUrl && (
+                        <div className="absolute inset-x-0 -top-20 flex justify-center items-center">
                             <Image
                                 src={activePopup.imageUrl}
                                 alt="Promotion"
@@ -146,8 +155,8 @@ const PromoPopup = () => {
                         )}
 
                         {activePopup.ctaText && activePopup.ctaLink && (
-                            <Button asChild size="lg" className="w-full rounded-full bg-blue-600 hover:bg-blue-700 h-12 text-lg">
-                                <Link href={activePopup.ctaLink}>{activePopup.ctaText}</Link>
+                            <Button onClick={handleCtaClick} size="lg" className="w-full rounded-full bg-blue-600 hover:bg-blue-700 h-12 text-lg">
+                                {activePopup.ctaText}
                             </Button>
                         )}
                     </div>
