@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -50,7 +51,7 @@ export default function AdminPopupsPage() {
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (formData.title && formData.imageUrl) {
+        if (formData.title && formData.description && formData.ctaText && formData.ctaLink) {
             setIsSubmitting(true);
             
             const popupData = {
@@ -117,23 +118,19 @@ export default function AdminPopupsPage() {
               <form onSubmit={handleFormSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Title</Label>
-                  <Input id="title" name="title" value={formData.title} onChange={handleInputChange} placeholder="e.g., Grand Opening Sale" required disabled={isSubmitting} />
+                  <Input id="title" name="title" value={formData.title} onChange={handleInputChange} placeholder="e.g., Travel to Europe and save up to 50" required disabled={isSubmitting} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
-                  <Textarea id="description" name="description" value={formData.description} onChange={handleInputChange} placeholder="e.g., Up to 50% off everything!" disabled={isSubmitting} />
-                </div>
-                 <div className="space-y-2">
-                  <Label htmlFor="imageUrl">Image URL</Label>
-                  <Input id="imageUrl" name="imageUrl" value={formData.imageUrl} onChange={handleInputChange} placeholder="https://placehold.co/800x450.png" required disabled={isSubmitting} />
+                  <Textarea id="description" name="description" value={formData.description} onChange={handleInputChange} placeholder="e.g., Get European train discount now!" required disabled={isSubmitting} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="ctaText">CTA Button Text</Label>
-                  <Input id="ctaText" name="ctaText" value={formData.ctaText} onChange={handleInputChange} placeholder="e.g., Shop Now" disabled={isSubmitting} />
+                  <Input id="ctaText" name="ctaText" value={formData.ctaText} onChange={handleInputChange} placeholder="e.g., Claim Now" required disabled={isSubmitting} />
                 </div>
                  <div className="space-y-2">
                   <Label htmlFor="ctaLink">CTA Button Link</Label>
-                  <Input id="ctaLink" name="ctaLink" value={formData.ctaLink} onChange={handleInputChange} placeholder="e.g., /products?tag=sale" disabled={isSubmitting} />
+                  <Input id="ctaLink" name="ctaLink" value={formData.ctaLink} onChange={handleInputChange} placeholder="e.g., /coupons" required disabled={isSubmitting} />
                 </div>
                 <div className="flex items-center space-x-2">
                     <Switch id="isActive" name="isActive" checked={formData.isActive} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))} disabled={isSubmitting} />
@@ -162,7 +159,6 @@ export default function AdminPopupsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Image</TableHead>
                       <TableHead>Title</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -172,8 +168,7 @@ export default function AdminPopupsPage() {
                     {loading ? (
                       Array.from({ length: 3 }).map((_, index) => (
                           <TableRow key={index}>
-                            <TableCell><Skeleton className="h-10 w-20 rounded-md" /></TableCell>
-                            <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                             <TableCell><Skeleton className="h-6 w-12" /></TableCell>
                             <TableCell className="text-right"><Skeleton className="h-8 w-20" /></TableCell>
                           </TableRow>
@@ -181,9 +176,6 @@ export default function AdminPopupsPage() {
                     ) : popups.length > 0 ? (
                       popups.map((popup) => (
                         <TableRow key={popup.id}>
-                          <TableCell>
-                            <Image src={popup.imageUrl || 'https://placehold.co/80x40.png'} alt={popup.title} width={80} height={40} className="rounded-md object-cover" />
-                          </TableCell>
                           <TableCell className="font-medium">{popup.title}</TableCell>
                            <TableCell>
                                 <Switch
@@ -204,7 +196,7 @@ export default function AdminPopupsPage() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center h-24">
+                        <TableCell colSpan={3} className="text-center h-24">
                           <div className="flex flex-col items-center gap-2">
                               <MessageSquare className="h-8 w-8 text-muted-foreground" />
                               <p>No popups found.</p>

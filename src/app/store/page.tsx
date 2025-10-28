@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Image from "next/image";
@@ -17,11 +18,12 @@ import * as React from "react";
 import { ProductCard } from "@/components/product-card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
-import { Shapes, TrendingUp, X } from "lucide-react";
+import { Shapes, TrendingUp, X, TrainFront } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { usePopup } from "@/context/popup-context";
+import { useCoupon } from "@/context/coupon-context";
 
 // Doodle SVG components
 const Doodle1 = () => (
@@ -72,46 +74,88 @@ const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
 )
 
 const PromoPopup = () => {
-    const { popups, loading } = usePopup();
+    const { popups, loading: popupsLoading } = usePopup();
+    const { coupons, loading: couponsLoading } = useCoupon();
     const [isOpen, setIsOpen] = React.useState(false);
 
     React.useEffect(() => {
         const hasSeenPopup = sessionStorage.getItem('promoPopupSeen');
         const activePopup = popups.find(p => p.isActive);
-        if (!loading && activePopup && !hasSeenPopup) {
+        if (!popupsLoading && activePopup && !hasSeenPopup) {
             const timer = setTimeout(() => {
                 setIsOpen(true);
                 sessionStorage.setItem('promoPopupSeen', 'true');
             }, 2000);
             return () => clearTimeout(timer);
         }
-    }, [loading, popups]);
+    }, [popupsLoading, popups]);
 
     const activePopup = popups.find(p => p.isActive);
+    const recentCoupons = coupons.filter(c => c.isActive).slice(0, 2);
 
-    if (!activePopup) return null;
+    if (!activePopup || couponsLoading) return null;
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="p-0 border-0 max-w-md w-full overflow-hidden">
-                <div className="relative aspect-video">
-                    <Image src={activePopup.imageUrl} alt={activePopup.title} layout="fill" objectFit="cover" />
+            <DialogContent className="bg-transparent border-none shadow-none p-0 max-w-sm w-full">
+                <div className="relative">
+                    {/* Background confetti/burst effect */}
+                    <div className="absolute inset-x-0 -top-20 flex justify-center items-center opacity-80">
+                        <Image
+                            src="https://s4.ezgif.com/tmp/ezgif-4-d3683f0f7f.gif"
+                            alt="Confetti"
+                            width={300}
+                            height={200}
+                            className="object-contain"
+                        />
+                    </div>
+                    {/* Top tickets image */}
+                    <div className="absolute -top-10 inset-x-0 flex justify-center z-10">
+                        <Image
+                            src="https://i.ibb.co/hK0gqjC/tickets-image.png"
+                            alt="Tickets"
+                            width={100}
+                            height={100}
+                        />
+                    </div>
+                    
+                    <div className="relative mt-16 bg-background rounded-2xl p-6 text-center shadow-2xl z-0">
+                        <DialogTitle className="text-2xl font-bold mb-1 mt-4">{activePopup.title}</DialogTitle>
+                        <DialogDescription className="text-muted-foreground mb-6">{activePopup.description}</DialogDescription>
+
+                        <div className="space-y-3 mb-6">
+                            {recentCoupons.map((coupon) => (
+                                <div key={coupon.id} className="bg-yellow-400/20 border-2 border-dashed border-yellow-500 rounded-lg p-3 flex items-center text-left">
+                                    <div className="bg-yellow-500 rounded-lg p-2 mr-4">
+                                        <TrainFront className="h-6 w-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-lg text-yellow-600">
+                                            {coupon.discountType === 'percentage' ? `${coupon.discountValue}% off` : `₹${coupon.discountValue} off`}
+                                        </p>
+                                        <p className="text-xs text-yellow-500">Valid for 7 days.</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {activePopup.ctaText && activePopup.ctaLink && (
+                            <Button asChild size="lg" className="w-full rounded-full bg-blue-600 hover:bg-blue-700 h-12 text-lg">
+                                <Link href={activePopup.ctaLink}>{activePopup.ctaText}</Link>
+                            </Button>
+                        )}
+                    </div>
                 </div>
-                <div className="p-6 text-center">
-                    <DialogTitle className="text-2xl font-bold mb-2">{activePopup.title}</DialogTitle>
-                    <DialogDescription className="text-muted-foreground mb-4">{activePopup.description}</DialogDescription>
-                    {activePopup.ctaText && activePopup.ctaLink && (
-                        <Button asChild>
-                            <Link href={activePopup.ctaLink}>{activePopup.ctaText}</Link>
-                        </Button>
-                    )}
+
+                <div className="absolute -bottom-16 left-1/2 -translate-x-1/2">
+                     <button
+                        onClick={() => setIsOpen(false)}
+                        className="h-10 w-10 flex items-center justify-center rounded-full bg-black/20 text-white hover:bg-black/40 transition-all duration-200 backdrop-blur-sm"
+                        aria-label="Close"
+                    >
+                        <X className="h-6 w-6" />
+                    </button>
                 </div>
-                <button
-                    onClick={() => setIsOpen(false)}
-                    className="absolute top-2 right-2 p-1 rounded-full bg-background/50 text-foreground/70 hover:bg-background/80 hover:text-foreground transition-all duration-200"
-                >
-                    <X className="h-5 w-5" />
-                </button>
             </DialogContent>
         </Dialog>
     );
@@ -228,7 +272,7 @@ export default function StreetifyStorePage() {
         <section className="py-20">
              <div className="container mx-auto px-4">
                 <div className="flex justify-between items-center mb-12">
-                    <h2 className="text-5xl font-black font-bebas">BESTSELLERS</h2>
+                    <h2 className="text-5xl font-black font-bebas">Bestsellers</h2>
                     <Button asChild variant="outline" className="rounded-full h-12 px-8">
                         <Link href="/products">TO CATALOG</Link>
                     </Button>
