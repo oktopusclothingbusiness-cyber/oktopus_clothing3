@@ -21,7 +21,7 @@ import { Shapes, TrendingUp, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-
+import { usePopup } from "@/context/popup-context";
 
 // Doodle SVG components
 const Doodle1 = () => (
@@ -72,37 +72,37 @@ const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
 )
 
 const PromoPopup = () => {
-    const { promotions, loading } = usePromotion();
+    const { popups, loading } = usePopup();
     const [isOpen, setIsOpen] = React.useState(false);
 
     React.useEffect(() => {
         const hasSeenPopup = sessionStorage.getItem('promoPopupSeen');
-        const activePromotion = promotions.find(p => p.isActive);
-        if (!loading && activePromotion && !hasSeenPopup) {
+        const activePopup = popups.find(p => p.isActive);
+        if (!loading && activePopup && !hasSeenPopup) {
             const timer = setTimeout(() => {
                 setIsOpen(true);
                 sessionStorage.setItem('promoPopupSeen', 'true');
             }, 2000);
             return () => clearTimeout(timer);
         }
-    }, [loading, promotions]);
+    }, [loading, popups]);
 
-    const activePromotion = promotions.find(p => p.isActive);
+    const activePopup = popups.find(p => p.isActive);
 
-    if (!activePromotion) return null;
+    if (!activePopup) return null;
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className="p-0 border-0 max-w-md w-full overflow-hidden">
                 <div className="relative aspect-video">
-                    <Image src={activePromotion.imageUrl} alt={activePromotion.title} layout="fill" objectFit="cover" />
+                    <Image src={activePopup.imageUrl} alt={activePopup.title} layout="fill" objectFit="cover" />
                 </div>
                 <div className="p-6 text-center">
-                    <DialogTitle className="text-2xl font-bold mb-2">{activePromotion.title}</DialogTitle>
-                    <DialogDescription className="text-muted-foreground mb-4">{activePromotion.description}</DialogDescription>
-                    {activePromotion.ctaText && activePromotion.ctaLink && (
+                    <DialogTitle className="text-2xl font-bold mb-2">{activePopup.title}</DialogTitle>
+                    <DialogDescription className="text-muted-foreground mb-4">{activePopup.description}</DialogDescription>
+                    {activePopup.ctaText && activePopup.ctaLink && (
                         <Button asChild>
-                            <Link href={activePromotion.ctaLink}>{activePromotion.ctaText}</Link>
+                            <Link href={activePopup.ctaLink}>{activePopup.ctaText}</Link>
                         </Button>
                     )}
                 </div>

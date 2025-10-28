@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ShoppingBag, Users, PanelLeft, Package, Shirt, Megaphone, Shapes, Palette, Ticket, Settings, Truck, TrendingUp, FileText, Mail } from 'lucide-react';
+import { Home, ShoppingBag, Users, PanelLeft, Package, Shirt, Megaphone, Shapes, Palette, Ticket, Settings, Truck, TrendingUp, FileText, Mail, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
@@ -65,6 +65,7 @@ export default function AdminLayout({
     { href: '/admin/categories', label: 'Categories', icon: Shapes },
     { href: '/admin/orders', label: 'Orders', icon: Package },
     { href: '/admin/promotions', label: 'Promotions', icon: Megaphone },
+    { href: '/admin/popups', label: 'Popups', icon: MessageSquare },
     { href: '/admin/trends', label: 'Trends', icon: TrendingUp },
     { href: '/admin/coupons', label: 'Coupons', icon: Ticket },
     { href: '/admin/custom-designs', label: 'Custom Designs', icon: Palette },
