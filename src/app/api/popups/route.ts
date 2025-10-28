@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   try {
     const popup = await request.json();
     
-    if (!popup.title || !popup.imageUrl) {
+    if (!popup.title) {
       return NextResponse.json({ message: 'Missing required fields.' }, { status: 400 });
     }
 

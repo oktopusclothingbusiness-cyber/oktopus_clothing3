@@ -91,25 +91,29 @@ const PromoPopup = () => {
     }, [popupsLoading, popups]);
 
     const activePopup = popups.find(p => p.isActive);
-    const recentCoupons = coupons.filter(c => c.isActive).slice(0, 2);
+    
+    const displayedCoupons = React.useMemo(() => {
+        if (!activePopup || !activePopup.couponIds || couponsLoading) return [];
+        return coupons.filter(coupon => activePopup.couponIds!.includes(coupon.id));
+    }, [activePopup, coupons, couponsLoading]);
 
-    if (!activePopup || couponsLoading) return null;
+    if (!activePopup) return null;
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className="bg-transparent border-none shadow-none p-0 max-w-sm w-full">
                 <div className="relative">
-                    {/* Background confetti/burst effect */}
-                    <div className="absolute inset-x-0 -top-20 flex justify-center items-center opacity-80">
-                        <Image
-                            src="https://s4.ezgif.com/tmp/ezgif-4-d3683f0f7f.gif"
-                            alt="Confetti"
-                            width={300}
-                            height={200}
-                            className="object-contain"
-                        />
-                    </div>
-                    {/* Top tickets image */}
+                    {activePopup.imageUrl && (
+                        <div className="absolute inset-x-0 -top-20 flex justify-center items-center opacity-80">
+                            <Image
+                                src={activePopup.imageUrl}
+                                alt="Promotion"
+                                width={300}
+                                height={200}
+                                className="object-contain"
+                            />
+                        </div>
+                    )}
                     <div className="absolute -top-10 inset-x-0 flex justify-center z-10">
                         <Image
                             src="https://i.ibb.co/hK0gqjC/tickets-image.png"
@@ -123,21 +127,23 @@ const PromoPopup = () => {
                         <DialogTitle className="text-2xl font-bold mb-1 mt-4">{activePopup.title}</DialogTitle>
                         <DialogDescription className="text-muted-foreground mb-6">{activePopup.description}</DialogDescription>
 
-                        <div className="space-y-3 mb-6">
-                            {recentCoupons.map((coupon) => (
-                                <div key={coupon.id} className="bg-yellow-400/20 border-2 border-dashed border-yellow-500 rounded-lg p-3 flex items-center text-left">
-                                    <div className="bg-yellow-500 rounded-lg p-2 mr-4">
-                                        <TrainFront className="h-6 w-6 text-white" />
+                        {displayedCoupons.length > 0 && (
+                            <div className="space-y-3 mb-6">
+                                {displayedCoupons.map((coupon) => (
+                                    <div key={coupon.id} className="bg-yellow-400/20 border-2 border-dashed border-yellow-500 rounded-lg p-3 flex items-center text-left">
+                                        <div className="bg-yellow-500 rounded-lg p-2 mr-4">
+                                            <TrainFront className="h-6 w-6 text-white" />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-lg text-yellow-600">
+                                                {coupon.discountType === 'percentage' ? `${coupon.discountValue}% off` : `₹${coupon.discountValue} off`}
+                                            </p>
+                                            <p className="text-xs text-yellow-500">Use code: {coupon.code}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-bold text-lg text-yellow-600">
-                                            {coupon.discountType === 'percentage' ? `${coupon.discountValue}% off` : `₹${coupon.discountValue} off`}
-                                        </p>
-                                        <p className="text-xs text-yellow-500">Valid for 7 days.</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
 
                         {activePopup.ctaText && activePopup.ctaLink && (
                             <Button asChild size="lg" className="w-full rounded-full bg-blue-600 hover:bg-blue-700 h-12 text-lg">

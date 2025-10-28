@@ -9,27 +9,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import Image from 'next/image';
-import { Trash2, Edit, Loader2, PlusCircle, MessageSquare } from 'lucide-react';
+import { Trash2, Edit, Loader2, PlusCircle, MessageSquare, Check, ChevronsUpDown } from 'lucide-react';
 import { usePopup, Popup } from '@/context/popup-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
+import { useCoupon, Coupon } from '@/context/coupon-context';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
-const emptyPopup = {
-    id: '',
+const emptyPopup: Omit<Popup, '_id' | 'id'> = {
     title: '',
     description: '',
     imageUrl: '',
     ctaText: '',
     ctaLink: '',
     isActive: false,
+    couponIds: [],
 };
 
 export default function AdminPopupsPage() {
     const { popups, addPopup, deletePopup, updatePopup, loading } = usePopup();
-    const [formData, setFormData] = React.useState(emptyPopup);
+    const { coupons, loading: couponsLoading } = useCoupon();
+    const [formData, setFormData] = React.useState<Omit<Popup, '_id' | 'id'>>(emptyPopup);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isEditing, setIsEditing] = React.useState(false);
+    const [openCouponSelector, setOpenCouponSelector] = React.useState(false);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -42,10 +48,11 @@ export default function AdminPopupsPage() {
             id: popup.id,
             title: popup.title,
             description: popup.description,
-            imageUrl: popup.imageUrl,
+            imageUrl: popup.imageUrl || '',
             ctaText: popup.ctaText,
             ctaLink: popup.ctaLink,
-            isActive: popup.isActive || false
+            isActive: popup.isActive || false,
+            couponIds: popup.couponIds || [],
         });
     };
 
@@ -60,18 +67,18 @@ export default function AdminPopupsPage() {
                 imageUrl: formData.imageUrl,
                 ctaText: formData.ctaText,
                 ctaLink: formData.ctaLink,
-                isActive: formData.isActive
+                isActive: formData.isActive,
+                couponIds: formData.couponIds,
             };
 
             if (isEditing) {
-                // Ensure only one popup can be active
                 if (popupData.isActive) {
                     const activePopup = popups.find(p => p.isActive && p.id !== formData.id);
                     if (activePopup) {
                         await updatePopup({ ...activePopup, isActive: false });
                     }
                 }
-                await updatePopup({ ...popupData, id: formData.id });
+                await updatePopup({ ...popupData, id: formData.id! });
             } else {
                  if (popupData.isActive) {
                     const activePopup = popups.find(p => p.isActive);
@@ -89,7 +96,6 @@ export default function AdminPopupsPage() {
 
     const handleStatusToggle = async (popup: Popup) => {
         const newStatus = !popup.isActive;
-        // If we are activating a popup, deactivate any other currently active one.
         if (newStatus) {
             const currentlyActive = popups.find(p => p.isActive && p.id !== popup.id);
             if (currentlyActive) {
@@ -103,6 +109,8 @@ export default function AdminPopupsPage() {
         setFormData(emptyPopup);
         setIsEditing(false);
     }
+    
+    const selectedCoupons = coupons.filter(c => formData.couponIds?.includes(c.id));
 
   return (
     <>
@@ -120,10 +128,67 @@ export default function AdminPopupsPage() {
                   <Label htmlFor="title">Title</Label>
                   <Input id="title" name="title" value={formData.title} onChange={handleInputChange} placeholder="e.g., Travel to Europe and save up to 50" required disabled={isSubmitting} />
                 </div>
+                 <div className="space-y-2">
+                  <Label htmlFor="imageUrl">Image URL</Label>
+                  <Input id="imageUrl" name="imageUrl" value={formData.imageUrl} onChange={handleInputChange} placeholder="https://example.com/popup-image.png" disabled={isSubmitting} />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
                   <Textarea id="description" name="description" value={formData.description} onChange={handleInputChange} placeholder="e.g., Get European train discount now!" required disabled={isSubmitting} />
                 </div>
+                 <div className="space-y-2">
+                    <Label>Coupons to Display</Label>
+                     <Popover open={openCouponSelector} onOpenChange={setOpenCouponSelector}>
+                        <PopoverTrigger asChild>
+                            <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={openCouponSelector}
+                            className="w-full justify-between"
+                            disabled={couponsLoading}
+                            >
+                            <span className="truncate">
+                                {selectedCoupons.length > 0 ? selectedCoupons.map(c => c.code).join(', ') : "Select coupons..."}
+                            </span>
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[300px] p-0">
+                             <Command>
+                                <CommandInput placeholder="Search coupons..." />
+                                <CommandList>
+                                    <CommandEmpty>No coupons found.</CommandEmpty>
+                                    <CommandGroup>
+                                    {coupons.map((coupon) => (
+                                        <CommandItem
+                                        key={coupon.id}
+                                        value={coupon.code}
+                                        onSelect={() => {
+                                            const selected = formData.couponIds?.includes(coupon.id);
+                                            const newCouponIds = selected 
+                                                ? formData.couponIds?.filter(id => id !== coupon.id)
+                                                : [...(formData.couponIds || []), coupon.id];
+                                            setFormData(prev => ({...prev, couponIds: newCouponIds}));
+                                        }}
+                                        >
+                                        <Check
+                                            className={cn(
+                                            "mr-2 h-4 w-4",
+                                            formData.couponIds?.includes(coupon.id) ? "opacity-100" : "opacity-0"
+                                            )}
+                                        />
+                                        {coupon.code}
+                                        </CommandItem>
+                                    ))}
+                                    </CommandGroup>
+                                </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
+                    <div className="flex flex-wrap gap-1">
+                        {selectedCoupons.map(c => <Badge key={c.id} variant="secondary">{c.code}</Badge>)}
+                    </div>
+                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="ctaText">CTA Button Text</Label>
                   <Input id="ctaText" name="ctaText" value={formData.ctaText} onChange={handleInputChange} placeholder="e.g., Claim Now" required disabled={isSubmitting} />

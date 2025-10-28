@@ -13,6 +13,7 @@ export type Popup = {
   ctaText: string;
   ctaLink: string;
   isActive: boolean;
+  couponIds?: string[];
 };
 
 type AddPopup = Omit<Popup, 'id' | '_id'>;
