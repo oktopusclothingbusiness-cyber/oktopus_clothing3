@@ -35,7 +35,9 @@ function ProductListComponent() {
   }, [categoryId, categories, categoriesLoading]);
   
   const filteredProducts = React.useMemo(() => {
-    let tempProducts = products;
+    // Sort products by creation date, newest first
+    let tempProducts = [...products].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
     if (searchQuery) {
         tempProducts = tempProducts.filter(product => 
             product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
