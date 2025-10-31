@@ -51,7 +51,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Failed to fetch products');
       }
       const data = await response.json();
-      const productsWithId = data.map((p: any) => ({ ...p, id: p._id.toString() }));
+      const productsWithId = data.map((p: any) => ({ ...p, id: p._id.toString(), cost: p.cost || 0 }));
       setProducts(productsWithId);
     } catch (error) {
       console.error(error);

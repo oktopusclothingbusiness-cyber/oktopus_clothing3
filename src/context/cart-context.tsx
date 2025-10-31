@@ -142,7 +142,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
           item.id === product.id && item.size === size && item.color === color ? { ...item, quantity: item.quantity + 1 } : item
         );
       } else {
-        updatedCart = [...prevCart, { ...product, quantity: 1, size, color }];
+        updatedCart = [...prevCart, { ...product, quantity: 1, size, color, cost: product.cost || 0 }];
       }
       saveCartToDb(updatedCart);
       return updatedCart;

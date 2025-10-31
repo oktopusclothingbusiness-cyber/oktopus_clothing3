@@ -7,15 +7,8 @@ import { ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ComponentProps } from "react";
 import { useToast } from "@/hooks/use-toast";
+import type { Product } from '@/context/product-context';
 
-type Product = {
-  id: string;
-  name: string;
-  price: number;
-  imageUrls: string[];
-  sizes: string[];
-  colors: string[];
-};
 
 type AddToCartButtonProps = {
   product: Product;
