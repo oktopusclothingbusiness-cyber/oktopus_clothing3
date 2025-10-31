@@ -8,7 +8,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { IndianRupee, Users, Package, TrendingUp, Info } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format, subDays, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
-import { Map, Marker } from 'react-map-gl';
+import { Map as ReactMapGL, Marker } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
 import { Tooltip as UiTooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -230,7 +230,7 @@ export default function StatisticsPage() {
           </CardHeader>
           <CardContent className="h-[300px] w-full p-0 overflow-hidden rounded-b-lg">
              {loading ? <Skeleton className="w-full h-full" /> : (
-                <Map
+                <ReactMapGL
                     mapboxAccessToken={MAPBOX_TOKEN}
                     initialViewState={{
                         longitude: 78.9629,
@@ -244,7 +244,7 @@ export default function StatisticsPage() {
                             <div className="w-2 h-2 bg-primary/50 rounded-full border border-primary" />
                          </Marker>
                     ))}
-                </Map>
+                </ReactMapGL>
              )}
           </CardContent>
         </Card>
