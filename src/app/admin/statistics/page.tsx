@@ -8,15 +8,16 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { IndianRupee, Users, Package, TrendingUp, Info } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format, subDays, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
-import { Map as ReactMapGL, Marker } from 'react-map-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
-import mapboxgl from 'mapbox-gl';
 import { Tooltip as UiTooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import LocationMap from '@/components/location-map';
 
-// @ts-ignore
-mapboxgl.workerClass = require('mapbox-gl/dist/mapbox-gl-csp-worker').default;
-
-const MAPBOX_TOKEN = "pk.eyJ1Ijoib2t0b3B1c2MiLCJhIjoiY21keGUyNjU0MXhwYjJsc2FrcGZsd290eCJ9.mEjrHNxJYljQLhjVslo_iw";
+const revenueChartConfig = {
+  revenue: { label: "Revenue", color: "hsl(var(--primary))" },
+  visitors: { label: "Visitors", color: "hsl(var(--muted-foreground))" }
+};
+const trafficChartConfig = {
+  visitors: { label: "Visitors", color: "hsl(var(--primary))" }
+};
 
 type Order = {
   _id: string;
@@ -41,13 +42,6 @@ type DailyVisitor = {
   hourlyCounts: { [hour: string]: number };
 };
 
-const revenueChartConfig = {
-  revenue: { label: "Revenue", color: "hsl(var(--primary))" },
-  visitors: { label: "Visitors", color: "hsl(var(--muted-foreground))" }
-};
-const trafficChartConfig = {
-  visitors: { label: "Visitors", color: "hsl(var(--primary))" }
-};
 
 export default function StatisticsPage() {
   const [orders, setOrders] = React.useState<Order[]>([]);
@@ -241,23 +235,13 @@ export default function StatisticsPage() {
             <CardDescription>Map of where your orders are being shipped.</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px] w-full p-0 overflow-hidden rounded-b-lg">
-             {loading ? <Skeleton className="w-full h-full" /> : (
-                <ReactMapGL
-                    mapboxAccessToken={MAPBOX_TOKEN}
-                    initialViewState={{
-                        longitude: 78.9629,
-                        latitude: 20.5937,
-                        zoom: 3.5
-                    }}
-                    mapStyle="mapbox://styles/mapbox/dark-v11"
-                >
-                    {orderLocations.map((loc, index) => (
-                         <Marker key={index} longitude={loc.longitude} latitude={loc.latitude}>
-                            <div className="w-2 h-2 bg-primary/50 rounded-full border border-primary" />
-                         </Marker>
-                    ))}
-                </ReactMapGL>
-             )}
+             {loading ? <Skeleton className="w-full h-full" /> : 
+                orderLocations.length > 0 ? (
+                    <LocationMap latitude={orderLocations[0].latitude} longitude={orderLocations[0].longitude} />
+                ) : (
+                    <div className="flex items-center justify-center h-full text-muted-foreground">No location data available.</div>
+                )
+             }
           </CardContent>
         </Card>
       </div>
