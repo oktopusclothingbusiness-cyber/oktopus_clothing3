@@ -26,7 +26,13 @@ type Order = {
   shippingAddress: {
     latitude?: number;
     longitude?: number;
-  }
+  },
+  products: {
+      name: string;
+      price: number;
+      quantity: number;
+      cost?: number;
+  }[];
 };
 
 type DailyVisitor = {
@@ -42,8 +48,6 @@ const revenueChartConfig = {
 const trafficChartConfig = {
   visitors: { label: "Visitors", color: "hsl(var(--primary))" }
 };
-
-const PROFIT_MARGIN = 0.40; // 40%
 
 export default function StatisticsPage() {
   const [orders, setOrders] = React.useState<Order[]>([]);
@@ -80,7 +84,15 @@ export default function StatisticsPage() {
   const { totalRevenue, totalOrders, netProfit, monthlyVisitors } = React.useMemo(() => {
     const validOrders = orders.filter(order => order.status !== 'rejected');
     const revenue = validOrders.reduce((acc, order) => acc + order.total, 0);
-    const profit = revenue * PROFIT_MARGIN;
+    
+    const totalCost = validOrders.reduce((acc, order) => {
+        const orderCost = order.products.reduce((productAcc, product) => {
+            return productAcc + ((product.cost || 0) * product.quantity);
+        }, 0);
+        return acc + orderCost;
+    }, 0);
+    
+    const profit = revenue - totalCost;
 
     const currentMonthStart = startOfMonth(new Date());
     const currentMonthEnd = endOfMonth(new Date());
@@ -160,21 +172,21 @@ export default function StatisticsPage() {
             </Card>
              <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Net Profit (Est.)</CardTitle>
+                    <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
                      <TooltipProvider>
                         <UiTooltip>
                             <TooltipTrigger asChild>
                                 <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p>Estimated based on a {PROFIT_MARGIN * 100}% profit margin.</p>
+                                <p>Calculated from product cost at time of sale.</p>
                             </TooltipContent>
                         </UiTooltip>
                     </TooltipProvider>
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">₹{netProfit.toFixed(2)}</div>
-                    <p className="text-xs text-muted-foreground">Estimated at {PROFIT_MARGIN * 100}% margin</p>
+                    <p className="text-xs text-muted-foreground">Total revenue minus total cost</p>
                 </CardContent>
             </Card>
              <Card>

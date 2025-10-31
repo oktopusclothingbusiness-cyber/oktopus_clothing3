@@ -175,6 +175,7 @@ export default function CheckoutPage() {
         name: item.name,
         quantity: item.quantity,
         price: item.price,
+        cost: item.cost,
         size: item.size,
         color: item.color,
       }));

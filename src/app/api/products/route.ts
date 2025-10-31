@@ -35,6 +35,7 @@ export async function POST(request: Request) {
       isHero: product.isHero || false,
       rating: product.rating || 4.5,
       stock: product.stock || 100,
+      cost: product.cost || 0,
       createdAt: new Date(),
     });
 

@@ -38,6 +38,7 @@ const parseProduct = (item: any, categoryMap: Map<string, Category>, rowIndex: n
     const featuredKey = findCaseInsensitiveKey(item, 'featured');
     const isHeroKey = findCaseInsensitiveKey(item, 'isHero');
     const originalPriceKey = findCaseInsensitiveKey(item, 'originalPrice');
+    const costKey = findCaseInsensitiveKey(item, 'cost');
     const discountPercentageKey = findCaseInsensitiveKey(item, 'discountPercentage');
     const ratingKey = findCaseInsensitiveKey(item, 'rating');
     const stockKey = findCaseInsensitiveKey(item, 'stock');
@@ -48,6 +49,7 @@ const parseProduct = (item: any, categoryMap: Map<string, Category>, rowIndex: n
             name: item.name,
             description: item.description || '',
             price: parseFloat(item.price),
+            cost: costKey && item[costKey] ? parseFloat(item[costKey]) : 0,
             originalPrice: originalPriceKey && item[originalPriceKey] ? parseFloat(item[originalPriceKey]) : undefined,
             discountPercentage: discountPercentageKey && item[discountPercentageKey] ? parseInt(item[discountPercentageKey], 10) : 0,
             rating: ratingKey && item[ratingKey] ? parseFloat(item[ratingKey]) : 4.5,

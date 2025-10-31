@@ -11,6 +11,7 @@ type Product = {
   id: string;
   name: string;
   price: number;
+  cost?: number;
   imageUrls: string[];
 };
 

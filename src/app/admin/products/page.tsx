@@ -24,6 +24,7 @@ const emptyProduct = {
     name: '',
     description: '',
     price: '',
+    cost: '',
     originalPrice: '',
     discountPercentage: 0,
     rating: 4.5,
@@ -58,7 +59,7 @@ export default function AdminProductsPage() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        const numValue = (name === 'price' || name === 'originalPrice' || name === 'discountPercentage' || name === 'rating' || name === 'stock') ? parseFloat(value) : value;
+        const numValue = (name === 'price' || name === 'cost' || name === 'originalPrice' || name === 'discountPercentage' || name === 'rating' || name === 'stock') ? parseFloat(value) : value;
         setFormData(prev => ({ ...prev, [name]: numValue }));
     };
 
@@ -73,6 +74,7 @@ export default function AdminProductsPage() {
             name: product.name,
             description: product.description,
             price: product.price.toString(),
+            cost: product.cost?.toString() || '',
             originalPrice: product.originalPrice?.toString() || '',
             discountPercentage: product.discountPercentage || 0,
             rating: product.rating || 4.5,
@@ -95,6 +97,7 @@ export default function AdminProductsPage() {
                 name: formData.name,
                 description: formData.description,
                 price: parseFloat(formData.price),
+                cost: formData.cost ? parseFloat(formData.cost) : undefined,
                 originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
                 discountPercentage: formData.discountPercentage,
                 rating: formData.rating,
@@ -206,14 +209,18 @@ export default function AdminProductsPage() {
                   </div>
                 </div>
                  <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="rating">Rating</Label>
-                    <Input id="rating" name="rating" type="number" min="0" max="5" step="0.1" value={formData.rating} onChange={handleInputChange} disabled={isSubmitting} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="stock">Stock</Label>
-                    <Input id="stock" name="stock" type="number" value={formData.stock} onChange={handleInputChange} disabled={isSubmitting} />
-                  </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="cost">Estimated Cost</Label>
+                        <Input id="cost" name="cost" type="number" value={formData.cost} onChange={handleInputChange} placeholder="e.g., 20.00" disabled={isSubmitting} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="stock">Stock</Label>
+                        <Input id="stock" name="stock" type="number" value={formData.stock} onChange={handleInputChange} disabled={isSubmitting} />
+                    </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="rating">Rating</Label>
+                  <Input id="rating" name="rating" type="number" min="0" max="5" step="0.1" value={formData.rating} onChange={handleInputChange} disabled={isSubmitting} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="imageUrls">Image URLs</Label>
