@@ -165,24 +165,20 @@ export default function OrderDetailsPage() {
                     </div>
                 </div>
                  <div className="flex items-center gap-2">
-                    {order.paymentDetails?.paymentStatus === 'paid' && (
-                        <>
-                            <Button asChild>
-                                <Link href={`/invoice/${order._id}`} target="_blank">
-                                    <FileText className="mr-2 h-4 w-4" />
-                                    View Invoice
-                                </Link>
-                            </Button>
-                            <Button variant="outline" onClick={handleSendInvoice} disabled={isSendingInvoice}>
-                                {isSendingInvoice ? (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                    <Send className="mr-2 h-4 w-4" />
-                                )}
-                                Send Invoice
-                            </Button>
-                        </>
-                    )}
+                    <Button asChild>
+                        <Link href={`/invoice/${order._id}`} target="_blank">
+                            <FileText className="mr-2 h-4 w-4" />
+                            View Invoice
+                        </Link>
+                    </Button>
+                    <Button variant="outline" onClick={handleSendInvoice} disabled={isSendingInvoice}>
+                        {isSendingInvoice ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <Send className="mr-2 h-4 w-4" />
+                        )}
+                        Send Invoice
+                    </Button>
                 </div>
             </div>
 
@@ -281,7 +277,7 @@ export default function OrderDetailsPage() {
                                     </p>
                                 </>
                             ) : (
-                                <Badge variant="secondary">Pending</Badge>
+                                <Badge variant="secondary">{order.paymentDetails?.paymentStatus || 'Pending'}</Badge>
                             )}
                         </CardContent>
                     </Card>

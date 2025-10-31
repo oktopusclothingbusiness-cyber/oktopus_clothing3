@@ -22,10 +22,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
     }
 
-    if (order.paymentDetails?.paymentStatus !== 'paid') {
-        return NextResponse.json({ message: 'Cannot send invoice for an unpaid order.' }, { status: 400 });
-    }
-
     const user = await db.collection('users').findOne({ _id: new ObjectId(order.userId) });
     if (!user) {
         return NextResponse.json({ message: 'Customer not found for this order.' }, { status: 404 });
