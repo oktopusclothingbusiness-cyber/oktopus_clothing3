@@ -84,12 +84,12 @@ export default function AdminDashboardPage() {
 
   const totalRevenue = React.useMemo(() => {
     return orders
-        .filter(order => order.status === 'delivered' || order.status === 'paid')
+        .filter(order => order.status !== 'rejected')
         .reduce((acc, order) => acc + order.total, 0);
   }, [orders]);
   
   const totalSales = React.useMemo(() => {
-     return orders.filter(order => order.status === 'delivered' || order.status === 'paid').length;
+     return orders.filter(order => order.status !== 'rejected').length;
   }, [orders]);
 
   const recentSales = React.useMemo(() => {
@@ -103,7 +103,7 @@ export default function AdminDashboardPage() {
     return last7Days.map(date => {
         const dateString = date.toISOString().split('T')[0];
         const dailyRevenue = orders
-            .filter(order => (order.status === 'delivered' || order.status === 'paid') && order.createdAt.startsWith(dateString))
+            .filter(order => (order.status !== 'rejected') && order.createdAt.startsWith(dateString))
             .reduce((sum, order) => sum + order.total, 0);
         return {
             date: format(date, 'MMM d'),
@@ -127,7 +127,7 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             {loading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">₹{totalRevenue.toFixed(2)}</div>}
-            <p className="text-xs text-muted-foreground">From all completed sales</p>
+            <p className="text-xs text-muted-foreground">From all non-rejected sales</p>
           </CardContent>
         </Card>
         <Card>
@@ -147,7 +147,7 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             {loading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">+{totalSales}</div>}
-            <p className="text-xs text-muted-foreground">Total successful transactions</p>
+            <p className="text-xs text-muted-foreground">Total non-rejected transactions</p>
           </CardContent>
         </Card>
         <Card>
