@@ -42,7 +42,7 @@ export const PromotionalEmail = ({
           </Section>
           
           <Text style={footer}>
-            OKTOPUS CLOTHING | 123 Fashion Ave, Style City, 12345
+            OKTOPUS CLOTHING | Kolkata, India
           </Text>
         </Container>
       </Body>
@@ -70,7 +70,8 @@ const container = {
 const logoContainer = {
   textAlign: "center" as const,
   padding: '20px 0',
-  borderBottom: "1px solid #eaeaea",
+  borderBottom: "1px solid rgb(64, 59, 59)",
+  backgroundColor: "rgb(30, 30, 30)",
 };
 
 const logo = {
