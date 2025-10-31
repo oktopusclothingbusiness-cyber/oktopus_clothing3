@@ -42,21 +42,39 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ message: 'Invalid order ID.' }, { status: 400 });
     }
     
-    // In a real app, you would add authentication to ensure only admins can do this.
     const body = await request.json();
-    const { status } = body;
+    const { status, paymentStatus } = body;
+    
+    let updateQuery: any = {};
+    let responseMessage = '';
 
-    const validStatuses = ['pending', 'accepted', 'rejected', 'packed', 'shipped', 'delivered'];
-    if (!status || !validStatuses.includes(status)) {
-        return NextResponse.json({ message: 'Invalid status provided.' }, { status: 400 });
+    if (status) {
+        const validStatuses = ['pending', 'accepted', 'rejected', 'packed', 'shipped', 'delivered'];
+        if (!validStatuses.includes(status)) {
+            return NextResponse.json({ message: 'Invalid status provided.' }, { status: 400 });
+        }
+        updateQuery['status'] = status;
+        responseMessage = `Order status updated to ${status}.`;
+
+    } else if (paymentStatus) {
+         const validPaymentStatuses = ['pending', 'paid', 'paid externally'];
+        if (!validPaymentStatuses.includes(paymentStatus)) {
+            return NextResponse.json({ message: 'Invalid payment status provided.' }, { status: 400 });
+        }
+        // To avoid overwriting Razorpay details, we use dot notation
+        updateQuery['paymentDetails.paymentStatus'] = paymentStatus;
+        responseMessage = `Order payment status updated to ${paymentStatus}.`;
+    } else {
+        return NextResponse.json({ message: 'No valid update field provided.' }, { status: 400 });
     }
+
 
     const client = await clientPromise;
     const db = client.db();
 
     const result = await db.collection('orders').findOneAndUpdate(
       { _id: new ObjectId(id) },
-      { $set: { status: status } },
+      { $set: updateQuery },
       { returnDocument: 'after' }
     );
 
@@ -66,8 +84,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     
     const updatedOrder = result;
     
-    // Do not send mail if the order is just created from cart page.
-    if(updatedOrder.status !== 'pending') {
+    // Send email notification for order status change, but not for payment status change
+    if(status && updatedOrder.status !== 'pending') {
       const user = await db.collection('users').findOne({ _id: new ObjectId(updatedOrder.userId) });
 
       if(user) {
@@ -81,7 +99,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
 
 
-    return NextResponse.json({ message: `Order status updated to ${status}.` }, { status: 200 });
+    return NextResponse.json({ message: responseMessage }, { status: 200 });
 
   } catch (error) {
     console.error('Failed to update order:', error);

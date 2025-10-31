@@ -26,6 +26,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'packed' | 'shipped' | 'delivered';
+type PaymentStatus = 'pending' | 'paid' | 'paid externally';
 
 type Order = {
   _id: string;
@@ -40,9 +41,9 @@ type Order = {
   };
   status: OrderStatus;
   createdAt: string;
-  paymentDetails: { 
+  paymentDetails: {
     razorpay_payment_id?: string;
-    paymentStatus?: 'paid' | 'pending' 
+    paymentStatus?: PaymentStatus;
   };
 };
 
@@ -103,6 +104,31 @@ export default function OrdersPage() {
     }
   };
 
+  const handlePaymentStatusChange = async (orderId: string, paymentStatus: PaymentStatus) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentStatus }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update payment status');
+      }
+      toast({
+        title: 'Payment Status Updated',
+        description: `Order payment status has been marked as ${paymentStatus}.`,
+      });
+      fetchOrders(); // Refresh to show updated status
+    } catch (error) {
+       console.error(error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update payment status.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleDeleteOrder = async (orderId: string) => {
     try {
       const response = await fetch(`/api/orders/${orderId}`, {
@@ -137,15 +163,29 @@ export default function OrdersPage() {
       case 'shipped':
         return 'outline';
       case 'delivered':
-        return 'default'; // Success state could be different
+        return 'default';
       case 'rejected':
         return 'destructive';
       default:
         return 'secondary';
     }
   };
+  
+  const getPaymentStatusVariant = (status?: PaymentStatus) => {
+    switch (status) {
+        case 'paid':
+            return 'default';
+        case 'pending':
+            return 'secondary';
+        case 'paid externally':
+            return 'outline';
+        default:
+            return 'secondary';
+    }
+  }
 
   const statusOptions: OrderStatus[] = ['pending', 'accepted', 'rejected', 'packed', 'shipped', 'delivered'];
+  const paymentStatusOptions: PaymentStatus[] = ['pending', 'paid', 'paid externally'];
 
   return (
     <>
@@ -177,7 +217,7 @@ export default function OrdersPage() {
                       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-8 w-28" /></TableCell>
-                      <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                        <TableCell><Skeleton className="h-8 w-20" /></TableCell>
                     </TableRow>
@@ -210,11 +250,23 @@ export default function OrdersPage() {
                         </Select>
                       </TableCell>
                       <TableCell>
-                        {order.paymentDetails?.paymentStatus === 'paid' ? (
-                            <Badge variant="default">Paid</Badge>
-                        ) : (
-                            <Badge variant="secondary">Pending</Badge>
-                        )}
+                         <Select
+                          value={order.paymentDetails?.paymentStatus || 'pending'}
+                          onValueChange={(value: PaymentStatus) => handlePaymentStatusChange(order._id, value)}
+                        >
+                           <SelectTrigger className="w-[160px]">
+                              <SelectValue>
+                                 <Badge variant={getPaymentStatusVariant(order.paymentDetails?.paymentStatus)}>{order.paymentDetails?.paymentStatus || 'pending'}</Badge>
+                              </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {paymentStatusOptions.map(status => (
+                                <SelectItem key={status} value={status} disabled={status === 'paid'}>
+                                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                                </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell>₹{order.total.toFixed(2)}</TableCell>
                        <TableCell className="text-right">
