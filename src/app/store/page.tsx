@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import Image from "next/image";
@@ -183,6 +182,7 @@ export default function StreetifyStorePage() {
   const loading = productsLoading || promotionsLoading || categoriesLoading || trendsLoading;
   const activePromotions = promotions.filter(p => p.isActive);
   const activeTrends = trends.filter(t => t.isActive);
+  const featuredProducts = products.filter(p => p.featured);
   
   const autoplayPlugin = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: true })
@@ -434,7 +434,7 @@ export default function StreetifyStorePage() {
                                 </div>
                               </Card>
                         </div>
-                    )) : products.slice(0, 4).map(product => (
+                    )) : featuredProducts.map(product => (
                        <ProductCard key={product.id} product={product} isMobile={true} />
                     ))}
                 </div>
