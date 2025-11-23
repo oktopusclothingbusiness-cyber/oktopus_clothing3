@@ -1,14 +1,28 @@
 
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
-// GET all products
-export async function GET() {
+// GET all products or search for products
+export async function GET(request: NextRequest) {
   try {
     const client = await clientPromise;
     const db = client.db();
-    const products = await db.collection('products').find({}).toArray();
+
+    const searchParams = request.nextUrl.searchParams;
+    const searchQuery = searchParams.get('q');
+
+    let query = {};
+    if (searchQuery) {
+      query = {
+        $or: [
+          { name: { $regex: searchQuery, $options: 'i' } },
+          { description: { $regex: searchQuery, $options: 'i' } }
+        ]
+      };
+    }
+
+    const products = await db.collection('products').find(query).toArray();
     return NextResponse.json(products, { status: 200 });
   } catch (error) {
     console.error('Failed to fetch products:', error);
