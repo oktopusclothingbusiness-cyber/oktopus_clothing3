@@ -15,8 +15,10 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
 import { useCart } from "@/context/cart-context";
-import { Star, ShoppingCart } from "lucide-react";
+import { Star, ShoppingCart, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/auth-context";
+import { cn } from "@/lib/utils";
 
 
 export default function ProductDetailPage() {
@@ -25,6 +27,7 @@ export default function ProductDetailPage() {
   const [product, setProduct] = React.useState<Product | null | undefined>(undefined);
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const { user, addToWishlist, removeFromWishlist, isInWishlist } = useAuth();
   
   const [selectedSize, setSelectedSize] = React.useState<string>('');
   const [selectedColor, setSelectedColor] = React.useState<string>('');
@@ -55,6 +58,17 @@ export default function ProductDetailPage() {
       addToCart(product, selectedSize, selectedColor);
     }
   };
+
+  const handleWishlistToggle = () => {
+      if (!product) return;
+      if (isInWishlist(product.id)) {
+          removeFromWishlist(product.id);
+      } else {
+          addToWishlist(product.id);
+      }
+  }
+  
+  const isWishlisted = product ? isInWishlist(product.id) : false;
 
   if (loading || product === undefined) {
     return (
@@ -150,9 +164,15 @@ export default function ProductDetailPage() {
                   </div>
                   )}
                 </div>
-                <Button onClick={handleAddToCart} className="w-full" size="lg">
-                    <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
-                </Button>
+                <div className="flex gap-2">
+                    <Button onClick={handleAddToCart} className="w-full" size="lg">
+                        <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
+                    </Button>
+                    <Button onClick={handleWishlistToggle} size="lg" variant="outline">
+                        <Heart className={cn("mr-2 h-4 w-4", isWishlisted && "fill-red-500 text-red-500")} />
+                        {isWishlisted ? "Wishlisted" : "Wishlist"}
+                    </Button>
+                </div>
               </div>
             </div>
           </main>
@@ -180,7 +200,12 @@ export default function ProductDetailPage() {
                   </CarouselContent>
                 </Carousel>
                 <div className="p-4 space-y-4">
-                    <h1 className="text-2xl font-bold">{product.name}</h1>
+                    <div className="flex justify-between items-start">
+                        <h1 className="text-2xl font-bold">{product.name}</h1>
+                        <Button onClick={handleWishlistToggle} size="icon" variant="ghost">
+                           <Heart className={cn("h-6 w-6 text-muted-foreground", isWishlisted && "fill-red-500 text-red-500")} />
+                        </Button>
+                    </div>
                     <div className="flex items-baseline gap-2">
                         <p className="text-2xl font-bold">₹{product.price.toFixed(2)}</p>
                          {product.originalPrice && product.originalPrice > product.price && (

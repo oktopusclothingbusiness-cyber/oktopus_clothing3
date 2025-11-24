@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
@@ -17,6 +17,7 @@ type User = {
     mobile?: string;
     address?: string;
     profilePictureUrl?: string;
+    wishlist?: string[];
 };
 
 type AuthContextType = {
@@ -25,6 +26,9 @@ type AuthContextType = {
   logout: () => void;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
+  addToWishlist: (productId: string) => void;
+  removeFromWishlist: (productId: string) => void;
+  isInWishlist: (productId: string) => boolean;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,8 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = (userData: User) => {
-    // Ensure the user object has the 'id' property which mirrors '_id'
-    const userToStore = { ...userData, id: userData._id };
+    const userToStore = { ...userData, id: userData._id, wishlist: userData.wishlist || [] };
     setUser(userToStore);
     try {
       localStorage.setItem('user', JSON.stringify(userToStore));
@@ -125,8 +128,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateWishlistOnServer = useCallback(async (wishlist: string[]) => {
+    if (user) {
+      try {
+        await fetch(`/api/users/${user._id}/wishlist`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ wishlist }),
+        });
+      } catch (error) {
+        console.error("Failed to update wishlist on server:", error);
+        toast({ title: "Error", description: "Could not sync wishlist.", variant: "destructive" });
+      }
+    }
+  }, [user, toast]);
+
+  const addToWishlist = (productId: string) => {
+    if (!user) {
+      toast({ title: "Please log in", description: "You need to be logged in to add items to your wishlist.", variant: "destructive"});
+      router.push('/login');
+      return;
+    }
+    setUser(currentUser => {
+      if (!currentUser) return null;
+      const newWishlist = [...(currentUser.wishlist || []), productId];
+      const updatedUser = { ...currentUser, wishlist: newWishlist };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      updateWishlistOnServer(newWishlist);
+      toast({ title: "Added to Wishlist", description: "Item has been added to your wishlist." });
+      return updatedUser;
+    });
+  };
+
+  const removeFromWishlist = (productId: string) => {
+    if (!user) return;
+    setUser(currentUser => {
+      if (!currentUser) return null;
+      const newWishlist = (currentUser.wishlist || []).filter(id => id !== productId);
+      const updatedUser = { ...currentUser, wishlist: newWishlist };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      updateWishlistOnServer(newWishlist);
+      toast({ title: "Removed from Wishlist", description: "Item has been removed from your wishlist." });
+      return updatedUser;
+    });
+  };
+
+  const isInWishlist = (productId: string) => {
+    return user?.wishlist?.includes(productId) || false;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, signInWithGoogle }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, signInWithGoogle, addToWishlist, removeFromWishlist, isInWishlist }}>
       {children}
     </AuthContext.Provider>
   );
