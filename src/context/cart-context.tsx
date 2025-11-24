@@ -86,8 +86,9 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
                  console.error("Failed to fetch cart from DB", error);
             }
         } else {
-          // If no user, clear the cart
+          // If no user, clear the cart state.
           setCart([]);
+          setAppliedCoupon(null);
         }
     };
     
@@ -186,7 +187,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     saveCartToDb([]);
     toast({
       title: "Cart cleared",
-      description: "Your cart has been emptied.",
+      description: "All items have been removed from your cart.",
       variant: "destructive",
     });
   };
