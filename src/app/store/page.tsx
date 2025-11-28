@@ -182,7 +182,14 @@ export default function StreetifyStorePage() {
   const loading = productsLoading || promotionsLoading || categoriesLoading || trendsLoading;
   const activePromotions = promotions.filter(p => p.isActive);
   const activeTrends = trends.filter(t => t.isActive);
-  const featuredProducts = products.filter(p => p.featured);
+  
+  const featuredProducts = React.useMemo(() => 
+    products.filter(p => p.featured), 
+  [products]);
+
+  const newArrivals = React.useMemo(() => 
+    [...products].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 4),
+  [products]);
   
   const autoplayPlugin = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: true })
@@ -404,7 +411,7 @@ export default function StreetifyStorePage() {
                             </div>
                         ))
                     ) : (
-                        products.slice(4, 8).map(product => (
+                        newArrivals.map(product => (
                             <div key={product.id} className="snap-center flex-shrink-0 w-40">
                                <ProductCard product={product} isMobile={true} />
                             </div>
@@ -416,7 +423,7 @@ export default function StreetifyStorePage() {
             <section>
                  <div className="flex justify-between items-center mb-2">
                     <h2 className="font-bold text-lg">Featured Products</h2>
-                    <Link href="/products" className="text-sm text-primary font-semibold flex items-center gap-1">
+                    <Link href="/products?featured=true" className="text-sm text-primary font-semibold flex items-center gap-1">
                         See All
                     </Link>
                 </div>
