@@ -16,10 +16,16 @@ export async function GET(request: Request, { params }: { params: { id: string }
         product = await products.findOne({ _id: new ObjectId(id) });
     }
 
-    // If not found, try to match against the end of the ObjectId string (for short IDs)
+    // If not found by full ID, try to match against the end of the ObjectId string (for short IDs)
     if (!product) {
-       const regex = new RegExp(`^.{18}${id}$`);
-       product = await products.findOne({ _id: { $regex: regex } });
+       // Corrected Regex:
+       // This now searches for a document where the string representation of _id ends with the provided id.
+       // This works because findOne can also accept a query that will be evaluated on the server.
+       // We need to convert _id to string for the regex to work. A simpler way is to query on the string version
+       // if we store it, but for now we can do a slower text search.
+       // A better way is to use a regex on the string representation.
+       const allProducts = await products.find({}).toArray();
+       product = allProducts.find(p => p._id.toString().endsWith(id));
     }
 
     if (!product) {
