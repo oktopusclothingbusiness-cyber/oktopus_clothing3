@@ -63,8 +63,8 @@ export default function VerifyProductPage() {
       setProductId('');
     }
 
-    const VerificationForm = ({ isMobile = false }) => (
-        <Card className={isMobile ? "w-full max-w-sm card-glass" : "w-full max-w-md"}>
+    const VerificationForm = () => (
+        <Card className="w-full max-w-md">
             <CardHeader className="text-center">
                 <ShieldCheck className="mx-auto h-12 w-12 text-primary" />
                 <CardTitle className="text-2xl">Verify Your Product</CardTitle>
@@ -93,34 +93,43 @@ export default function VerifyProductPage() {
 
     const ResultDisplay = () => {
         if (isLoading) {
-            return <Loader2 className="h-8 w-8 animate-spin text-primary" />;
+            return (
+                <div className="text-center">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                    <p className="mt-4 text-muted-foreground">Verifying...</p>
+                </div>
+            );
         }
         if (error) {
             return (
                 <div className="text-center text-destructive">
-                    <XCircle className="mx-auto h-12 w-12" />
-                    <h3 className="mt-4 text-lg font-semibold">{error}</h3>
-                    <p className="text-sm">Please check the ID and try again.</p>
+                    <XCircle className="mx-auto h-16 w-16" />
+                    <h3 className="mt-4 text-2xl font-semibold">Verification Failed</h3>
+                    <p className="text-muted-foreground">{error}</p>
                 </div>
             );
         }
         if (verifiedProduct) {
             return (
-                <Link href={`/products/${verifiedProduct.id}`}>
-                    <Card className="w-full max-w-sm overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
-                        <CardHeader>
-                            <CardTitle>{verifiedProduct.name}</CardTitle>
-                            <CardDescription>Product Verified!</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex flex-col items-center gap-4">
-                           <div className="relative w-48 h-48">
-                             <Image src={verifiedProduct.imageUrl} alt={verifiedProduct.name} layout="fill" objectFit="contain" className="rounded-md" />
-                           </div>
-                           <p className="text-2xl font-bold">₹{verifiedProduct.price.toFixed(2)}</p>
-                           <Button variant="outline" className="w-full">View Details</Button>
-                        </CardContent>
-                    </Card>
-                </Link>
+                <div className="w-full max-w-sm text-center">
+                     <div className="text-center text-green-600">
+                        <ShieldCheck className="mx-auto h-16 w-16" />
+                        <h3 className="mt-4 text-2xl font-semibold">Product Verified!</h3>
+                    </div>
+                    <Link href={`/products/${verifiedProduct.id}`}>
+                        <Card className="w-full overflow-hidden cursor-pointer hover:shadow-lg transition-shadow mt-6">
+                            <CardContent className="p-0">
+                               <div className="relative w-full aspect-square bg-muted">
+                                 <Image src={verifiedProduct.imageUrl} alt={verifiedProduct.name} layout="fill" objectFit="cover" />
+                               </div>
+                               <div className="p-4">
+                                  <h4 className="font-bold text-lg">{verifiedProduct.name}</h4>
+                                  <p className="text-xl font-bold text-primary">₹{verifiedProduct.price.toFixed(2)}</p>
+                               </div>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                </div>
             )
         }
         return null;
@@ -147,14 +156,38 @@ export default function VerifyProductPage() {
             {/* Mobile View */}
             <div className="md:hidden">
                 <MobileHeader title="Verify Product" />
-                <main className="min-h-screen bg-secondary flex flex-col items-center justify-center p-4 pb-24">
-                     {!verifiedProduct && !error && !isLoading && <VerificationForm isMobile={true} />}
-                     <ResultDisplay />
-                     {(verifiedProduct || error) && !isLoading && (
-                        <Button variant="link" className="mt-4" onClick={resetState}>
-                            Verify another product
-                        </Button>
-                    )}
+                <main className="min-h-screen bg-background flex flex-col items-center justify-center p-4 pb-24">
+                     {(!verifiedProduct && !error && !isLoading) ? (
+                        <div className="w-full max-w-sm text-center">
+                            <ShieldCheck className="mx-auto h-12 w-12 text-primary" />
+                            <h1 className="text-2xl font-bold mt-4">Verify Your Product</h1>
+                            <p className="text-muted-foreground mt-2 mb-8">Enter the Product ID to confirm its authenticity.</p>
+                            <form onSubmit={handleVerification} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="product-id-mobile" className="sr-only">Product ID</Label>
+                                    <Input
+                                        id="product-id-mobile"
+                                        placeholder="Enter Product ID"
+                                        value={productId}
+                                        onChange={(e) => setProductId(e.target.value)}
+                                        disabled={isLoading}
+                                        className="h-12 text-center text-lg"
+                                    />
+                                </div>
+                                <Button size="lg" type="submit" className="w-full" disabled={isLoading}>
+                                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                                    Verify Product
+                                </Button>
+                            </form>
+                        </div>
+                     ) : (
+                        <>
+                           <ResultDisplay />
+                           <Button variant="outline" className="mt-8" onClick={resetState}>
+                                Verify Another Product
+                           </Button>
+                        </>
+                     )}
                 </main>
                 <MobileFooter />
             </div>
