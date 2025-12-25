@@ -7,22 +7,23 @@ export async function GET(request: Request, { params }: { params: { id: string }
   try {
     const { id } = params;
 
-    // The product ID from the client might be the short version, so we search for it at the end of the ObjectId string.
-    // This is less efficient than a direct lookup, but necessary if users only have short IDs.
-    // A better long-term solution would be a dedicated, unique short ID field.
     const products = await clientPromise.then(client => client.db().collection('products'));
     
     let product;
+
+    // First, try to find by a full, valid ObjectId
     if (ObjectId.isValid(id)) {
         product = await products.findOne({ _id: new ObjectId(id) });
     }
 
+    // If not found, try to match against the end of the ObjectId string (for short IDs)
     if (!product) {
-       const regex = new RegExp(`${id}$`);
-       product = await products.findOne({ _id: { $regex: id } });
+       const regex = new RegExp(`^.{18}${id}$`);
+       product = await products.findOne({ _id: { $regex: regex } });
     }
 
     if (!product) {
+      // Return a proper JSON response for "Not Found"
       return NextResponse.json({ message: 'Product not found.' }, { status: 404 });
     }
     
