@@ -10,7 +10,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
-import { Search, Loader2, XCircle } from "lucide-react";
+import { Search, Loader2, XCircle, ShieldCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
 import Link from 'next/link';
@@ -56,10 +56,17 @@ export default function VerifyProductPage() {
             setIsLoading(false);
         }
     };
+    
+    const resetState = () => {
+      setVerifiedProduct(null);
+      setError(null);
+      setProductId('');
+    }
 
-    const VerificationForm = () => (
-        <Card className="w-full max-w-md">
+    const VerificationForm = ({ isMobile = false }) => (
+        <Card className={isMobile ? "w-full max-w-sm card-glass" : "w-full max-w-md"}>
             <CardHeader className="text-center">
+                <ShieldCheck className="mx-auto h-12 w-12 text-primary" />
                 <CardTitle className="text-2xl">Verify Your Product</CardTitle>
                 <CardDescription>Enter the Product ID to confirm its authenticity.</CardDescription>
             </CardHeader>
@@ -129,7 +136,7 @@ export default function VerifyProductPage() {
                     {!verifiedProduct && !error && !isLoading && <VerificationForm />}
                     <ResultDisplay />
                      {(verifiedProduct || error) && !isLoading && (
-                        <Button variant="link" className="mt-4" onClick={() => { setVerifiedProduct(null); setError(null); setProductId(''); }}>
+                        <Button variant="link" className="mt-4" onClick={resetState}>
                             Verify another product
                         </Button>
                     )}
@@ -140,11 +147,11 @@ export default function VerifyProductPage() {
             {/* Mobile View */}
             <div className="md:hidden">
                 <MobileHeader title="Verify Product" />
-                <main className="min-h-screen bg-secondary flex flex-col items-center justify-center p-4">
-                     {!verifiedProduct && !error && !isLoading && <VerificationForm />}
+                <main className="min-h-screen bg-secondary flex flex-col items-center justify-center p-4 pb-24">
+                     {!verifiedProduct && !error && !isLoading && <VerificationForm isMobile={true} />}
                      <ResultDisplay />
                      {(verifiedProduct || error) && !isLoading && (
-                        <Button variant="link" className="mt-4" onClick={() => { setVerifiedProduct(null); setError(null); setProductId(''); }}>
+                        <Button variant="link" className="mt-4" onClick={resetState}>
                             Verify another product
                         </Button>
                     )}

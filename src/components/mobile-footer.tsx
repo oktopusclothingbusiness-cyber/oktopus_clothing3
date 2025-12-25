@@ -2,7 +2,7 @@
 'use client';
 
 import Link from "next/link";
-import { Home, Box, Palette, User, ShoppingBag } from "lucide-react";
+import { Home, ShoppingBag, Palette, User, ShieldCheck } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/auth-context";
@@ -18,6 +18,7 @@ export const MobileFooter = () => {
         { href: '/store', icon: Home, label: 'Home' },
         { href: '/products', icon: ShoppingBag, label: 'Products' },
         { href: '/custom-design', icon: Palette, label: 'Custom' },
+        { href: '/verify-product', icon: ShieldCheck, label: 'Verify' },
         { href: user ? '/profile' : '/login', icon: User, label: 'Profile' },
     ];
 
