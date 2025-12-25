@@ -39,8 +39,8 @@ export function Footer() {
             <h3 className="font-semibold mb-4">Shop</h3>
             <ul className="space-y-2">
               <li><Link href="/products" className="text-sm text-muted-foreground hover:text-primary">All Products</Link></li>
-              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">New Arrivals</Link></li>
-              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Sale</Link></li>
+              <li><Link href="/products" className="text-sm text-muted-foreground hover:text-primary">New Arrivals</Link></li>
+              <li><Link href="/custom-design" className="text-sm text-muted-foreground hover:text-primary">Custom Design</Link></li>
             </ul>
           </div>
           <div>
@@ -52,6 +52,7 @@ export function Footer() {
               <li><Link href="/shipping-policy" className="text-sm text-muted-foreground hover:text-primary">Shipping Policy</Link></li>
               <li><Link href="/privacy-policy" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
               <li><Link href="/terms-and-conditions" className="text-sm text-muted-foreground hover:text-primary">Terms & Conditions</Link></li>
+               <li><Link href="/verify-product" className="text-sm text-muted-foreground hover:text-primary">Verify Product</Link></li>
             </ul>
           </div>
           <div>
