@@ -14,6 +14,7 @@ import { Search, Loader2, XCircle, ShieldCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type VerifiedProduct = {
     id: string;
@@ -63,6 +64,12 @@ export default function VerifyProductPage() {
       setProductId('');
     }
 
+    const animationVariants = {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: -20 },
+    };
+
     const VerificationForm = () => (
         <Card className="w-full max-w-md">
             <CardHeader className="text-center">
@@ -92,47 +99,65 @@ export default function VerifyProductPage() {
     );
 
     const ResultDisplay = () => {
-        if (isLoading) {
-            return (
-                <div className="text-center">
-                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                    <p className="mt-4 text-muted-foreground">Verifying...</p>
-                </div>
-            );
-        }
-        if (error) {
-            return (
-                <div className="text-center text-destructive">
-                    <XCircle className="mx-auto h-16 w-16" />
-                    <h3 className="mt-4 text-2xl font-semibold">Verification Failed</h3>
-                    <p className="text-muted-foreground">{error}</p>
-                </div>
-            );
-        }
-        if (verifiedProduct) {
-            return (
-                <div className="w-full max-w-sm text-center">
-                     <div className="text-center text-green-600">
-                        <ShieldCheck className="mx-auto h-16 w-16" />
-                        <h3 className="mt-4 text-2xl font-semibold">Product Verified!</h3>
-                    </div>
-                    <Link href={`/products/${verifiedProduct.id}`}>
-                        <Card className="w-full overflow-hidden cursor-pointer hover:shadow-lg transition-shadow mt-6">
-                            <CardContent className="p-0">
-                               <div className="relative w-full aspect-square bg-muted">
-                                 <Image src={verifiedProduct.imageUrl} alt={verifiedProduct.name} layout="fill" objectFit="cover" />
-                               </div>
-                               <div className="p-4">
-                                  <h4 className="font-bold text-lg">{verifiedProduct.name}</h4>
-                                  <p className="text-xl font-bold text-primary">₹{verifiedProduct.price.toFixed(2)}</p>
-                               </div>
-                            </CardContent>
-                        </Card>
-                    </Link>
-                </div>
-            )
-        }
-        return null;
+        return (
+             <AnimatePresence mode="wait">
+                {isLoading && (
+                    <motion.div
+                        key="loading"
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        variants={animationVariants}
+                        className="text-center"
+                    >
+                        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                        <p className="mt-4 text-muted-foreground">Verifying...</p>
+                    </motion.div>
+                )}
+                {error && (
+                    <motion.div
+                        key="error"
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        variants={animationVariants}
+                        className="text-center text-destructive"
+                    >
+                        <XCircle className="mx-auto h-16 w-16" />
+                        <h3 className="mt-4 text-2xl font-semibold">Verification Failed</h3>
+                        <p className="text-muted-foreground">{error}</p>
+                    </motion.div>
+                )}
+                {verifiedProduct && (
+                    <motion.div
+                        key="success"
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        variants={animationVariants}
+                        className="w-full max-w-sm text-center"
+                    >
+                         <div className="text-center text-green-600">
+                            <ShieldCheck className="mx-auto h-16 w-16" />
+                            <h3 className="mt-4 text-2xl font-semibold">Product Verified!</h3>
+                        </div>
+                        <Link href={`/products/${verifiedProduct.id}`}>
+                            <Card className="w-full overflow-hidden cursor-pointer hover:shadow-lg transition-shadow mt-6">
+                                <CardContent className="p-0">
+                                   <div className="relative w-full aspect-square bg-muted">
+                                     <Image src={verifiedProduct.imageUrl} alt={verifiedProduct.name} layout="fill" objectFit="cover" />
+                                   </div>
+                                   <div className="p-4">
+                                      <h4 className="font-bold text-lg">{verifiedProduct.name}</h4>
+                                      <p className="text-xl font-bold text-primary">₹{verifiedProduct.price.toFixed(2)}</p>
+                                   </div>
+                                </CardContent>
+                            </Card>
+                        </Link>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        );
     }
 
 
@@ -158,7 +183,11 @@ export default function VerifyProductPage() {
                 <MobileHeader title="Verify Product" />
                 <main className="min-h-screen bg-background flex flex-col items-center justify-center p-4 pb-24">
                      {(!verifiedProduct && !error && !isLoading) ? (
-                        <div className="w-full max-w-sm text-center">
+                        <motion.div 
+                            key="form"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="w-full max-w-sm text-center">
                             <ShieldCheck className="mx-auto h-12 w-12 text-primary" />
                             <h1 className="text-2xl font-bold mt-4">Verify Your Product</h1>
                             <p className="text-muted-foreground mt-2 mb-8">Enter the Product ID to confirm its authenticity.</p>
@@ -179,7 +208,7 @@ export default function VerifyProductPage() {
                                     Verify Product
                                 </Button>
                             </form>
-                        </div>
+                        </motion.div>
                      ) : (
                         <>
                            <ResultDisplay />
