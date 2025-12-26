@@ -8,6 +8,7 @@ import clientPromise from './mongodb';
 
 const resend = new Resend("re_hUGiai9e_8FKbk9HRaRFEpXHgnS755XGr");
 const fromEmail = 'OKTOPUS CLOTHING <onboarding@resend.dev>'; 
+const adminEmail = 'oktopusclothing.business@gmail.com';
 
 type Product = {
   name: string;
@@ -147,3 +148,45 @@ export const sendInvoiceEmail = async ({
     console.error('Error sending invoice email:', error);
   }
 };
+
+type DataRequestProps = {
+  userId: string;
+  userName: string;
+  userEmail: string;
+};
+
+export const sendDataRequestEmail = async ({ userId, userName, userEmail }: DataRequestProps) => {
+  try {
+    await resend.emails.send({
+      from: fromEmail,
+      to: adminEmail,
+      subject: `User Data Request: ${userName}`,
+      html: `<p>A user has requested a copy of their data.</p>
+             <p><strong>User Name:</strong> ${userName}</p>
+             <p><strong>User Email:</strong> ${userEmail}</p>
+             <p><strong>User ID:</strong> ${userId}</p>
+             <p>Please process this request within 7 business days.</p>`,
+    });
+  } catch (error) {
+    console.error('Error sending data request email to admin:', error);
+    throw error;
+  }
+};
+
+export const sendAccountDeletionRequestEmail = async ({ userId, userName, userEmail }: DataRequestProps) => {
+    try {
+        await resend.emails.send({
+            from: fromEmail,
+            to: adminEmail,
+            subject: `Account Deletion Request: ${userName}`,
+            html: `<p>A user has requested to delete their account.</p>
+                   <p><strong>User Name:</strong> ${userName}</p>
+                   <p><strong>User Email:</strong> ${userEmail}</p>
+                   <p><strong>User ID:</strong> ${userId}</p>
+                   <p>Please process this request within 7 business days by deleting the user from the database.</p>`,
+        });
+    } catch (error) {
+        console.error('Error sending account deletion request email to admin:', error);
+        throw error;
+    }
+}

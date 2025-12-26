@@ -56,7 +56,12 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold mb-4">Follow Us</h3>
+            <h3 className="font-semibold mb-4">Privacy</h3>
+            <ul className="space-y-2">
+                <li><Link href="/request-data" className="text-sm text-muted-foreground hover:text-primary">Request My Data</Link></li>
+                <li><Link href="/delete-account" className="text-sm text-muted-foreground hover:text-primary">Delete My Account</Link></li>
+            </ul>
+            <h3 className="font-semibold mb-4 mt-4">Follow Us</h3>
             <div className="flex items-center gap-2">
                 <Button variant="ghost" size="icon" asChild>
                     <Link href="#" target="_blank" aria-label="GitHub">
