@@ -20,8 +20,8 @@ export async function POST(request: Request) {
   try {
     const chart = await request.json();
     
-    if (!chart.name || !chart.imageUrl) {
-      return NextResponse.json({ message: 'Missing required fields (name, imageUrl).' }, { status: 400 });
+    if (!chart.name || !Array.isArray(chart.sizes) || chart.sizes.length === 0) {
+      return NextResponse.json({ message: 'Missing required fields (name, sizes).' }, { status: 400 });
     }
 
     const client = await clientPromise;
@@ -29,6 +29,7 @@ export async function POST(request: Request) {
 
     const result = await db.collection('sizeCharts').insertOne({
       ...chart,
+      unit: chart.unit || 'inch',
       createdAt: new Date(),
     });
 

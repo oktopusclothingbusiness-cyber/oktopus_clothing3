@@ -4,10 +4,18 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
+export type SizeEntry = {
+  size: string;
+  chest: number;
+  length: number;
+  sleeve: number;
+};
+
 export type SizeChart = {
   _id: string;
   name: string;
-  imageUrl: string;
+  sizes: SizeEntry[];
+  unit: 'inch' | 'cm';
   createdAt: string;
 };
 

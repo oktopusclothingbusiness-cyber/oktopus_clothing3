@@ -21,7 +21,8 @@ import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import { useCategory } from "@/context/category-context";
 import { useSizeChart, SizeChart } from "@/context/size-chart-context";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 
 export default function ProductDetailPage() {
@@ -169,11 +170,31 @@ export default function ProductDetailPage() {
                                         <Ruler className="mr-1 h-4 w-4" /> Size Chart
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent>
+                                <DialogContent className="max-w-2xl">
                                     <DialogHeader>
                                         <DialogTitle>{sizeChart.name}</DialogTitle>
+                                        <DialogDescription>All measurements are in {sizeChart.unit}.</DialogDescription>
                                     </DialogHeader>
-                                    <Image src={sizeChart.imageUrl} alt={sizeChart.name} width={500} height={700} className="rounded-lg object-contain" />
+                                     <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Size</TableHead>
+                                                <TableHead>Chest</TableHead>
+                                                <TableHead>Length</TableHead>
+                                                <TableHead>Sleeve</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {sizeChart.sizes.map((s, i) => (
+                                                <TableRow key={i}>
+                                                    <TableCell className="font-medium">{s.size}</TableCell>
+                                                    <TableCell>{s.chest}"</TableCell>
+                                                    <TableCell>{s.length}"</TableCell>
+                                                    <TableCell>{s.sleeve}"</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
                                 </DialogContent>
                             </Dialog>
                         )}
@@ -257,7 +278,7 @@ export default function ProductDetailPage() {
                             <div className="flex justify-between items-center">
                                 <label className="text-xs font-medium">Size</label>
                                 {sizeChart && (
-                                     <Dialog>
+                                    <Dialog>
                                         <DialogTrigger asChild>
                                             <Button variant="link" size="sm" className="p-0 h-auto text-xs">
                                                 <Ruler className="mr-1 h-3 w-3" /> Size Chart
@@ -266,8 +287,28 @@ export default function ProductDetailPage() {
                                         <DialogContent>
                                             <DialogHeader>
                                                 <DialogTitle>{sizeChart.name}</DialogTitle>
+                                                <DialogDescription>All measurements are in {sizeChart.unit}.</DialogDescription>
                                             </DialogHeader>
-                                            <Image src={sizeChart.imageUrl} alt={sizeChart.name} width={500} height={700} className="rounded-lg object-contain" />
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>Size</TableHead>
+                                                        <TableHead>Chest</TableHead>
+                                                        <TableHead>Length</TableHead>
+                                                        <TableHead>Sleeve</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {sizeChart.sizes.map((s, i) => (
+                                                        <TableRow key={i}>
+                                                            <TableCell className="font-medium">{s.size}</TableCell>
+                                                            <TableCell>{s.chest}"</TableCell>
+                                                            <TableCell>{s.length}"</TableCell>
+                                                            <TableCell>{s.sleeve}"</TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
                                         </DialogContent>
                                     </Dialog>
                                 )}
