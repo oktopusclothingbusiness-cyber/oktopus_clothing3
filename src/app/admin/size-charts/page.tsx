@@ -32,14 +32,21 @@ export default function AdminSizeChartsPage() {
 
      const handleSizeChange = (index: number, field: keyof SizeEntry, value: string | number) => {
         const newSizes = [...formData.sizes];
-        const numValue = typeof value === 'string' ? (field === 'size' ? value : parseFloat(value)) : value;
+        let numValue;
+        if (typeof value === 'string' && field !== 'size') {
+            numValue = value === '' ? 0 : parseFloat(value);
+            if (isNaN(numValue)) numValue = 0;
+        } else {
+            numValue = value;
+        }
+        
         // @ts-ignore
         newSizes[index][field] = numValue;
         setFormData(prev => ({ ...prev, sizes: newSizes }));
     };
 
     const addSizeRow = () => {
-        setFormData(prev => ({ ...prev, sizes: [...prev.sizes, emptySize] }));
+        setFormData(prev => ({ ...prev, sizes: [...prev.sizes, { size: '', chest: 0, length: 0, sleeve: 0 }] }));
     };
 
     const removeSizeRow = (index: number) => {
@@ -69,7 +76,7 @@ export default function AdminSizeChartsPage() {
                     chest: Number(s.chest),
                     length: Number(s.length),
                     sleeve: Number(s.sleeve),
-                })),
+                })).filter(s => s.size), // Filter out empty size rows before submitting
             };
 
             if (isEditing && editingId) {
@@ -112,9 +119,9 @@ export default function AdminSizeChartsPage() {
                         {formData.sizes.map((size, index) => (
                             <div key={index} className="grid grid-cols-5 gap-2 items-center">
                                 <Input placeholder="Size" value={size.size} onChange={e => handleSizeChange(index, 'size', e.target.value)} className="col-span-1" />
-                                <Input type="number" placeholder="Chest" value={size.chest} onChange={e => handleSizeChange(index, 'chest', e.target.value)} className="col-span-1" />
-                                <Input type="number" placeholder="Length" value={size.length} onChange={e => handleSizeChange(index, 'length', e.target.value)} className="col-span-1" />
-                                <Input type="number" placeholder="Sleeve" value={size.sleeve} onChange={e => handleSizeChange(index, 'sleeve', e.target.value)} className="col-span-1" />
+                                <Input type="number" placeholder="Chest" value={size.chest || ''} onChange={e => handleSizeChange(index, 'chest', e.target.value)} className="col-span-1" />
+                                <Input type="number" placeholder="Length" value={size.length || ''} onChange={e => handleSizeChange(index, 'length', e.target.value)} className="col-span-1" />
+                                <Input type="number" placeholder="Sleeve" value={size.sleeve || ''} onChange={e => handleSizeChange(index, 'sleeve', e.target.value)} className="col-span-1" />
                                 <Button type="button" variant="ghost" size="icon" onClick={() => removeSizeRow(index)} className="col-span-1">
                                     <X className="h-4 w-4 text-destructive" />
                                 </Button>
