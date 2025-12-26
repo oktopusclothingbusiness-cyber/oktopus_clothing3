@@ -163,41 +163,47 @@ export default function ProductDetailPage() {
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <label className="text-sm font-medium">Size</label>
-                        {sizeChart && (
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button variant="link" size="sm" className="p-0 h-auto">
-                                        <Ruler className="mr-1 h-4 w-4" /> Size Chart
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-2xl">
-                                    <DialogHeader>
-                                        <DialogTitle>{sizeChart.name}</DialogTitle>
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="link" size="sm" className="p-0 h-auto">
+                                    <Ruler className="mr-1 h-4 w-4" /> Size Chart
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                                <DialogHeader>
+                                    <DialogTitle>{sizeChart ? sizeChart.name : 'Size Information'}</DialogTitle>
+                                    {sizeChart ? (
                                         <DialogDescription>All measurements are in {sizeChart.unit}.</DialogDescription>
-                                    </DialogHeader>
-                                     <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Size</TableHead>
-                                                <TableHead>Chest</TableHead>
-                                                <TableHead>Length</TableHead>
-                                                <TableHead>Sleeve</TableHead>
+                                    ) : (
+                                        <DialogDescription>No specific size chart available for this product.</DialogDescription>
+                                    )}
+                                </DialogHeader>
+                                 {sizeChart ? (
+                                    <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Size</TableHead>
+                                            <TableHead>Chest</TableHead>
+                                            <TableHead>Length</TableHead>
+                                            <TableHead>Sleeve</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {sizeChart.sizes.map((s, i) => (
+                                            <TableRow key={i}>
+                                                <TableCell className="font-medium">{s.size}</TableCell>
+                                                <TableCell>{s.chest}"</TableCell>
+                                                <TableCell>{s.length}"</TableCell>
+                                                <TableCell>{s.sleeve}"</TableCell>
                                             </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {sizeChart.sizes.map((s, i) => (
-                                                <TableRow key={i}>
-                                                    <TableCell className="font-medium">{s.size}</TableCell>
-                                                    <TableCell>{s.chest}"</TableCell>
-                                                    <TableCell>{s.length}"</TableCell>
-                                                    <TableCell>{s.sleeve}"</TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </DialogContent>
-                            </Dialog>
-                        )}
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                                 ) : (
+                                    <p className="text-center text-muted-foreground py-8">Please refer to general sizing guides or contact support for sizing help.</p>
+                                 )}
+                            </DialogContent>
+                        </Dialog>
                       </div>
                       <Select value={selectedSize} onValueChange={setSelectedSize}>
                         <SelectTrigger>
@@ -277,41 +283,47 @@ export default function ProductDetailPage() {
                         <div className="space-y-2">
                             <div className="flex justify-between items-center">
                                 <label className="text-xs font-medium">Size</label>
-                                {sizeChart && (
-                                    <Dialog>
-                                        <DialogTrigger asChild>
-                                            <Button variant="link" size="sm" className="p-0 h-auto text-xs">
-                                                <Ruler className="mr-1 h-3 w-3" /> Size Chart
-                                            </Button>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                            <DialogHeader>
-                                                <DialogTitle>{sizeChart.name}</DialogTitle>
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button variant="link" size="sm" className="p-0 h-auto text-xs">
+                                            <Ruler className="mr-1 h-3 w-3" /> Size Chart
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>{sizeChart ? sizeChart.name : 'Size Information'}</DialogTitle>
+                                             {sizeChart ? (
                                                 <DialogDescription>All measurements are in {sizeChart.unit}.</DialogDescription>
-                                            </DialogHeader>
-                                            <Table>
-                                                <TableHeader>
-                                                    <TableRow>
-                                                        <TableHead>Size</TableHead>
-                                                        <TableHead>Chest</TableHead>
-                                                        <TableHead>Length</TableHead>
-                                                        <TableHead>Sleeve</TableHead>
+                                            ) : (
+                                                <DialogDescription>No specific size chart available for this product.</DialogDescription>
+                                            )}
+                                        </DialogHeader>
+                                        {sizeChart ? (
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Size</TableHead>
+                                                    <TableHead>Chest</TableHead>
+                                                    <TableHead>Length</TableHead>
+                                                    <TableHead>Sleeve</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {sizeChart.sizes.map((s, i) => (
+                                                    <TableRow key={i}>
+                                                        <TableCell className="font-medium">{s.size}</TableCell>
+                                                        <TableCell>{s.chest}"</TableCell>
+                                                        <TableCell>{s.length}"</TableCell>
+                                                        <TableCell>{s.sleeve}"</TableCell>
                                                     </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
-                                                    {sizeChart.sizes.map((s, i) => (
-                                                        <TableRow key={i}>
-                                                            <TableCell className="font-medium">{s.size}</TableCell>
-                                                            <TableCell>{s.chest}"</TableCell>
-                                                            <TableCell>{s.length}"</TableCell>
-                                                            <TableCell>{s.sleeve}"</TableCell>
-                                                        </TableRow>
-                                                    ))}
-                                                </TableBody>
-                                            </Table>
-                                        </DialogContent>
-                                    </Dialog>
-                                )}
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                        ) : (
+                                            <p className="text-center text-muted-foreground py-8">Please refer to general sizing guides or contact support for sizing help.</p>
+                                        )}
+                                    </DialogContent>
+                                </Dialog>
                             </div>
                           <Select value={selectedSize} onValueChange={setSelectedSize}>
                             <SelectTrigger>
