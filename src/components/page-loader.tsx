@@ -26,14 +26,16 @@ export const PageLoader = ({ faviconUrl }: { faviconUrl: string }) => {
       )}
     >
       <div className="animate-pulse">
-        <Image
-          src={faviconUrl}
-          alt="Loading..."
-          width={80}
-          height={80}
-          className="h-20 w-20"
-          priority
-        />
+        {faviconUrl && (
+            <Image
+            src={faviconUrl}
+            alt="Loading..."
+            width={80}
+            height={80}
+            className="h-20 w-20"
+            priority
+            />
+        )}
       </div>
     </div>
   );
