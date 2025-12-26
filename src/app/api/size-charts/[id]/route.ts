@@ -20,12 +20,6 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       return NextResponse.json({ message: 'Size chart not found.' }, { status: 404 });
     }
 
-    // Also, unset this size chart from any categories that use it
-    await db.collection('categories').updateMany(
-        { sizeChartId: id },
-        { $set: { sizeChartId: null } }
-    );
-
     return NextResponse.json({ message: 'Size chart deleted successfully.' }, { status: 200 });
   } catch (error) {
     console.error('Failed to delete size chart:', error);
