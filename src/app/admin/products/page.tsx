@@ -69,9 +69,10 @@ export default function AdminProductsPage() {
 
     const handleCategorySelect = (categoryId: string) => {
         setFormData(prev => {
-            const newCategories = prev.category.includes(categoryId)
-                ? prev.category.filter(id => id !== categoryId)
-                : [...prev.category, categoryId];
+            const currentCategories = Array.isArray(prev.category) ? prev.category : [];
+            const newCategories = currentCategories.includes(categoryId)
+                ? currentCategories.filter(id => id !== categoryId)
+                : [...currentCategories, categoryId];
             return { ...prev, category: newCategories };
         });
     };
@@ -91,7 +92,7 @@ export default function AdminProductsPage() {
             imageUrls: product.imageUrls.join(', '),
             sizes: product.sizes.join(', '),
             colors: product.colors.join(', '),
-            category: product.category,
+            category: product.category || [],
             featured: product.featured || false,
             isHero: product.isHero || false,
         });
