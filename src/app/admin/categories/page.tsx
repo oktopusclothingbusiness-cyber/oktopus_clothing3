@@ -48,10 +48,15 @@ export default function AdminCategoriesPage() {
         if (formData.name && formData.imageUrl) {
             setIsSubmitting(true);
             
+            let sizeChartIdValue = formData.sizeChartId;
+            if (sizeChartIdValue === '--none--') {
+                sizeChartIdValue = '';
+            }
+
             const categoryData = {
                 name: formData.name,
                 imageUrl: formData.imageUrl,
-                sizeChartId: formData.sizeChartId,
+                sizeChartId: sizeChartIdValue,
             };
 
             if (isEditing) {
@@ -96,7 +101,7 @@ export default function AdminCategoriesPage() {
                  <div className="space-y-2">
                     <Label htmlFor="sizeChart">Size Chart (Optional)</Label>
                     <Select
-                        value={formData.sizeChartId}
+                        value={formData.sizeChartId || '--none--'}
                         onValueChange={(value) => setFormData(prev => ({...prev, sizeChartId: value}))}
                         disabled={sizeChartsLoading || isSubmitting}
                     >
@@ -104,7 +109,7 @@ export default function AdminCategoriesPage() {
                             <SelectValue placeholder="Select a size chart" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">None</SelectItem>
+                            <SelectItem value="--none--">None</SelectItem>
                             {sizeCharts.map(sc => (
                                 <SelectItem key={sc._id} value={sc._id}>{sc.name}</SelectItem>
                             ))}
