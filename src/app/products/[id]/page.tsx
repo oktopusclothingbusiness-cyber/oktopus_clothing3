@@ -15,10 +15,13 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
 import { useCart } from "@/context/cart-context";
-import { Star, ShoppingCart, Heart } from "lucide-react";
+import { Star, ShoppingCart, Heart, Ruler } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
+import { useCategory } from "@/context/category-context";
+import { useSizeChart, SizeChart } from "@/context/size-chart-context";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 
 export default function ProductDetailPage() {
@@ -28,9 +31,12 @@ export default function ProductDetailPage() {
   const { addToCart } = useCart();
   const { toast } = useToast();
   const { user, addToWishlist, removeFromWishlist, isInWishlist } = useAuth();
+  const { categories, loading: categoriesLoading } = useCategory();
+  const { sizeCharts, loading: sizeChartsLoading } = useSizeChart();
   
   const [selectedSize, setSelectedSize] = React.useState<string>('');
   const [selectedColor, setSelectedColor] = React.useState<string>('');
+  const [sizeChart, setSizeChart] = React.useState<SizeChart | null>(null);
 
   React.useEffect(() => {
     if (!loading) {
@@ -44,6 +50,19 @@ export default function ProductDetailPage() {
       }
     }
   }, [params.id, products, loading]);
+
+  React.useEffect(() => {
+    if (product && !categoriesLoading && !sizeChartsLoading) {
+      const category = categories.find(c => c.id === product.category);
+      if (category?.sizeChartId) {
+        const chart = sizeCharts.find(sc => sc._id === category.sizeChartId);
+        setSizeChart(chart || null);
+      } else {
+        setSizeChart(null);
+      }
+    }
+  }, [product, categories, sizeCharts, categoriesLoading, sizeChartsLoading]);
+
 
   const handleAddToCart = () => {
     if (product) {
@@ -70,7 +89,9 @@ export default function ProductDetailPage() {
   
   const isWishlisted = product ? isInWishlist(product.id) : false;
 
-  if (loading || product === undefined) {
+  const pageLoading = loading || product === undefined || categoriesLoading || sizeChartsLoading;
+
+  if (pageLoading) {
     return (
         <>
             <div className="hidden md:block">
@@ -138,8 +159,25 @@ export default function ProductDetailPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   {product.sizes.length > 0 && (
-                    <div>
-                      <label className="text-sm font-medium">Size</label>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm font-medium">Size</label>
+                        {sizeChart && (
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="link" size="sm" className="p-0 h-auto">
+                                        <Ruler className="mr-1 h-4 w-4" /> Size Chart
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>{sizeChart.name}</DialogTitle>
+                                    </DialogHeader>
+                                    <Image src={sizeChart.imageUrl} alt={sizeChart.name} width={500} height={700} className="rounded-lg object-contain" />
+                                </DialogContent>
+                            </Dialog>
+                        )}
+                      </div>
                       <Select value={selectedSize} onValueChange={setSelectedSize}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select size" />
@@ -151,7 +189,7 @@ export default function ProductDetailPage() {
                     </div>
                   )}
                   {product.colors.length > 0 && (
-                  <div>
+                  <div className="space-y-2">
                     <label className="text-sm font-medium">Color</label>
                      <Select value={selectedColor} onValueChange={setSelectedColor}>
                       <SelectTrigger>
@@ -215,8 +253,25 @@ export default function ProductDetailPage() {
                     <p className="text-muted-foreground text-sm">{product.description}</p>
                      <div className="grid grid-cols-2 gap-4">
                        {product.sizes.length > 0 && (
-                        <div>
-                          <label className="text-xs font-medium">Size</label>
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                                <label className="text-xs font-medium">Size</label>
+                                {sizeChart && (
+                                     <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button variant="link" size="sm" className="p-0 h-auto text-xs">
+                                                <Ruler className="mr-1 h-3 w-3" /> Size Chart
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>{sizeChart.name}</DialogTitle>
+                                            </DialogHeader>
+                                            <Image src={sizeChart.imageUrl} alt={sizeChart.name} width={500} height={700} className="rounded-lg object-contain" />
+                                        </DialogContent>
+                                    </Dialog>
+                                )}
+                            </div>
                           <Select value={selectedSize} onValueChange={setSelectedSize}>
                             <SelectTrigger>
                               <SelectValue placeholder="Select size" />
@@ -228,7 +283,7 @@ export default function ProductDetailPage() {
                         </div>
                        )}
                        {product.colors.length > 0 && (
-                        <div>
+                        <div className="space-y-2">
                           <label className="text-xs font-medium">Color</label>
                           <Select value={selectedColor} onValueChange={setSelectedColor}>
                             <SelectTrigger>

@@ -11,15 +11,19 @@ import Image from 'next/image';
 import { Trash2, Edit, Loader2, PlusCircle, Shapes } from 'lucide-react';
 import { useCategory, Category } from '@/context/category-context';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useSizeChart, SizeChart } from '@/context/size-chart-context';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 const emptyCategory = {
     id: '',
     name: '',
     imageUrl: '',
+    sizeChartId: '',
 };
 
 export default function AdminCategoriesPage() {
     const { categories, addCategory, deleteCategory, updateCategory, loading } = useCategory();
+    const { sizeCharts, loading: sizeChartsLoading } = useSizeChart();
     const [formData, setFormData] = React.useState(emptyCategory);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isEditing, setIsEditing] = React.useState(false);
@@ -35,6 +39,7 @@ export default function AdminCategoriesPage() {
             id: category.id,
             name: category.name,
             imageUrl: category.imageUrl,
+            sizeChartId: category.sizeChartId || '',
         });
     };
 
@@ -46,6 +51,7 @@ export default function AdminCategoriesPage() {
             const categoryData = {
                 name: formData.name,
                 imageUrl: formData.imageUrl,
+                sizeChartId: formData.sizeChartId,
             };
 
             if (isEditing) {
@@ -63,6 +69,9 @@ export default function AdminCategoriesPage() {
         setFormData(emptyCategory);
         setIsEditing(false);
     }
+    
+    const sizeChartMap = React.useMemo(() => new Map(sizeCharts.map(sc => [sc._id, sc.name])), [sizeCharts]);
+
 
   return (
     <>
@@ -84,6 +93,24 @@ export default function AdminCategoriesPage() {
                   <Label htmlFor="imageUrl">Image URL</Label>
                   <Input id="imageUrl" name="imageUrl" value={formData.imageUrl} onChange={handleInputChange} placeholder="https://placehold.co/400x400.png" required disabled={isSubmitting} />
                 </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="sizeChart">Size Chart (Optional)</Label>
+                    <Select
+                        value={formData.sizeChartId}
+                        onValueChange={(value) => setFormData(prev => ({...prev, sizeChartId: value}))}
+                        disabled={sizeChartsLoading || isSubmitting}
+                    >
+                        <SelectTrigger id="sizeChart">
+                            <SelectValue placeholder="Select a size chart" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="">None</SelectItem>
+                            {sizeCharts.map(sc => (
+                                <SelectItem key={sc._id} value={sc._id}>{sc.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                 </div>
                 <div className="flex gap-2">
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
                     {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {isEditing ? 'Updating...' : 'Adding...'}</> : (isEditing ? 'Update Category' : 'Add Category')}
@@ -109,6 +136,7 @@ export default function AdminCategoriesPage() {
                     <TableRow>
                       <TableHead>Image</TableHead>
                       <TableHead>Name</TableHead>
+                      <TableHead>Size Chart</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -118,6 +146,7 @@ export default function AdminCategoriesPage() {
                           <TableRow key={index}>
                             <TableCell><Skeleton className="h-10 w-10 rounded-md" /></TableCell>
                             <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                             <TableCell className="text-right"><Skeleton className="h-8 w-20" /></TableCell>
                           </TableRow>
                       ))
@@ -128,6 +157,7 @@ export default function AdminCategoriesPage() {
                             <Image src={cat.imageUrl || 'https://placehold.co/40x40.png'} alt={cat.name} width={40} height={40} className="rounded-md object-cover" />
                           </TableCell>
                           <TableCell className="font-medium">{cat.name}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{cat.sizeChartId ? sizeChartMap.get(cat.sizeChartId) : 'N/A'}</TableCell>
                           <TableCell className="text-right">
                             <Button variant="ghost" size="icon" className="mr-2" onClick={() => handleEditClick(cat)}>
                               <Edit className="h-4 w-4" />
@@ -140,7 +170,7 @@ export default function AdminCategoriesPage() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={3} className="text-center h-24">
+                        <TableCell colSpan={4} className="text-center h-24">
                           <div className="flex flex-col items-center gap-2">
                               <Shapes className="h-8 w-8 text-muted-foreground" />
                               <p>No categories found.</p>

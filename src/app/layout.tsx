@@ -19,6 +19,7 @@ import { TrendProvider } from "@/context/trend-context";
 import { PageTransitionProvider } from "@/context/page-transition-context";
 import { PageLoader } from "@/components/page-loader";
 import { PopupProvider } from "@/context/popup-context";
+import { SizeChartProvider } from "@/context/size-chart-context";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const archivo = Archivo({ 
@@ -86,25 +87,27 @@ export default function RootLayout({
         >
           <AuthProvider>
             <UserProvider>
-              <CategoryProvider>
-                <ProductProvider>
-                  <PromotionProvider>
-                    <PopupProvider>
-                        <CouponProvider>
-                            <TrendProvider>
-                                <CartProvider>
-                                  <PageTransitionProvider>
-                                    <PageLoader />
-                                    {children}
-                                    <FloatingCartButton />
-                                  </PageTransitionProvider>
-                                </CartProvider>
-                            </TrendProvider>
-                        </CouponProvider>
-                    </PopupProvider>
-                  </PromotionProvider>
-                </ProductProvider>
-              </CategoryProvider>
+                <SizeChartProvider>
+                    <CategoryProvider>
+                        <ProductProvider>
+                        <PromotionProvider>
+                            <PopupProvider>
+                                <CouponProvider>
+                                    <TrendProvider>
+                                        <CartProvider>
+                                        <PageTransitionProvider>
+                                            <PageLoader />
+                                            {children}
+                                            <FloatingCartButton />
+                                        </PageTransitionProvider>
+                                        </CartProvider>
+                                    </TrendProvider>
+                                </CouponProvider>
+                            </PopupProvider>
+                        </PromotionProvider>
+                        </ProductProvider>
+                    </CategoryProvider>
+                </SizeChartProvider>
             </UserProvider>
           </AuthProvider>
           <Toaster />

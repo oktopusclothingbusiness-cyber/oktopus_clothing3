@@ -37,6 +37,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
         const categoryData = await request.json();
         const { _id, id: categoryId, ...updateData } = categoryData;
+        
+        // Ensure sizeChartId is handled correctly
+        if (updateData.sizeChartId === '') {
+            updateData.sizeChartId = null;
+        }
 
         const client = await clientPromise;
         const db = client.db();

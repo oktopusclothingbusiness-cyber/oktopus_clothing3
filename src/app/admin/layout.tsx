@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ShoppingBag, Users, PanelLeft, Package, Shirt, Megaphone, Shapes, Palette, Ticket, Settings, Truck, TrendingUp, FileText, Mail, MessageSquare, BarChart } from 'lucide-react';
+import { Home, ShoppingBag, Users, PanelLeft, Package, Shirt, Megaphone, Shapes, Palette, Ticket, Settings, Truck, TrendingUp, FileText, Mail, MessageSquare, BarChart, Ruler } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
@@ -64,6 +64,7 @@ export default function AdminLayout({
     { href: '/admin/statistics', label: 'Statistics', icon: BarChart },
     { href: '/admin/products', label: 'Products', icon: Shirt },
     { href: '/admin/categories', label: 'Categories', icon: Shapes },
+    { href: '/admin/size-charts', label: 'Size Charts', icon: Ruler },
     { href: '/admin/orders', label: 'Orders', icon: Package },
     { href: '/admin/promotions', label: 'Promotions', icon: Megaphone },
     { href: '/admin/popups', label: 'Popups', icon: MessageSquare },
@@ -89,7 +90,7 @@ export default function AdminLayout({
                     <PanelLeft className="h-5 w-5" />
                 </Button>
             </div>
-            <nav className="flex-1 space-y-2 p-4">
+            <nav className="flex-1 space-y-2 p-4 overflow-y-auto">
                 {navItems.map((item) => (
                     <Link
                         key={item.href}
