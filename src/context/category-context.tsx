@@ -9,7 +9,6 @@ export type Category = {
   id: string;
   name: string;
   imageUrl: string;
-  sizeChartId?: string;
 };
 
 type AddCategory = Omit<Category, 'id' | '_id'>;

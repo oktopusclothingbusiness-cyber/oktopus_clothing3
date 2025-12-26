@@ -29,6 +29,7 @@ export async function POST(request: Request) {
 
     const result = await db.collection('sizeCharts').insertOne({
       ...chart,
+      categoryIds: chart.categoryIds || [],
       unit: chart.unit || 'inch',
       createdAt: new Date(),
     });

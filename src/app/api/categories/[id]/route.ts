@@ -20,6 +20,12 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       return NextResponse.json({ message: 'Category not found.' }, { status: 404 });
     }
 
+    // Also, pull this categoryId from any size charts that use it
+    await db.collection('sizeCharts').updateMany(
+        { categoryIds: id },
+        { $pull: { categoryIds: id } }
+    );
+
     return NextResponse.json({ message: 'Category deleted successfully.' }, { status: 200 });
   } catch (error) {
     console.error('Failed to delete category:', error);
@@ -38,11 +44,6 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         const categoryData = await request.json();
         const { _id, id: categoryId, ...updateData } = categoryData;
         
-        // Ensure sizeChartId is handled correctly
-        if (updateData.sizeChartId === '') {
-            updateData.sizeChartId = null;
-        }
-
         const client = await clientPromise;
         const db = client.db();
 

@@ -7,30 +7,38 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2, Edit, Loader2, PlusCircle, Ruler, X } from 'lucide-react';
+import { Trash2, Edit, Loader2, PlusCircle, Ruler, X, ChevronsUpDown, Check } from 'lucide-react';
 import { useSizeChart, SizeChart, SizeEntry } from '@/context/size-chart-context';
+import { useCategory, Category } from '@/context/category-context';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 const emptySize: SizeEntry = { size: '', chest: 0, length: 0, sleeve: 0 };
 const emptySizeChart: Omit<SizeChart, '_id' | 'createdAt'> = {
     name: '',
     sizes: [emptySize],
     unit: 'inch',
+    categoryIds: [],
 };
 
 export default function AdminSizeChartsPage() {
     const { sizeCharts, addSizeChart, deleteSizeChart, updateSizeChart, loading } = useSizeChart();
-    const [formData, setFormData] = React.useState(emptySizeChart);
+    const { categories, loading: categoriesLoading } = useCategory();
+    const [formData, setFormData] = React.useState<Omit<SizeChart, '_id' | 'createdAt'>>(emptySizeChart);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isEditing, setIsEditing] = React.useState(false);
     const [editingId, setEditingId] = React.useState<string | null>(null);
+    const [openCategorySelector, setOpenCategorySelector] = React.useState(false);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-     const handleSizeChange = (index: number, field: keyof SizeEntry, value: string | number) => {
+    const handleSizeChange = (index: number, field: keyof SizeEntry, value: string | number) => {
         const newSizes = [...formData.sizes];
         let numValue;
         if (typeof value === 'string' && field !== 'size') {
@@ -60,7 +68,8 @@ export default function AdminSizeChartsPage() {
         setFormData({
             name: chart.name,
             sizes: chart.sizes,
-            unit: chart.unit || 'inch'
+            unit: chart.unit || 'inch',
+            categoryIds: chart.categoryIds || [],
         });
     };
 
@@ -76,7 +85,7 @@ export default function AdminSizeChartsPage() {
                     chest: Number(s.chest),
                     length: Number(s.length),
                     sleeve: Number(s.sleeve),
-                })).filter(s => s.size), // Filter out empty size rows before submitting
+                })).filter(s => s.size), // Filter out empty size rows
             };
 
             if (isEditing && editingId) {
@@ -96,6 +105,12 @@ export default function AdminSizeChartsPage() {
         setEditingId(null);
     }
 
+    const selectedCategories = React.useMemo(() => {
+        return categories.filter(c => formData.categoryIds?.includes(c.id));
+    }, [categories, formData.categoryIds]);
+
+    const categoryMap = React.useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
+
   return (
     <>
       <h1 className="text-3xl font-bold mb-8">Size Chart Management</h1>
@@ -104,7 +119,7 @@ export default function AdminSizeChartsPage() {
           <Card>
             <CardHeader>
               <CardTitle>{isEditing ? 'Edit Size Chart' : 'Add New Size Chart'}</CardTitle>
-              <CardDescription>{isEditing ? 'Update the details of the existing size chart.' : 'Create a new structured size chart.'}</CardDescription>
+              <CardDescription>{isEditing ? 'Update the details and linked categories.' : 'Create a new size chart and link it to categories.'}</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleFormSubmit} className="space-y-6">
@@ -112,6 +127,53 @@ export default function AdminSizeChartsPage() {
                   <Label htmlFor="name">Chart Name</Label>
                   <Input id="name" name="name" value={formData.name} onChange={handleInputChange} placeholder="e.g., Men's Oversized T-Shirts" required disabled={isSubmitting} />
                 </div>
+
+                <div className="space-y-2">
+                    <Label>Linked Categories</Label>
+                     <Popover open={openCategorySelector} onOpenChange={setOpenCategorySelector}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                role="combobox"
+                                className="w-full justify-between"
+                                disabled={categoriesLoading || isSubmitting}
+                            >
+                                <span className="truncate">
+                                    {selectedCategories.length > 0 ? selectedCategories.map(c => c.name).join(', ') : "Select categories..."}
+                                </span>
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                            <Command>
+                                <CommandInput placeholder="Search categories..." />
+                                <CommandList>
+                                    <CommandEmpty>No categories found.</CommandEmpty>
+                                    <CommandGroup>
+                                        {categories.map((category) => (
+                                            <CommandItem
+                                                key={category.id}
+                                                value={category.name}
+                                                onSelect={() => {
+                                                    const newCategoryIds = formData.categoryIds?.includes(category.id)
+                                                        ? formData.categoryIds.filter(id => id !== category.id)
+                                                        : [...(formData.categoryIds || []), category.id];
+                                                    setFormData(prev => ({...prev, categoryIds: newCategoryIds}));
+                                                }}
+                                            >
+                                                <Check className={cn("mr-2 h-4 w-4", formData.categoryIds?.includes(category.id) ? "opacity-100" : "opacity-0")} />
+                                                {category.name}
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                        {selectedCategories.map(c => <Badge key={c.id} variant="secondary">{c.name}</Badge>)}
+                    </div>
+                 </div>
                 
                 <div className="space-y-4">
                     <Label>Sizes (in {formData.unit})</Label>
@@ -157,7 +219,7 @@ export default function AdminSizeChartsPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Name</TableHead>
-                      <TableHead>Sizes</TableHead>
+                      <TableHead>Categories</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -166,7 +228,7 @@ export default function AdminSizeChartsPage() {
                       Array.from({ length: 3 }).map((_, index) => (
                           <TableRow key={index}>
                             <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                            <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                             <TableCell className="text-right"><Skeleton className="h-8 w-20" /></TableCell>
                           </TableRow>
                       ))
@@ -174,7 +236,9 @@ export default function AdminSizeChartsPage() {
                       sizeCharts.map((chart) => (
                         <TableRow key={chart._id}>
                           <TableCell className="font-medium">{chart.name}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{chart.sizes.map(s => s.size).join(', ')}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground truncate max-w-[150px]">
+                            {chart.categoryIds?.map(id => categoryMap.get(id)).filter(Boolean).join(', ') || 'N/A'}
+                          </TableCell>
                           <TableCell className="text-right">
                             <Button variant="ghost" size="icon" className="mr-2" onClick={() => handleEditClick(chart)}>
                               <Edit className="h-4 w-4" />

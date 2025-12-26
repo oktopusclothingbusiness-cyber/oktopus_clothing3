@@ -16,6 +16,7 @@ export type SizeChart = {
   name: string;
   sizes: SizeEntry[];
   unit: 'inch' | 'cm';
+  categoryIds: string[];
   createdAt: string;
 };
 
