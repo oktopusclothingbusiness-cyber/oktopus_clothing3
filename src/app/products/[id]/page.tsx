@@ -1,5 +1,4 @@
 
-
 'use client'
 
 import * as React from "react";
@@ -54,9 +53,10 @@ export default function ProductDetailPage() {
 
   React.useEffect(() => {
     if (product && !categoriesLoading && !sizeChartsLoading) {
-      const category = categories.find(c => c.id === product.category);
-      if (category?.sizeChartId) {
-        const chart = sizeCharts.find(sc => sc._id === category.sizeChartId);
+      // Find the first category of the product that has a size chart
+      const productCategory = categories.find(c => product.category.includes(c.id) && c.sizeChartId);
+      if (productCategory?.sizeChartId) {
+        const chart = sizeCharts.find(sc => sc._id === productCategory.sizeChartId);
         setSizeChart(chart || null);
       } else {
         setSizeChart(null);

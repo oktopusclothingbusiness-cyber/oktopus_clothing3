@@ -45,7 +45,7 @@ function ProductListComponent() {
         );
     }
     if (categoryId) {
-        tempProducts = tempProducts.filter(product => product.category === categoryId);
+        tempProducts = tempProducts.filter(product => product.category.includes(categoryId));
     }
     return tempProducts;
   }, [products, searchQuery, categoryId]);

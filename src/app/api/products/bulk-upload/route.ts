@@ -20,13 +20,16 @@ const findCaseInsensitiveKey = (obj: any, key: string) => {
 const parseProduct = (item: any, categoryMap: Map<string, Category>, rowIndex: number) => {
     const errors: string[] = [];
 
-    const categoryKey = findCaseInsensitiveKey(item, 'category');
-    const categoryName = categoryKey ? item[categoryKey]?.toString().trim().toLowerCase() : undefined;
-    const category = categoryName ? categoryMap.get(categoryName) : undefined;
+    const categoriesKey = findCaseInsensitiveKey(item, 'categories');
+    const categoryNamesStr = categoriesKey ? item[categoriesKey]?.toString().trim() : '';
+    const categoryNames = categoryNamesStr.split(',').map((name: string) => name.trim().toLowerCase()).filter(Boolean);
+    const categoryIds = categoryNames.map((name: string) => categoryMap.get(name)?.id).filter(Boolean);
     
     if (!item.name) errors.push('Missing name');
     if (isNaN(parseFloat(item.price))) errors.push('Invalid price');
-    if (!category) errors.push(`Category '${categoryKey ? item[categoryKey] : 'undefined'}' not found`);
+    if (categoryIds.length === 0 && categoryNames.length > 0) errors.push(`Categories '${categoryNames.join(', ')}' not found`);
+    if (categoryIds.length === 0 && categoryNames.length === 0) errors.push('At least one category is required');
+
 
     const imageUrlsKey = findCaseInsensitiveKey(item, 'imageUrls');
     const imageUrlsValue = imageUrlsKey ? item[imageUrlsKey] : '';
@@ -55,7 +58,7 @@ const parseProduct = (item: any, categoryMap: Map<string, Category>, rowIndex: n
             rating: ratingKey && item[ratingKey] ? parseFloat(item[ratingKey]) : 4.5,
             stock: stockKey && item[stockKey] ? parseInt(item[stockKey], 10) : 100,
             imageUrls: imageUrls,
-            category: category ? category.id : '', // Use category ID
+            category: categoryIds, // Use array of category IDs
             sizes: sizesKey && typeof item[sizesKey] === 'string' ? (item[sizesKey] || '').split(',').map((s: string) => s.trim()).filter((s: string) => s) : [],
             colors: colorsKey && typeof item[colorsKey] === 'string' ? (item[colorsKey] || '').split(',').map((c: string) => c.trim()).filter((c: string) => c) : [],
             featured: (featuredKey && item[featuredKey]?.toString().toUpperCase()) === 'TRUE',
@@ -90,11 +93,15 @@ export async function POST(request: Request) {
         // Identify and create new categories
         const newCategoryNames = new Set<string>();
         productsData.forEach(item => {
-            const categoryKey = findCaseInsensitiveKey(item, 'category');
-            const categoryName = categoryKey ? item[categoryKey]?.toString().trim() : undefined;
-            if (categoryName && !categoryMap.has(categoryName.toLowerCase())) {
-                newCategoryNames.add(categoryName);
-            }
+            const categoriesKey = findCaseInsensitiveKey(item, 'categories');
+            const categoryNamesStr = categoriesKey ? item[categoriesKey]?.toString().trim() : '';
+            const categoryNames = categoryNamesStr.split(',').map((name: string) => name.trim()).filter(Boolean);
+            
+            categoryNames.forEach((name: string) => {
+                if (name && !categoryMap.has(name.toLowerCase())) {
+                    newCategoryNames.add(name);
+                }
+            });
         });
 
         if (newCategoryNames.size > 0) {

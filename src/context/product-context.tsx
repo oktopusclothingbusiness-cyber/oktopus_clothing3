@@ -16,7 +16,7 @@ export type Product = {
   rating?: number;
   stock?: number;
   imageUrls: string[];
-  category: string;
+  category: string[];
   sizes: string[];
   colors: string[];
   featured?: boolean;
@@ -51,7 +51,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Failed to fetch products');
       }
       const data = await response.json();
-      const productsWithId = data.map((p: any) => ({ ...p, id: p._id.toString(), cost: p.cost || 0 }));
+      const productsWithId = data.map((p: any) => ({ ...p, id: p._id.toString(), cost: p.cost || 0, category: p.category || [] }));
       setProducts(productsWithId);
     } catch (error) {
       console.error(error);

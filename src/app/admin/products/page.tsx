@@ -9,15 +9,18 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import Image from 'next/image';
-import { Trash2, Edit, Loader2, PlusCircle, Star, Upload, FileDown, Search } from 'lucide-react';
+import { Trash2, Edit, Loader2, PlusCircle, Star, Upload, FileDown, Search, ChevronsUpDown, Check } from 'lucide-react';
 import { useProduct, Product } from '@/context/product-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { useCategory, Category } from '@/context/category-context';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
+
 
 const emptyProduct = {
     id: '',
@@ -32,7 +35,7 @@ const emptyProduct = {
     imageUrls: '',
     sizes: '',
     colors: '',
-    category: '',
+    category: [],
     featured: false,
     isHero: false
 };
@@ -40,13 +43,14 @@ const emptyProduct = {
 export default function AdminProductsPage() {
     const { products, addProduct, deleteProduct, updateProduct, setHeroProduct, loading, fetchProducts } = useProduct();
     const { categories, loading: categoriesLoading } = useCategory();
-    const [formData, setFormData] = React.useState(emptyProduct);
+    const [formData, setFormData] = React.useState<Omit<Product, '_id' | 'createdAt' | 'category'> & { category: string[] }>(emptyProduct);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isEditing, setIsEditing] = React.useState(false);
     const [bulkFile, setBulkFile] = React.useState<File | null>(null);
     const [isUploading, setIsUploading] = React.useState(false);
     const [searchTerm, setSearchTerm] = React.useState('');
     const { toast } = useToast();
+    const [openCategorySelector, setOpenCategorySelector] = React.useState(false);
     
     const filteredProducts = React.useMemo(() => {
         if (!searchTerm) return products;
@@ -63,8 +67,13 @@ export default function AdminProductsPage() {
         setFormData(prev => ({ ...prev, [name]: numValue }));
     };
 
-    const handleCategoryChange = (value: string) => {
-        setFormData(prev => ({ ...prev, category: value }));
+    const handleCategorySelect = (categoryId: string) => {
+        setFormData(prev => {
+            const newCategories = prev.category.includes(categoryId)
+                ? prev.category.filter(id => id !== categoryId)
+                : [...prev.category, categoryId];
+            return { ...prev, category: newCategories };
+        });
     };
     
     const handleEditClick = (product: Product) => {
@@ -90,7 +99,7 @@ export default function AdminProductsPage() {
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (formData.name && formData.price && formData.imageUrls && formData.category) {
+        if (formData.name && formData.price && formData.imageUrls && formData.category.length > 0) {
             setIsSubmitting(true);
             
             const productData = {
@@ -118,6 +127,12 @@ export default function AdminProductsPage() {
             
             resetForm();
             setIsSubmitting(false);
+        } else {
+            toast({
+                title: 'Missing Fields',
+                description: 'Please fill out all required fields, including at least one category.',
+                variant: 'destructive',
+            });
         }
     };
 
@@ -177,6 +192,9 @@ export default function AdminProductsPage() {
             setIsUploading(false);
         }
     };
+    
+    const selectedCategories = categories.filter(cat => formData.category.includes(cat.id));
+
 
   return (
     <>
@@ -227,19 +245,47 @@ export default function AdminProductsPage() {
                   <Textarea id="imageUrls" name="imageUrls" value={formData.imageUrls} onChange={handleInputChange} placeholder="Comma-separated URLs" required disabled={isSubmitting} />
                   <p className="text-xs text-muted-foreground">Enter multiple image URLs separated by commas.</p>
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="category">Category</Label>
-                    <Select onValueChange={handleCategoryChange} value={formData.category} disabled={isSubmitting || categoriesLoading}>
-                        <SelectTrigger id="category">
-                            <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {categories.map((cat) => (
-                                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
+                 <div className="space-y-2">
+                    <Label>Categories</Label>
+                     <Popover open={openCategorySelector} onOpenChange={setOpenCategorySelector}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                role="combobox"
+                                className="w-full justify-between"
+                                disabled={categoriesLoading || isSubmitting}
+                            >
+                                <span className="truncate">
+                                    {selectedCategories.length > 0 ? selectedCategories.map(c => c.name).join(', ') : "Select categories..."}
+                                </span>
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[300px] p-0">
+                            <Command>
+                                <CommandInput placeholder="Search categories..." />
+                                <CommandList>
+                                    <CommandEmpty>No categories found.</CommandEmpty>
+                                    <CommandGroup>
+                                        {categories.map((category) => (
+                                            <CommandItem
+                                                key={category.id}
+                                                value={category.name}
+                                                onSelect={() => handleCategorySelect(category.id)}
+                                            >
+                                                <Check className={cn("mr-2 h-4 w-4", formData.category.includes(category.id) ? "opacity-100" : "opacity-0")} />
+                                                {category.name}
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                        {selectedCategories.map(c => <Badge key={c.id} variant="secondary">{c.name}</Badge>)}
+                    </div>
+                 </div>
                   <div className="space-y-2">
                   <Label htmlFor="sizes">Sizes</Label>
                   <Input id="sizes" name="sizes" value={formData.sizes} onChange={handleInputChange} placeholder="e.g., S, M, L, XL" disabled={isSubmitting} />

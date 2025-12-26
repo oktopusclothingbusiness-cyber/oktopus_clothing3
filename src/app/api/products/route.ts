@@ -11,16 +11,21 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const searchQuery = searchParams.get('q');
+    const categoryId = searchParams.get('category');
 
-    let query = {};
+
+    let query: any = {};
     if (searchQuery) {
-      query = {
-        $or: [
-          { name: { $regex: searchQuery, $options: 'i' } },
-          { description: { $regex: searchQuery, $options: 'i' } }
-        ]
-      };
+      query.$or = [
+        { name: { $regex: searchQuery, $options: 'i' } },
+        { description: { $regex: searchQuery, $options: 'i' } }
+      ];
     }
+    
+    if (categoryId) {
+      query.category = categoryId;
+    }
+
 
     const products = await db.collection('products').find(query).toArray();
     return NextResponse.json(products, { status: 200 });
@@ -38,6 +43,10 @@ export async function POST(request: Request) {
     // Basic validation
     if (!product.name || !product.price || !product.imageUrls || !Array.isArray(product.imageUrls) || product.imageUrls.length === 0) {
       return NextResponse.json({ message: 'Missing required fields.' }, { status: 400 });
+    }
+    
+    if (!Array.isArray(product.category)) {
+      product.category = [];
     }
 
     const client = await clientPromise;

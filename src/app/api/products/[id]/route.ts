@@ -45,6 +45,10 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         if (updateData.originalPrice === '') {
             updateData.originalPrice = undefined;
         }
+        
+        if (updateData.category && !Array.isArray(updateData.category)) {
+          updateData.category = [updateData.category];
+        }
 
         const client = await clientPromise;
         const db = client.db();
