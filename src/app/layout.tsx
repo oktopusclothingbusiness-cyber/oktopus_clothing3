@@ -71,11 +71,12 @@ const VisitorTracker = () => {
   )
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await getSettings();
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${archivo.variable} font-sans`}>
@@ -96,7 +97,7 @@ export default function RootLayout({
                                     <TrendProvider>
                                         <CartProvider>
                                         <PageTransitionProvider>
-                                            <PageLoader />
+                                            <PageLoader faviconUrl={settings.faviconUrl} />
                                             {children}
                                             <FloatingCartButton />
                                         </PageTransitionProvider>

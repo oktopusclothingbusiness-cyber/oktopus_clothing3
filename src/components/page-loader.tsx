@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
-export const PageLoader = () => {
+export const PageLoader = ({ faviconUrl }: { faviconUrl: string }) => {
   const { isTransitioning } = usePageTransition();
   const [mounted, setMounted] = useState(false);
 
@@ -25,9 +25,9 @@ export const PageLoader = () => {
         isTransitioning ? 'opacity-100' : 'opacity-0'
       )}
     >
-      <div className="animate-pulse-slow">
+      <div className="animate-pulse">
         <Image
-          src="https://i.ibb.co/m7cT70M/low-res-logo.png"
+          src={faviconUrl}
           alt="Loading..."
           width={80}
           height={80}
