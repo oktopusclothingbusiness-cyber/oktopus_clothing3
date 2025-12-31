@@ -13,6 +13,7 @@ import mapboxgl from 'mapbox-gl';
 // @ts-ignore
 mapboxgl.workerClass = require('mapbox-gl/dist/mapbox-gl-csp-worker').default;
 
+
 const MAPBOX_TOKEN = "pk.eyJ1Ijoib2t0b3B1c2MiLCJhIjoiY21keGUyNjU0MXhwYjJsc2FrcGZsd290eCJ9.mEjrHNxJYljQLhjVslo_iw";
 
 interface LocationMapProps {
