@@ -8,11 +8,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, User, MapPin, CreditCard, Package, FileText, Send } from 'lucide-react';
+import { ArrowLeft, Loader2, User, MapPin, CreditCard, Package, FileText, Send, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import LocationMap from '@/components/location-map';
 import Link from 'next/link';
+import Image from 'next/image';
 
 type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'packed' | 'shipped' | 'delivered';
 
@@ -44,6 +45,7 @@ type Order = {
     razorpay_payment_id?: string;
     paymentStatus?: 'paid' | 'pending' 
   };
+  collectibleUrl?: string;
 };
 
 export default function OrderDetailsPage() {
@@ -226,6 +228,18 @@ export default function OrderDetailsPage() {
                            </div>
                         </CardFooter>
                     </Card>
+                     {order.collectibleUrl && (
+                        <Card>
+                             <CardHeader>
+                                <CardTitle className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-yellow-500" />AI Collectible</CardTitle>
+                             </CardHeader>
+                             <CardContent className="flex items-center justify-center">
+                                <a href={order.collectibleUrl} target="_blank" rel="noopener noreferrer">
+                                    <Image src={order.collectibleUrl} alt="AI Collectible" width={300} height={400} className="rounded-lg shadow-lg border" />
+                                </a>
+                             </CardContent>
+                        </Card>
+                    )}
                 </div>
                 <div className="space-y-8">
                     <Card>
@@ -293,3 +307,4 @@ export default function OrderDetailsPage() {
     
 
     
+

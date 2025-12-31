@@ -5,6 +5,7 @@ import { OrderStatusUpdateEmail } from '@/emails/order-status-update';
 import { PromotionalEmail } from '@/emails/promotional-email';
 import { InvoiceEmail } from '@/emails/invoice-email';
 import clientPromise from './mongodb';
+import { CollectibleEmail } from '@/emails/collectible-email';
 
 const resend = new Resend("re_hUGiai9e_8FKbk9HRaRFEpXHgnS755XGr");
 const fromEmail = 'OKTOPUS CLOTHING <onboarding@resend.dev>'; 
@@ -148,6 +149,33 @@ export const sendInvoiceEmail = async ({
     console.error('Error sending invoice email:', error);
   }
 };
+
+type CollectibleEmailProps = {
+  to: string;
+  orderId: string;
+  userName: string;
+  collectibleUrl: string;
+};
+
+export const sendCollectibleEmail = async ({
+  to,
+  orderId,
+  userName,
+  collectibleUrl,
+}: CollectibleEmailProps) => {
+  try {
+    await resend.emails.send({
+      from: fromEmail,
+      to: to,
+      subject: `Your Exclusive Collectible for Order #${orderId.slice(-6)} is Here!`,
+      react: CollectibleEmail({ orderId, userName, collectibleUrl }),
+    });
+    console.log(`Collectible email sent to ${to}`);
+  } catch (error) {
+    console.error('Error sending collectible email:', error);
+  }
+};
+
 
 type DataRequestProps = {
   userId: string;

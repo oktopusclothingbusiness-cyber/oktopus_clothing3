@@ -3,7 +3,8 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
-import { sendOrderConfirmationEmail, sendInvoiceEmail } from '@/lib/mail';
+import { sendOrderConfirmationEmail, sendInvoiceEmail, sendCollectibleEmail } from '@/lib/mail';
+import { createCollectible } from '@/ai/flows/create-collectible-flow';
 
 // The Razorpay key secret is now hardcoded.
 // Replace with your actual key secret.
@@ -131,6 +132,9 @@ export async function POST(request: Request) {
                  order: finalOrder,
                  settings: settings,
                });
+               
+               // Asynchronously generate and send collectible
+               generateAndSendCollectible(finalOrder, user.email);
           }
       }
 
@@ -143,4 +147,38 @@ export async function POST(request: Request) {
     console.error('Razorpay Verify Payment Error:', error);
     return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
   }
+}
+
+// Function to generate collectible and email it without blocking the main response
+async function generateAndSendCollectible(order: any, userEmail: string) {
+    try {
+        const collectibleInput = {
+            orderId: order._id.toString(),
+            userName: order.userName,
+            products: order.products.map((p: any) => p.name)
+        };
+        const { collectibleImageUrl } = await createCollectible(collectibleInput);
+
+        const client = await clientPromise;
+        const db = client.db();
+
+        // Save collectible URL to the order
+        await db.collection('orders').updateOne(
+            { _id: order._id },
+            { $set: { collectibleUrl: collectibleImageUrl } }
+        );
+        
+        // Send email to user
+        await sendCollectibleEmail({
+            to: userEmail,
+            orderId: order._id.toString(),
+            userName: order.userName,
+            collectibleUrl: collectibleImageUrl,
+        });
+
+    } catch (e) {
+        console.error("Failed to generate or send collectible:", e);
+        // We don't throw an error here to not fail the whole payment verification
+        // just because the collectible failed.
+    }
 }

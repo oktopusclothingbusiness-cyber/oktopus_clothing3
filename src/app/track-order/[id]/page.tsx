@@ -5,7 +5,7 @@ import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Package, CheckCircle, XCircle, Truck, PackageCheck, PackageOpen, User as UserIcon, MapPin, ArrowLeft, CreditCard } from 'lucide-react';
+import { Loader2, Package, CheckCircle, XCircle, Truck, PackageCheck, PackageOpen, User as UserIcon, MapPin, ArrowLeft, CreditCard, Sparkles } from 'lucide-react';
 import { MobileHeader } from '@/components/mobile-header';
 import { MobileFooter } from '@/components/mobile-footer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import Image from 'next/image';
 
 type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'packed' | 'shipped' | 'delivered' | 'paid';
 
@@ -35,6 +36,7 @@ type Order = {
     razorpay_payment_id?: string;
     paymentStatus?: 'paid' | 'pending' 
   };
+  collectibleUrl?: string;
 };
 
 const statusSteps = [
@@ -211,6 +213,19 @@ export default function TrackOrderDetailPage() {
                     </Card>
                  </div>
                  <div className="space-y-8">
+                     {order.collectibleUrl && (
+                        <Card>
+                             <CardHeader>
+                                <CardTitle className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-yellow-500" />Your Collectible</CardTitle>
+                                <CardDescription>A unique digital art piece for your order.</CardDescription>
+                             </CardHeader>
+                             <CardContent className="flex items-center justify-center">
+                                <a href={order.collectibleUrl} target="_blank" rel="noopener noreferrer">
+                                    <Image src={order.collectibleUrl} alt="AI Collectible" width={300} height={400} className="rounded-lg shadow-lg border" />
+                                </a>
+                             </CardContent>
+                        </Card>
+                    )}
                      <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5" />Shipping Address</CardTitle>
@@ -220,23 +235,6 @@ export default function TrackOrderDetailPage() {
                             <p>{order.shippingAddress.address}</p>
                             <p>Mobile: {order.shippingAddress.mobile}</p>
                             {order.shippingAddress.instructions && <p className="text-xs text-muted-foreground pt-2"><strong>Instructions:</strong> {order.shippingAddress.instructions}</p>}
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><CreditCard className="h-5 w-5" />Payment</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {order.paymentDetails?.paymentStatus === 'paid' ? (
-                                <>
-                                    <p>Paid via Razorpay</p>
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                        Ref: {order.paymentDetails.razorpay_payment_id}
-                                    </p>
-                                </>
-                            ) : (
-                                <p>Pending</p>
-                            )}
                         </CardContent>
                     </Card>
                  </div>
@@ -249,7 +247,7 @@ export default function TrackOrderDetailPage() {
         {/* Mobile View */}
         <div className="md:hidden">
             <MobileHeader title={`Order #${order._id.slice(-6)}`} />
-            <main className="bg-secondary min-h-screen pb-24 p-4">
+            <main className="bg-secondary min-h-screen pb-24 p-4 space-y-4">
                 <Card className="card-glass">
                     <CardHeader>
                         <CardTitle>Order Status</CardTitle>
@@ -281,8 +279,27 @@ export default function TrackOrderDetailPage() {
                                 })}
                             </div>
                         )}
-                         <div className="border-t my-4" />
-                          <h3 className="font-bold mb-2">Order Summary</h3>
+                    </CardContent>
+                </Card>
+                
+                 {order.collectibleUrl && (
+                    <Card className="card-glass">
+                         <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-yellow-500" />Your Collectible</CardTitle>
+                         </CardHeader>
+                         <CardContent className="flex items-center justify-center">
+                            <a href={order.collectibleUrl} target="_blank" rel="noopener noreferrer">
+                                <Image src={order.collectibleUrl} alt="AI Collectible" width={300} height={400} className="rounded-lg shadow-lg border" />
+                            </a>
+                         </CardContent>
+                    </Card>
+                )}
+
+                <Card className="card-glass">
+                    <CardHeader>
+                        <CardTitle>Order Summary</CardTitle>
+                    </CardHeader>
+                     <CardContent>
                           <div className="space-y-1">
                             {order.products.map((p, i) => (
                               <div key={i} className="flex justify-between text-sm">
