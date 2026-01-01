@@ -74,10 +74,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
         console.error("Failed to sign out or remove user from local storage", error);
     }
-    toast({
-        title: "Logged Out",
-        description: "You have been successfully logged out."
-    });
+    setTimeout(() => {
+      toast({
+          title: "Logged Out",
+          description: "You have been successfully logged out."
+      });
+    }, 0);
     router.push('/login');
   };
 
