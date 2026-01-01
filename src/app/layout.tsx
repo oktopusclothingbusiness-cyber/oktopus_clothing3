@@ -20,7 +20,8 @@ import { PageTransitionProvider } from "@/context/page-transition-context";
 import { PageLoader } from "@/components/page-loader";
 import { PopupProvider } from "@/context/popup-context";
 import { SizeChartProvider } from "@/context/size-chart-context";
-import { FramerMotionWrapper } from "@/components/framer-motion-wrapper";
+import { FramerMotionWrapper } from "./framer-motion-wrapper";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const archivo = Archivo({ 
@@ -120,6 +121,7 @@ export default async function RootLayout({
             src="https://checkout.razorpay.com/v1/checkout.js"
           />
           <VisitorTracker />
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
