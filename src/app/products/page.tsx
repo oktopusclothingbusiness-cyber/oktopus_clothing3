@@ -20,6 +20,7 @@ import { ProductCard } from "@/components/product-card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useThemeManager } from "@/context/theme-provider";
+import { usePageTransition } from "@/context/page-transition-context";
 
 
 function ProductListComponent() {
@@ -27,6 +28,7 @@ function ProductListComponent() {
   const { categories, loading: categoriesLoading } = useCategory();
   const searchParams = useSearchParams();
   const { setAccentColor, accentColor } = useThemeManager();
+  const { startTransition } = usePageTransition();
   const [activeGender, setActiveGender] = React.useState<'men' | 'women'>(accentColor.name === 'pink' ? 'women' : 'men');
 
   const searchQuery = searchParams.get('q');
@@ -63,12 +65,15 @@ function ProductListComponent() {
   }, [products, searchQuery, categoryId, activeGender, womenCategoryId]);
 
   const handleToggle = (isWomen: boolean) => {
-    const gender = isWomen ? 'women' : 'men';
-    setActiveGender(gender);
-    if (isWomen) {
-      setAccentColor({ name: 'pink', hsl: '348 83% 60%' });
-    } else {
-      setAccentColor({ name: 'slateBlue', hsl: '240 10% 3.9%' });
+    const newGender = isWomen ? 'women' : 'men';
+    const newThemeName = isWomen ? 'pink' : 'slateBlue';
+    const newHsl = isWomen ? '348 100% 85.3%' : '240 10% 3.9%';
+
+    if (newGender !== activeGender) {
+        startTransition(() => {
+            setActiveGender(newGender);
+            setAccentColor({ name: newThemeName, hsl: newHsl });
+        });
     }
   };
 

@@ -6,7 +6,7 @@ import { ThemeProvider as NextThemesProvider } from "next-themes"
 import { type ThemeProviderProps } from "next-themes/dist/types"
 
 const accentColors = [
-    { name: 'pink', hsl: '348 83% 60%' },
+    { name: 'pink', hsl: '348 100% 85.3%' },
     { name: 'slateBlue', hsl: '240 10% 3.9%' },
 ];
 
@@ -35,8 +35,13 @@ export function ThemeProvider({ children, ...props }: CustomThemeProviderProps) 
   
   // Set default theme on initial load
   React.useEffect(() => {
-    document.documentElement.setAttribute('data-theme', 'slateBlue');
-  }, []);
+    const storedThemeName = localStorage.getItem('app-theme-name');
+    if (storedThemeName === 'pink') {
+      setAccentColor(accentColors[0]);
+    } else {
+      setAccentColor(accentColors[1]);
+    }
+  }, [setAccentColor]);
 
   return (
     <CustomThemeContext.Provider value={{ setAccentColor, accentColor }}>

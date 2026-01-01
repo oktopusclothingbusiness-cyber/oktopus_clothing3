@@ -7,12 +7,14 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/auth-context";
 import { useThemeManager } from "@/context/theme-provider";
+import { usePageTransition } from "@/context/page-transition-context";
 
 
 export const MobileFooter = () => {
     const pathname = usePathname();
     const { user } = useAuth();
     const { setAccentColor } = useThemeManager();
+    const { startTransition } = usePageTransition();
 
     const navItems = [
         { href: '/store', icon: Home, label: 'Home', theme: 'slateBlue' },
@@ -22,10 +24,11 @@ export const MobileFooter = () => {
         { href: user ? '/profile' : '/login', icon: User, label: 'Profile', theme: 'slateBlue' },
     ];
     
-     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, themeName: string) => {
-        // Always revert to default theme when navigating away from products page
+     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
         if (pathname === '/products') {
-            setAccentColor({ name: 'slateBlue', hsl: '240 10% 3.9%' });
+           startTransition(() => {
+                setAccentColor({ name: 'slateBlue', hsl: '240 10% 3.9%' });
+           });
         }
     };
 
@@ -39,7 +42,7 @@ export const MobileFooter = () => {
                         <Link 
                             key={item.label}
                             href={item.href}
-                            onClick={(e) => handleClick(e, item.href, item.theme)}
+                            onClick={(e) => handleClick(e, item.href)}
                             className={cn(
                                 "flex flex-col items-center gap-1 w-16",
                                 isActive ? 'text-primary' : 'text-muted-foreground'
