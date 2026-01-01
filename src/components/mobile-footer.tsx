@@ -34,8 +34,8 @@ export const MobileFooter = () => {
 
 
     return (
-        <footer className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg rounded-t-3xl border-t">
-            <div className="flex justify-around items-center p-2">
+        <footer className="md:hidden fixed bottom-4 left-4 right-4 z-50">
+            <div className="bg-background/80 backdrop-blur-lg border shadow-2xl shadow-black/20 rounded-full flex justify-around items-center p-2">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href || (pathname.startsWith('/products') && item.href === '/products');
                     return (
@@ -44,11 +44,11 @@ export const MobileFooter = () => {
                             href={item.href}
                             onClick={(e) => handleClick(e, item.href)}
                             className={cn(
-                                "flex flex-col items-center gap-1 w-16",
-                                isActive ? 'text-primary' : 'text-muted-foreground'
+                                "flex flex-col items-center justify-center gap-1 w-16 h-12 rounded-full transition-colors",
+                                isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground'
                             )}
                         >
-                            <item.icon className={cn("h-6 w-6", isActive && "fill-current")}/>
+                            <item.icon className={cn("h-6 w-6")}/>
                             <span className="text-xs font-bold truncate">{item.label}</span>
                         </Link>
                     )
