@@ -51,11 +51,11 @@ export const MobileFooter = () => {
                             onClick={(e) => handleClick(e, item.href)}
                             className={cn(
                                 "flex flex-col items-center justify-center gap-1 w-16 h-12 rounded-full transition-colors",
-                                isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground'
+                                isActive ? 'text-primary' : 'text-muted-foreground'
                             )}
                         >
                             {item.isProfile && user ? (
-                                <Avatar className="h-6 w-6 border-2 border-primary">
+                                <Avatar className={cn("h-7 w-7", isActive && "border-2 border-primary")}>
                                     <AvatarImage src={user?.profilePictureUrl} alt="User" />
                                     <AvatarFallback className="text-xs">{getInitials(user?.firstName, user?.lastName)}</AvatarFallback>
                                 </Avatar>
