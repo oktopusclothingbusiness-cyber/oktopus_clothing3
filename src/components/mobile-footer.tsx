@@ -27,7 +27,7 @@ export const MobileFooter = () => {
         { href: '/products', icon: ShoppingBag, label: 'Products', theme: 'slateBlue' },
         { href: '/custom-design', icon: Palette, label: 'Custom', theme: 'slateBlue' },
         { href: '/verify-product', icon: ShieldCheck, label: 'Verify', theme: 'slateBlue' },
-        { href: user ? '/profile' : '/login', icon: user ? null : User, label: 'Profile', theme: 'slateBlue' },
+        { href: user ? '/profile' : '/login', icon: user ? null : User, label: 'Profile', theme: 'slateBlue', isProfile: true },
     ];
     
      const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -54,15 +54,15 @@ export const MobileFooter = () => {
                                 isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground'
                             )}
                         >
-                            {item.icon ? (
-                                <item.icon className={cn("h-6 w-6")}/>
-                            ) : (
+                            {item.isProfile && user ? (
                                 <Avatar className="h-6 w-6 border-2 border-primary">
                                     <AvatarImage src={user?.profilePictureUrl} alt="User" />
                                     <AvatarFallback className="text-xs">{getInitials(user?.firstName, user?.lastName)}</AvatarFallback>
                                 </Avatar>
-                            )}
-                            <span className="text-xs font-bold truncate">{item.label}</span>
+                            ) : item.icon ? (
+                                <item.icon className={cn("h-6 w-6")}/>
+                            ) : null }
+                            {!item.isProfile && <span className="text-xs font-bold truncate">{item.label}</span>}
                         </Link>
                     )
                 })}
