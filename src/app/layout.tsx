@@ -99,10 +99,10 @@ export default async function RootLayout({
                                         <CartProvider>
                                         <PageTransitionProvider>
                                             <FramerMotionWrapper>
-                                                <PageLoader faviconUrl={settings.faviconUrl} />
                                                 {children}
-                                                <FloatingCartButton />
                                             </FramerMotionWrapper>
+                                            <PageLoader faviconUrl={settings.faviconUrl} />
+                                            <FloatingCartButton />
                                         </PageTransitionProvider>
                                         </CartProvider>
                                     </TrendProvider>
