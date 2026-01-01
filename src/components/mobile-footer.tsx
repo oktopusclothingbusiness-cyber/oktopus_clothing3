@@ -43,7 +43,7 @@ export const MobileFooter = () => {
         <footer className="md:hidden fixed bottom-4 left-4 right-4 z-50">
             <div className="bg-background/60 backdrop-blur-lg border shadow-2xl shadow-black/20 rounded-full flex justify-around items-center p-2">
                 {navItems.map((item) => {
-                    const isActive = pathname === item.href || (pathname.startsWith('/products') && item.href === '/products');
+                    const isActive = pathname === item.href || (pathname.startsWith('/products') && item.href === '/products') || (pathname.startsWith('/profile') && item.href === '/profile') || (pathname.startsWith('/orders') && item.href === '/profile');
                     return (
                         <Link 
                             key={item.label}
@@ -62,7 +62,6 @@ export const MobileFooter = () => {
                             ) : item.icon ? (
                                 <item.icon className={cn("h-6 w-6")}/>
                             ) : null }
-                            {!item.isProfile && <span className="text-xs font-bold truncate">{item.label}</span>}
                         </Link>
                     )
                 })}
