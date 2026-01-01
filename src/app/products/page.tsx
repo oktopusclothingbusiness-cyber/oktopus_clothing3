@@ -26,8 +26,8 @@ function ProductListComponent() {
   const { products, loading: productsLoading } = useProduct();
   const { categories, loading: categoriesLoading } = useCategory();
   const searchParams = useSearchParams();
-  const { setAccentColor } = useThemeManager();
-  const [activeGender, setActiveGender] = React.useState<'men' | 'women'>('men');
+  const { setAccentColor, accentColor } = useThemeManager();
+  const [activeGender, setActiveGender] = React.useState<'men' | 'women'>(accentColor.name === 'pink' ? 'women' : 'men');
 
   const searchQuery = searchParams.get('q');
   const categoryId = searchParams.get('category');
@@ -66,9 +66,9 @@ function ProductListComponent() {
     const gender = isWomen ? 'women' : 'men';
     setActiveGender(gender);
     if (isWomen) {
-      setAccentColor({ name: 'pink', hsl: '348 83% 60%' }); // #ff8fa3 -> 348 100% 77% is too light for primary text
+      setAccentColor({ name: 'pink', hsl: '348 83% 60%' });
     } else {
-      setAccentColor({ name: 'slateBlue', hsl: '240 16% 29%' });
+      setAccentColor({ name: 'slateBlue', hsl: '240 10% 3.9%' });
     }
   };
 

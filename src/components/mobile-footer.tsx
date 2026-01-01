@@ -12,22 +12,23 @@ import { useThemeManager } from "@/context/theme-provider";
 export const MobileFooter = () => {
     const pathname = usePathname();
     const { user } = useAuth();
-    const { toggleAccentColor } = useThemeManager();
+    const { setAccentColor } = useThemeManager();
 
     const navItems = [
-        { href: '/store', icon: Home, label: 'Home' },
-        { href: '/products', icon: ShoppingBag, label: 'Products' },
-        { href: '/custom-design', icon: Palette, label: 'Custom' },
-        { href: '/verify-product', icon: ShieldCheck, label: 'Verify' },
-        { href: user ? '/profile' : '/login', icon: User, label: 'Profile' },
+        { href: '/store', icon: Home, label: 'Home', theme: 'slateBlue' },
+        { href: '/products', icon: ShoppingBag, label: 'Products', theme: 'slateBlue' },
+        { href: '/custom-design', icon: Palette, label: 'Custom', theme: 'slateBlue' },
+        { href: '/verify-product', icon: ShieldCheck, label: 'Verify', theme: 'slateBlue' },
+        { href: user ? '/profile' : '/login', icon: User, label: 'Profile', theme: 'slateBlue' },
     ];
-
-    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-        // Prevent color change if navigating to the same page
-        if (pathname !== href) {
-            toggleAccentColor();
+    
+     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, themeName: string) => {
+        // Always revert to default theme when navigating away from products page
+        if (pathname === '/products') {
+            setAccentColor({ name: 'slateBlue', hsl: '240 10% 3.9%' });
         }
     };
+
 
     return (
         <footer className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg rounded-t-3xl border-t">
@@ -37,8 +38,8 @@ export const MobileFooter = () => {
                     return (
                         <Link 
                             key={item.label}
-                            href={item.href} 
-                            onClick={(e) => handleClick(e, item.href)}
+                            href={item.href}
+                            onClick={(e) => handleClick(e, item.href, item.theme)}
                             className={cn(
                                 "flex flex-col items-center gap-1 w-16",
                                 isActive ? 'text-primary' : 'text-muted-foreground'

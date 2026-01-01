@@ -6,9 +6,8 @@ import { ThemeProvider as NextThemesProvider } from "next-themes"
 import { type ThemeProviderProps } from "next-themes/dist/types"
 
 const accentColors = [
-    { name: 'orange', hsl: '35 68% 54%' },
-    { name: 'slateBlue', hsl: '240 16% 29%' },
-    { name: 'pink', hsl: '348 100% 77%'},
+    { name: 'pink', hsl: '348 83% 60%' },
+    { name: 'slateBlue', hsl: '240 10% 3.9%' },
 ];
 
 export type AccentColor = (typeof accentColors)[number];
@@ -18,7 +17,6 @@ type CustomThemeProviderProps = ThemeProviderProps & {
 };
 
 type ThemeContextType = {
-  toggleAccentColor: () => void;
   setAccentColor: (color: AccentColor) => void;
   accentColor: AccentColor;
 };
@@ -26,37 +24,22 @@ type ThemeContextType = {
 const CustomThemeContext = React.createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children, ...props }: CustomThemeProviderProps) {
-  const [accentColor, setAccentColorState] = React.useState<AccentColor>(accentColors[1]);
+  const [accentColor, setAccentColorState] = React.useState<AccentColor>(accentColors[1]); // Default to slateBlue
 
   const setAccentColor = React.useCallback((color: AccentColor) => {
     setAccentColorState(color);
     if (typeof window !== 'undefined') {
-        const root = document.documentElement;
-        root.style.setProperty('--primary', color.hsl);
-        root.style.setProperty('--accent', color.hsl);
-        root.style.setProperty('--ring', color.hsl);
+        document.documentElement.setAttribute('data-theme', color.name);
     }
   }, []);
   
-  const toggleAccentColor = React.useCallback(() => {
-    const currentIndex = accentColors.findIndex(c => c.name === accentColor.name);
-    const nextIndex = (currentIndex + 1) % accentColors.length;
-    setAccentColor(accentColors[nextIndex]);
-  }, [accentColor.name, setAccentColor]);
-  
-  const randomAccentColor = React.useCallback(() => {
-    const availableColors = accentColors.filter(c => c.name !== 'pink');
-    const randomIndex = Math.floor(Math.random() * availableColors.length);
-    setAccentColor(availableColors[randomIndex]);
-  }, [setAccentColor]);
-  
-
+  // Set default theme on initial load
   React.useEffect(() => {
-    setAccentColor(accentColors[1]); // Default to slateBlue
-  }, [setAccentColor]);
+    document.documentElement.setAttribute('data-theme', 'slateBlue');
+  }, []);
 
   return (
-    <CustomThemeContext.Provider value={{ toggleAccentColor: randomAccentColor, setAccentColor, accentColor }}>
+    <CustomThemeContext.Provider value={{ setAccentColor, accentColor }}>
       <NextThemesProvider {...props}>{children}</NextThemesProvider>
     </CustomThemeContext.Provider>
   )
