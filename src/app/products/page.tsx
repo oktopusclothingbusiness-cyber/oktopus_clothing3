@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { AddToCartButton } from "@/components/add-to-cart-button";
 import { useProduct } from "@/context/product-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MobileHeader } from "@/components/mobile-header";
@@ -18,24 +17,33 @@ import { useCategory } from "@/context/category-context";
 import { Star } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { ProductCard } from "@/components/product-card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { useThemeManager } from "@/context/theme-provider";
 
 
 function ProductListComponent() {
   const { products, loading: productsLoading } = useProduct();
   const { categories, loading: categoriesLoading } = useCategory();
   const searchParams = useSearchParams();
+  const { setAccentColor } = useThemeManager();
+  const [activeGender, setActiveGender] = React.useState<'men' | 'women'>('men');
+
   const searchQuery = searchParams.get('q');
   const categoryId = searchParams.get('category');
-
+  
   const loading = productsLoading || categoriesLoading;
 
   const categoryName = React.useMemo(() => {
     if (!categoryId || categoriesLoading) return '';
     return categories.find(c => c.id === categoryId)?.name || '';
   }, [categoryId, categories, categoriesLoading]);
-  
+
+  const womenCategoryId = React.useMemo(() => {
+    return categories.find(c => c.name.toLowerCase() === 'women')?.id;
+  }, [categories]);
+
   const filteredProducts = React.useMemo(() => {
-    // Sort products by creation date, newest first
     let tempProducts = [...products].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     if (searchQuery) {
@@ -43,18 +51,48 @@ function ProductListComponent() {
             product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             product.description.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }
-    if (categoryId) {
+    } else if (categoryId) {
         tempProducts = tempProducts.filter(product => product.category.includes(categoryId));
+    } else if (activeGender === 'women' && womenCategoryId) {
+        tempProducts = tempProducts.filter(product => product.category.includes(womenCategoryId));
+    } else if (activeGender === 'men' && womenCategoryId) {
+        tempProducts = tempProducts.filter(product => !product.category.includes(womenCategoryId));
     }
+
     return tempProducts;
-  }, [products, searchQuery, categoryId]);
+  }, [products, searchQuery, categoryId, activeGender, womenCategoryId]);
+
+  const handleToggle = (isWomen: boolean) => {
+    const gender = isWomen ? 'women' : 'men';
+    setActiveGender(gender);
+    if (isWomen) {
+      setAccentColor({ name: 'pink', hsl: '348 100% 77%' });
+    } else {
+      setAccentColor({ name: 'slateBlue', hsl: '240 16% 29%' });
+    }
+  };
 
   const getPageTitle = () => {
     if (searchQuery) return `Search results for "${searchQuery}"`;
     if (categoryId) return categoryName || 'Category Products';
     return 'All Products';
   }
+
+  const MobileProductHeader = () => (
+    <div className="md:hidden sticky top-0 z-50 p-4 bg-background/80 backdrop-blur-lg border-b">
+      <div className="flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+            <Label htmlFor="gender-toggle" className={activeGender === 'men' ? 'text-foreground font-bold' : 'text-muted-foreground'}>Men</Label>
+            <Switch
+                id="gender-toggle"
+                checked={activeGender === 'women'}
+                onCheckedChange={handleToggle}
+            />
+            <Label htmlFor="gender-toggle" className={activeGender === 'women' ? 'text-primary font-bold' : 'text-muted-foreground'}>Women</Label>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
      <>
@@ -95,7 +133,7 @@ function ProductListComponent() {
 
       {/* Mobile View */}
       <div className="md:hidden">
-        <MobileHeader showCart={false} title={getPageTitle()} />
+        <MobileProductHeader />
         <main className="pb-24">
           <div className="grid grid-cols-2 gap-4 p-4">
             {loading ? (

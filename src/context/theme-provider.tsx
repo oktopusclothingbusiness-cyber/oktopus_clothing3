@@ -8,9 +8,10 @@ import { type ThemeProviderProps } from "next-themes/dist/types"
 const accentColors = [
     { name: 'orange', hsl: '35 68% 54%' },
     { name: 'slateBlue', hsl: '240 16% 29%' },
+    { name: 'pink', hsl: '348 100% 77%'},
 ];
 
-type AccentColor = (typeof accentColors)[number];
+export type AccentColor = (typeof accentColors)[number];
 
 type CustomThemeProviderProps = ThemeProviderProps & {
   children: React.ReactNode;
@@ -29,9 +30,10 @@ export function ThemeProvider({ children, ...props }: CustomThemeProviderProps) 
   const setAccentColor = React.useCallback((color: AccentColor) => {
     setAccentColorState(color);
     if (typeof window !== 'undefined') {
-        document.documentElement.style.setProperty('--primary', color.hsl);
-        document.documentElement.style.setProperty('--accent', color.hsl);
-        document.documentElement.style.setProperty('--ring', color.hsl);
+        const root = document.documentElement;
+        root.style.setProperty('--primary', color.hsl);
+        root.style.setProperty('--accent', color.hsl);
+        root.style.setProperty('--ring', color.hsl);
     }
   }, []);
   
@@ -42,13 +44,14 @@ export function ThemeProvider({ children, ...props }: CustomThemeProviderProps) 
   }, [accentColor.name, setAccentColor]);
   
   const randomAccentColor = React.useCallback(() => {
-    const randomIndex = Math.floor(Math.random() * accentColors.length);
-    setAccentColor(accentColors[randomIndex]);
+    const availableColors = accentColors.filter(c => c.name !== 'pink');
+    const randomIndex = Math.floor(Math.random() * availableColors.length);
+    setAccentColor(availableColors[randomIndex]);
   }, [setAccentColor]);
   
 
   React.useEffect(() => {
-    setAccentColor(accentColors[0]);
+    setAccentColor(accentColors[1]); // Default to slateBlue
   }, [setAccentColor]);
 
   return (
