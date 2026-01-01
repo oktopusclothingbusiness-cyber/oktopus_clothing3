@@ -55,12 +55,12 @@ export const MobileFooter = () => {
                             )}
                         >
                             {item.isProfile && user ? (
-                                <Avatar className={cn("h-7 w-7", isActive && "border-2 border-primary")}>
+                                <Avatar className={cn("h-8 w-8", isActive && "border-2 border-primary")}>
                                     <AvatarImage src={user?.profilePictureUrl} alt="User" />
                                     <AvatarFallback className="text-xs">{getInitials(user?.firstName, user?.lastName)}</AvatarFallback>
                                 </Avatar>
                             ) : item.icon ? (
-                                <item.icon className={cn("h-6 w-6")}/>
+                                <item.icon className={cn("h-7 w-7")}/>
                             ) : null }
                         </Link>
                     )
