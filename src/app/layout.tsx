@@ -20,6 +20,7 @@ import { PageTransitionProvider } from "@/context/page-transition-context";
 import { PageLoader } from "@/components/page-loader";
 import { PopupProvider } from "@/context/popup-context";
 import { SizeChartProvider } from "@/context/size-chart-context";
+import { FramerMotionWrapper } from "@/components/framer-motion-wrapper";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const archivo = Archivo({ 
@@ -97,9 +98,11 @@ export default async function RootLayout({
                                     <TrendProvider>
                                         <CartProvider>
                                         <PageTransitionProvider>
-                                            <PageLoader faviconUrl={settings.faviconUrl} />
-                                            {children}
-                                            <FloatingCartButton />
+                                            <FramerMotionWrapper>
+                                                <PageLoader faviconUrl={settings.faviconUrl} />
+                                                {children}
+                                                <FloatingCartButton />
+                                            </FramerMotionWrapper>
                                         </PageTransitionProvider>
                                         </CartProvider>
                                     </TrendProvider>

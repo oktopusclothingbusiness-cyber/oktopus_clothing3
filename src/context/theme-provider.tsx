@@ -20,12 +20,13 @@ type CustomThemeProviderProps = ThemeProviderProps & {
 type ThemeContextType = {
   toggleAccentColor: () => void;
   setAccentColor: (color: AccentColor) => void;
+  accentColor: AccentColor;
 };
 
 const CustomThemeContext = React.createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children, ...props }: CustomThemeProviderProps) {
-  const [accentColor, setAccentColorState] = React.useState<AccentColor>(accentColors[0]);
+  const [accentColor, setAccentColorState] = React.useState<AccentColor>(accentColors[1]);
 
   const setAccentColor = React.useCallback((color: AccentColor) => {
     setAccentColorState(color);
@@ -55,7 +56,7 @@ export function ThemeProvider({ children, ...props }: CustomThemeProviderProps) 
   }, [setAccentColor]);
 
   return (
-    <CustomThemeContext.Provider value={{ toggleAccentColor: randomAccentColor, setAccentColor }}>
+    <CustomThemeContext.Provider value={{ toggleAccentColor: randomAccentColor, setAccentColor, accentColor }}>
       <NextThemesProvider {...props}>{children}</NextThemesProvider>
     </CustomThemeContext.Provider>
   )

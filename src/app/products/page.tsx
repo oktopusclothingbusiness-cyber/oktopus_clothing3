@@ -66,7 +66,7 @@ function ProductListComponent() {
     const gender = isWomen ? 'women' : 'men';
     setActiveGender(gender);
     if (isWomen) {
-      setAccentColor({ name: 'pink', hsl: '348 100% 77%' });
+      setAccentColor({ name: 'pink', hsl: '348 83% 60%' }); // #ff8fa3 -> 348 100% 77% is too light for primary text
     } else {
       setAccentColor({ name: 'slateBlue', hsl: '240 16% 29%' });
     }
