@@ -14,7 +14,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
 import { useCart } from "@/context/cart-context";
-import { Star, ShoppingCart, Heart, Ruler } from "lucide-react";
+import { Star, ShoppingCart, Heart, Ruler, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
@@ -84,6 +84,7 @@ export default function ProductDetailPage() {
   }
   
   const isWishlisted = product ? isInWishlist(product.id) : false;
+  const isOutOfStock = product ? (product.stock || 0) <= 0 : false;
 
   const pageLoading = loading || product === undefined || sizeChartsLoading;
 
@@ -219,9 +220,15 @@ export default function ProductDetailPage() {
                   )}
                 </div>
                 <div className="flex gap-2">
-                    <Button onClick={handleAddToCart} className="w-full" size="lg">
-                        <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
-                    </Button>
+                    {isOutOfStock ? (
+                        <Button disabled className="w-full" size="lg">
+                            <XCircle className="mr-2 h-4 w-4" /> Out of Stock
+                        </Button>
+                    ) : (
+                        <Button onClick={handleAddToCart} className="w-full" size="lg">
+                            <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
+                        </Button>
+                    )}
                     <Button onClick={handleWishlistToggle} size="lg" variant="outline">
                         <Heart className={cn("mr-2 h-4 w-4", isWishlisted && "fill-red-500 text-red-500")} />
                         {isWishlisted ? "Wishlisted" : "Wishlist"}
@@ -332,9 +339,15 @@ export default function ProductDetailPage() {
                         </div>
                        )}
                     </div>
-                    <Button onClick={handleAddToCart} className="w-full" size="lg">
-                        <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
-                    </Button>
+                     {isOutOfStock ? (
+                        <Button disabled className="w-full" size="lg">
+                            <XCircle className="mr-2 h-4 w-4" /> Out of Stock
+                        </Button>
+                    ) : (
+                        <Button onClick={handleAddToCart} className="w-full" size="lg">
+                            <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
+                        </Button>
+                    )}
                 </div>
             </main>
             <MobileFooter/>

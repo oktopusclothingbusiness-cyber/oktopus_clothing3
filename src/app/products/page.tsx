@@ -46,7 +46,11 @@ function ProductListComponent() {
   }, [categories]);
 
   const filteredProducts = React.useMemo(() => {
-    let tempProducts = [...products].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    // Start with only in-stock products
+    let tempProducts = products.filter(p => p.stock && p.stock > 0);
+
+    // Sort by creation date
+    tempProducts = tempProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     if (searchQuery) {
         tempProducts = tempProducts.filter(product => 
