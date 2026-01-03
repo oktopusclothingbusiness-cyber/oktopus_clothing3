@@ -59,6 +59,12 @@ const nextConfig: NextConfig = {
         hostname: 's4.ezgif.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'smartpos.amazon.in',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
