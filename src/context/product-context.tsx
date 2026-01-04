@@ -51,7 +51,9 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Failed to fetch products');
       }
       const data = await response.json();
-      const productsWithId = data.map((p: any) => ({ ...p, id: p._id.toString(), cost: p.cost || 0, category: p.category || [] }));
+      const productsWithId = data
+        .map((p: any) => ({ ...p, id: p._id.toString(), cost: p.cost || 0, category: p.category || [] }))
+        .filter((p: Product) => p.stock === undefined || p.stock > 0); // Filter out products with stock 0 or less
       setProducts(productsWithId);
     } catch (error) {
       console.error(error);
