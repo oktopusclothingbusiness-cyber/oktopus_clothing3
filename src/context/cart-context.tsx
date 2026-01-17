@@ -60,42 +60,41 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [user]);
 
-  useEffect(() => {
-    const fetchSettingsAndCart = async () => {
-        try {
-            const response = await fetch('/api/settings');
-            if (response.ok) {
-                const data = await response.json();
-                setShipping(data.deliveryCharge || 0);
-            }
-        } catch (error) {
-            console.error("Failed to fetch settings for shipping:", error);
-            setShipping(0); // Default to free shipping on error
-        }
-
-        if (user?._id) {
-            try {
-                const res = await fetch(`/api/users/${user._id}/cart`);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.cart) {
-                        setCart(data.cart);
-                    }
-                }
-            } catch (error) {
-                 console.error("Failed to fetch cart from DB", error);
-            }
-        } else {
-          // If no user, clear the cart state.
-          setCart([]);
-          setAppliedCoupon(null);
-        }
-    };
-    
-    if (!authLoading) {
-        fetchSettingsAndCart();
+  const fetchCartAndSettings = useCallback(async () => {
+    try {
+      const response = await fetch('/api/settings');
+      if (response.ok) {
+        const data = await response.json();
+        setShipping(data.deliveryCharge || 0);
+      }
+    } catch (error) {
+      console.error("Failed to fetch settings for shipping:", error);
+      setShipping(0);
     }
-  }, [user, authLoading]);
+
+    if (user?._id) {
+      try {
+        const res = await fetch(`/api/users/${user._id}/cart`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.cart) {
+            setCart(data.cart);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch cart from DB", error);
+      }
+    } else {
+      setCart([]);
+      setAppliedCoupon(null);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!authLoading) {
+      fetchCartAndSettings();
+    }
+  }, [authLoading, fetchCartAndSettings]);
 
   const subtotal = useMemo(() => {
       return cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
