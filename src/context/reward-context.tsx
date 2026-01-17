@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 export type Reward = {
@@ -31,7 +31,7 @@ export const RewardProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchRewards = async () => {
+  const fetchRewards = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/rewards');
@@ -51,13 +51,13 @@ export const RewardProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchRewards();
-  }, []);
+  }, [fetchRewards]);
 
-  const addReward = async (reward: AddReward) => {
+  const addReward = useCallback(async (reward: AddReward) => {
      try {
       const response = await fetch('/api/rewards', {
         method: 'POST',
@@ -79,9 +79,9 @@ export const RewardProvider = ({ children }: { children: ReactNode }) => {
         variant: 'destructive',
       });
     }
-  };
+  }, [fetchRewards, toast]);
 
-  const deleteReward = async (rewardId: string) => {
+  const deleteReward = useCallback(async (rewardId: string) => {
     try {
       const response = await fetch(`/api/rewards/${rewardId}`, {
         method: 'DELETE',
@@ -101,9 +101,9 @@ export const RewardProvider = ({ children }: { children: ReactNode }) => {
         variant: 'destructive',
       });
     }
-  };
+  }, [toast]);
   
-  const updateReward = async (updatedReward: UpdateReward) => {
+  const updateReward = useCallback(async (updatedReward: UpdateReward) => {
      try {
       const response = await fetch(`/api/rewards/${updatedReward.id}`, {
         method: 'PUT',
@@ -125,7 +125,7 @@ export const RewardProvider = ({ children }: { children: ReactNode }) => {
         variant: 'destructive',
       });
     }
-  };
+  }, [toast]);
 
   return (
     <RewardContext.Provider value={{ rewards, addReward, deleteReward, updateReward, loading }}>
