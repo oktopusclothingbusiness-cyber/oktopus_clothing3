@@ -23,6 +23,7 @@ type UserContextType = {
   loading: boolean;
   deleteUser: (userId: string) => Promise<void>;
   updateUserRole: (userId: string, role: 'user' | 'admin') => Promise<void>;
+  updateUserOktocoins: (userId: string, oktocoins: number) => Promise<void>;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -106,9 +107,34 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateUserOktocoins = async (userId: string, oktocoins: number) => {
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oktocoins }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update Oktocoins');
+      }
+      setUsers(prev => prev.map(u => (u.id === userId ? { ...u, oktocoins } : u)));
+      toast({
+        title: "Oktocoins Updated",
+        description: `The user's balance has been successfully updated.`,
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update the Oktocoin balance.',
+        variant: 'destructive',
+      });
+    }
+  };
+
 
   return (
-    <UserContext.Provider value={{ users, loading, deleteUser, updateUserRole }}>
+    <UserContext.Provider value={{ users, loading, deleteUser, updateUserRole, updateUserOktocoins }}>
       {children}
     </UserContext.Provider>
   );

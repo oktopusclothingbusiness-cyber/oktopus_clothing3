@@ -6,7 +6,7 @@ import { useUser, User } from '@/context/user-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, Edit, Loader2, Coins } from 'lucide-react';
+import { Trash2, Loader2, Coins } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -21,22 +21,57 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import { Input } from '@/components/ui/input';
 
 export default function UsersPage() {
-    const { users, loading, deleteUser, updateUserRole } = useUser();
+    const { users, loading, deleteUser, updateUserRole, updateUserOktocoins } = useUser();
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [coinBalances, setCoinBalances] = React.useState<{ [key: string]: string }>({});
+    const [activeInput, setActiveInput] = React.useState<string | null>(null);
+    
+    React.useEffect(() => {
+        if (users.length > 0) {
+            const initialBalances = users.reduce((acc, user) => {
+                acc[user.id] = (user.oktocoins || 0).toString();
+                return acc;
+            }, {} as { [key: string]: string });
+            setCoinBalances(initialBalances);
+        }
+    }, [users]);
+
+    const handleCoinChange = (userId: string, value: string) => {
+        setCoinBalances(prev => ({ ...prev, [userId]: value }));
+    };
+
+    const handleUpdateCoins = async (userId: string) => {
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        setActiveInput(userId);
+        const newBalance = parseInt(coinBalances[userId] || '0', 10);
+        if (!isNaN(newBalance)) {
+            await updateUserOktocoins(userId, newBalance);
+        }
+        setIsSubmitting(false);
+        setActiveInput(null);
+    };
 
     const handleRoleChange = async (userId: string, role: 'user' | 'admin') => {
+      if (isSubmitting) return;
       setIsSubmitting(true);
+      setActiveInput(userId);
       await updateUserRole(userId, role);
       setIsSubmitting(false);
+      setActiveInput(null);
     };
 
     const handleDeleteUser = async (userId: string) => {
+        if (isSubmitting) return;
         setIsSubmitting(true);
+        setActiveInput(userId);
         await deleteUser(userId);
         setIsSubmitting(false);
+        setActiveInput(null);
     }
     
     const getRoleVariant = (role: string) => {
@@ -85,7 +120,7 @@ export default function UsersPage() {
                               <Select 
                                 defaultValue={user.role} 
                                 onValueChange={(value: 'user' | 'admin') => handleRoleChange(user.id, value)}
-                                disabled={isSubmitting}
+                                disabled={isSubmitting && activeInput === user.id}
                               >
                                 <SelectTrigger className="w-[120px]">
                                     <SelectValue>
@@ -101,14 +136,22 @@ export default function UsersPage() {
                             <TableCell>
                                 <div className="flex items-center gap-2">
                                     <Coins className="h-4 w-4 text-yellow-500" />
-                                    {user.oktocoins || 0}
+                                    <Input
+                                        type="number"
+                                        className="h-8 w-24"
+                                        value={coinBalances[user.id] || ''}
+                                        onChange={(e) => handleCoinChange(user.id, e.target.value)}
+                                        onBlur={() => handleUpdateCoins(user.id)}
+                                        disabled={isSubmitting && activeInput === user.id}
+                                    />
+                                     {(isSubmitting && activeInput === user.id) && <Loader2 className="h-4 w-4 animate-spin" />}
                                 </div>
                             </TableCell>
                             <TableCell>{format(new Date(user.createdAt), 'PP')}</TableCell>
                             <TableCell className="text-right">
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" disabled={isSubmitting}>
+                                    <Button variant="ghost" size="icon" disabled={isSubmitting && activeInput === user.id}>
                                       <Trash2 className="h-4 w-4 text-destructive" />
                                     </Button>
                                   </AlertDialogTrigger>

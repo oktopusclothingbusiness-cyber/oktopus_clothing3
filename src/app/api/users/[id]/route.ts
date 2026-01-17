@@ -36,7 +36,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         }
 
         const body = await request.json();
-        const { role, firstName, lastName, mobile, address, profilePictureUrl } = body;
+        const { role, firstName, lastName, mobile, address, profilePictureUrl, oktocoins } = body;
         
         const updateData: { [key: string]: any } = {};
 
@@ -53,6 +53,15 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         if (address) updateData.address = address;
         if (profilePictureUrl !== undefined) updateData.profilePictureUrl = profilePictureUrl;
         
+        if (oktocoins !== undefined) {
+            const newBalance = parseInt(oktocoins, 10);
+            if (!isNaN(newBalance)) {
+                updateData.oktocoins = newBalance;
+            } else {
+                return NextResponse.json({ message: 'Invalid Oktocoins value.' }, { status: 400 });
+            }
+        }
+
         if (Object.keys(updateData).length === 0) {
             return NextResponse.json({ message: 'No update fields provided.' }, { status: 400 });
         }
