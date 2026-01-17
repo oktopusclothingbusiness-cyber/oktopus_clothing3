@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { Loader2, LogOut, ChevronRight, ShoppingBag, Heart, Edit, Truck, Moon, Settings, FileText, User as UserIcon, Building, Palette, Coins } from 'lucide-react';
+import { Loader2, LogOut, ChevronRight, ShoppingBag, Heart, Edit, Truck, Moon, Settings, FileText, User as UserIcon, Building, Palette } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MobileFooter } from '@/components/mobile-footer';
 import Link from 'next/link';
@@ -83,7 +83,7 @@ export default function ProfilePage() {
                     <h1 className="text-2xl font-bold">{user.firstName} {user.lastName}</h1>
                     <p className="text-muted-foreground text-sm mb-4">{user.email}</p>
                     <div className="flex items-center gap-2 mb-6 bg-yellow-400/20 text-yellow-700 px-3 py-1 rounded-full text-sm">
-                        <Coins className="h-5 w-5" />
+                        <Image src="https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png" alt="Oktocoin" width={20} height={20} />
                         <span className="font-bold">{user.oktocoins || 0}</span>
                         <span>Oktocoins</span>
                     </div>
@@ -146,7 +146,7 @@ export default function ProfilePage() {
                  <h1 className="text-2xl font-bold">{user.firstName} {user.lastName}</h1>
                  <p className="text-muted-foreground text-sm mb-2">{user.email}</p>
                  <div className="flex items-center justify-center gap-2 mt-2 bg-yellow-400/20 text-yellow-700 px-3 py-1 rounded-full text-sm">
-                    <Coins className="h-5 w-5" />
+                    <Image src="https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png" alt="Oktocoin" width={20} height={20} />
                     <span className="font-bold">{user.oktocoins || 0}</span>
                     <span>Oktocoins</span>
                  </div>

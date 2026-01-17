@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -6,7 +5,7 @@ import { useUser, User } from '@/context/user-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, Loader2, Coins } from 'lucide-react';
+import { Trash2, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +22,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Input } from '@/components/ui/input';
+import Image from 'next/image';
 
 export default function UsersPage() {
     const { users, loading, deleteUser, updateUserRole, updateUserOktocoins } = useUser();
@@ -135,7 +135,7 @@ export default function UsersPage() {
                             </TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
-                                    <Coins className="h-4 w-4 text-yellow-500" />
+                                    <Image src="https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png" alt="Oktocoin" width={16} height={16} />
                                     <Input
                                         type="number"
                                         className="h-8 w-24"
