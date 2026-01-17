@@ -115,6 +115,14 @@ export async function POST(request: Request) {
       }
       
       if (finalOrder) {
+          // Award Oktocoins if order total is over 499
+          if (finalOrder.total > 499) {
+            await db.collection('users').updateOne(
+              { _id: new ObjectId(finalOrder.userId) },
+              { $inc: { oktocoins: 100 } }
+            );
+          }
+
           const user = await db.collection('users').findOne({ _id: new ObjectId(finalOrder.userId) });
           if(user) {
                await sendOrderConfirmationEmail({

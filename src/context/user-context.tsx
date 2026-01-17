@@ -15,6 +15,7 @@ export type User = {
   mobile?: string;
   address?: string;
   profilePictureUrl?: string;
+  oktocoins?: number;
 };
 
 type UserContextType = {

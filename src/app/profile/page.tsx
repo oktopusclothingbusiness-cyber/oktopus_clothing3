@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { Loader2, LogOut, ChevronRight, ShoppingBag, Heart, Edit, Truck, Moon, Settings, FileText, User as UserIcon, Building, Palette } from 'lucide-react';
+import { Loader2, LogOut, ChevronRight, ShoppingBag, Heart, Edit, Truck, Moon, Settings, FileText, User as UserIcon, Building, Palette, Coins, Gift } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MobileFooter } from '@/components/mobile-footer';
 import Link from 'next/link';
@@ -67,6 +67,26 @@ export default function ProfilePage() {
     </Link>
   )
 
+  const RewardsCard = () => (
+    <Card className="bg-yellow-400/20 border-yellow-500">
+        <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-yellow-700">
+                <Coins />
+                My Oktocoins
+            </CardTitle>
+        </CardHeader>
+        <CardContent>
+            <p className="text-4xl font-bold text-yellow-800">{user.oktocoins || 0}</p>
+            <p className="text-sm text-yellow-600">points available to redeem</p>
+            <Button size="sm" className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-yellow-900" asChild>
+                <Link href="/rewards">
+                    <Gift className="mr-2 h-4 w-4" /> Redeem Now
+                </Link>
+            </Button>
+        </CardContent>
+    </Card>
+  )
+
   return (
     <>
     {/* Desktop View */}
@@ -93,6 +113,7 @@ export default function ProfilePage() {
                     </Button>
                 </div>
                 <div className="lg:col-span-2 p-6 space-y-4">
+                    <RewardsCard />
                     <div>
                         <h2 className="text-lg font-semibold px-4 mb-2">My Account</h2>
                         {menuItems.slice(0, 4).map((item) => <ListItem key={item.label} item={item} />)}
@@ -144,6 +165,8 @@ export default function ProfilePage() {
                </div>
             </div>
             
+            <RewardsCard />
+
             <Card className="card-glass">
                 <CardContent className="p-2">
                     {menuItems.map((item, index) => (
@@ -201,5 +224,3 @@ export default function ProfilePage() {
     </>
   );
 }
-
-    

@@ -6,7 +6,7 @@ import { useUser, User } from '@/context/user-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, Edit, Loader2 } from 'lucide-react';
+import { Trash2, Edit, Loader2, Coins } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -59,6 +59,7 @@ export default function UsersPage() {
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Role</TableHead>
+                        <TableHead>Oktocoins</TableHead>
                         <TableHead>Joined</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
@@ -70,6 +71,7 @@ export default function UsersPage() {
                               <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                               <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                               <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                              <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                               <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                               <TableCell className="text-right"><Skeleton className="h-8 w-20" /></TableCell>
                            </TableRow>
@@ -95,6 +97,12 @@ export default function UsersPage() {
                                   <SelectItem value="admin">Admin</SelectItem>
                                 </SelectContent>
                               </Select>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex items-center gap-2">
+                                    <Coins className="h-4 w-4 text-yellow-500" />
+                                    {user.oktocoins || 0}
+                                </div>
                             </TableCell>
                             <TableCell>{format(new Date(user.createdAt), 'PP')}</TableCell>
                             <TableCell className="text-right">
@@ -123,7 +131,7 @@ export default function UsersPage() {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center h-24">
+                          <TableCell colSpan={6} className="text-center h-24">
                              No users found.
                           </TableCell>
                         </TableRow>

@@ -22,6 +22,7 @@ import { PopupProvider } from "@/context/popup-context";
 import { SizeChartProvider } from "@/context/size-chart-context";
 import { FramerMotionWrapper } from "./framer-motion-wrapper";
 import { Analytics } from "@vercel/analytics/next";
+import { RewardProvider } from "@/context/reward-context";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const archivo = Archivo({ 
@@ -92,6 +93,7 @@ export default async function RootLayout({
             <UserProvider>
                 <SizeChartProvider>
                     <CategoryProvider>
+                      <RewardProvider>
                         <ProductProvider>
                         <PromotionProvider>
                             <PopupProvider>
@@ -111,6 +113,7 @@ export default async function RootLayout({
                             </PopupProvider>
                         </PromotionProvider>
                         </ProductProvider>
+                      </RewardProvider>
                     </CategoryProvider>
                 </SizeChartProvider>
             </UserProvider>

@@ -18,6 +18,7 @@ type User = {
     address?: string;
     profilePictureUrl?: string;
     wishlist?: string[];
+    oktocoins?: number;
 };
 
 type AuthContextType = {
@@ -29,6 +30,7 @@ type AuthContextType = {
   addToWishlist: (productId: string) => void;
   removeFromWishlist: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
+  refreshUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -39,6 +41,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const router = useRouter();
   
+  const refreshUser = useCallback(async () => {
+    if (!user?._id) return;
+    try {
+      const response = await fetch(`/api/users/by-id/${user._id}`);
+      if (response.ok) {
+        const updatedUser = await response.json();
+        login(updatedUser);
+      }
+    } catch (error) {
+      console.error("Failed to refresh user data", error);
+    }
+  }, [user?._id]);
+
   useEffect(() => {
     const initializeAuth = async () => {
       try {
@@ -57,7 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = (userData: User) => {
-    const userToStore = { ...userData, id: userData._id, wishlist: userData.wishlist || [] };
+    const userToStore = { ...userData, id: userData._id, wishlist: userData.wishlist || [], oktocoins: userData.oktocoins || 0 };
     setUser(userToStore);
     try {
       localStorage.setItem('user', JSON.stringify(userToStore));
@@ -180,7 +195,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, signInWithGoogle, addToWishlist, removeFromWishlist, isInWishlist }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, signInWithGoogle, addToWishlist, removeFromWishlist, isInWishlist, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
