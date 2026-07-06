@@ -9,7 +9,7 @@ interface BaskeyAttributionProps {
 export default function BaskeyAttribution({ className, text = "A Unit of BASKEY Studio" }: BaskeyAttributionProps) {
   return (
     <a
-      href="https://github.com/iam-rbaskey"
+      href="https://baskeystudio.netlify.app/"
       target="_blank"
       rel="noopener noreferrer"
       aria-label="BASKEY Studio Parent Company"
