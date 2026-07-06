@@ -15,7 +15,8 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
-const emptyCoupon: Omit<Coupon, '_id' | 'id' | 'createdAt'> = {
+const emptyCoupon: Omit<Coupon, '_id' | 'createdAt'> = {
+    id: '',
     code: '',
     discountValue: 0,
     isActive: true,

@@ -40,10 +40,10 @@ export default function ProductDetailPage() {
     if (!loading) {
       const foundProduct = products.find((p) => p.id === params.id);
       setProduct(foundProduct);
-      if (foundProduct?.sizes?.length > 0) {
+      if (foundProduct && foundProduct.sizes && foundProduct.sizes.length > 0) {
         setSelectedSize(foundProduct.sizes[0]);
       }
-      if (foundProduct?.colors?.length > 0) {
+      if (foundProduct && foundProduct.colors && foundProduct.colors.length > 0) {
         setSelectedColor(foundProduct.colors[0]);
       }
     }

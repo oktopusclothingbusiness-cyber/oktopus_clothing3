@@ -27,7 +27,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: 'Customer not found for this order.' }, { status: 404 });
     }
     
-    const settings = await db.collection('settings').findOne({ _id: 'global' });
+    const settings = await db.collection('settings').findOne({ _id: 'global' as any }) as any;
 
     await sendInvoiceEmail({
       to: user.email,

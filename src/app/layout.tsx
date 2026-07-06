@@ -35,7 +35,7 @@ async function getSettings() {
   try {
     const client = await clientPromise;
     const db = client.db();
-    const settings = await db.collection('settings').findOne({ _id: 'global' });
+    const settings = await db.collection('settings').findOne({ _id: 'global' as any });
     return {
       faviconUrl: settings?.faviconUrl || '/favicon.ico',
     };
@@ -55,6 +55,12 @@ export async function generateMetadata(): Promise<Metadata> {
     icons: {
       icon: settings.faviconUrl,
     },
+    authors: [{ name: "BASKEY Studio", url: "https://github.com/iam-rbaskey" }],
+    creator: "BASKEY Studio",
+    publisher: "BASKEY Studio",
+    other: {
+      "baskey-studio-attribution": "A Unit of BASKEY Studio"
+    }
   };
 }
 

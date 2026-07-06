@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "./theme-toggle";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import BaskeyAttribution from "./baskey-attribution";
 
 export function Header() {
   const { cart } = useCart();
@@ -41,13 +42,16 @@ export function Header() {
   return (
     <header className="bg-background border-b sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <Link href="/store" className="flex items-center gap-2 text-2xl font-bold font-serif">
-          {logoUrl ? (
-            <Image src={logoUrl} alt="Site Logo" width={140} height={40} className="object-contain" priority />
-          ) : (
-            <div className="h-10 w-36" />
-          )}
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/store" className="flex items-center gap-2 text-2xl font-bold font-serif">
+            {logoUrl ? (
+              <Image src={logoUrl} alt="Site Logo" width={140} height={40} className="object-contain" priority />
+            ) : (
+              <div className="h-10 w-36" />
+            )}
+          </Link>
+          <BaskeyAttribution className="hidden lg:inline-block border-l pl-4 border-muted-foreground/30 text-[8.5px] opacity-80" />
+        </div>
         <nav className="hidden md:flex gap-6">
           <Link href="/store" className="text-sm font-medium hover:text-primary">
             Home

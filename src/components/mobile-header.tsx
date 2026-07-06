@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import BaskeyAttribution from "./baskey-attribution";
 import {
   Sheet,
   SheetContent,
@@ -47,7 +48,10 @@ export const MobileHeader = ({ showCart = true, title }: MobileHeaderProps) => {
                      <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
-                    <h1 className="font-bold text-lg truncate">{title}</h1>
+                    <div className="text-center flex flex-col items-center max-w-[60%]">
+                        <h1 className="font-bold text-lg truncate leading-none">{title}</h1>
+                        <BaskeyAttribution className="text-[6.5px] tracking-[0.25em] opacity-75 mt-1 block" />
+                    </div>
                     <div className="w-10">
                         {showCart && (
                              <Button variant="ghost" size="icon" asChild>
@@ -82,7 +86,7 @@ export const MobileHeader = ({ showCart = true, title }: MobileHeaderProps) => {
                         </div>
                     </div>
                 </Link>
-                {/* The cart button was here, now removed. The new floating button will be used instead. */}
+                <BaskeyAttribution className="text-[7.5px] tracking-[0.2em] opacity-80" />
             </div>
             <div className="flex items-center gap-2">
                 <div className="relative flex-grow">

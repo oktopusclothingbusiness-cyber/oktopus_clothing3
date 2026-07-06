@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     const currentHour = new Date().getUTCHours(); // Get hour in UTC
 
     await db.collection('visitors').updateOne(
-      { _id: today },
+      { _id: today as any },
       { 
         $inc: { 
           count: 1,

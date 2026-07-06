@@ -23,7 +23,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     // Also, pull this categoryId from any size charts that use it
     await db.collection('sizeCharts').updateMany(
         { categoryIds: id },
-        { $pull: { categoryIds: id } }
+        { $pull: { categoryIds: id } } as any
     );
 
     return NextResponse.json({ message: 'Category deleted successfully.' }, { status: 200 });

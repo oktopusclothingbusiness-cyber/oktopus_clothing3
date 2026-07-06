@@ -8,6 +8,7 @@ import { MobileFooter } from "@/components/mobile-footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Quote } from "lucide-react";
 import Image from "next/image";
+import BaskeyAttribution from "@/components/baskey-attribution";
 
 export default function AboutPage() {
   return (
@@ -16,9 +17,10 @@ export default function AboutPage() {
       <div className="hidden md:flex flex-col min-h-screen">
         <Header />
         <main className="flex-grow container mx-auto px-4 py-12">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Welcome to OKTOPUS CLOTHING</h1>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">Where creativity meets individuality.</p>
+          <div className="text-center mb-12 flex flex-col items-center gap-3">
+            <h1 className="text-4xl md:text-5xl font-bold">Welcome to OKTOPUS CLOTHING</h1>
+            <BaskeyAttribution className="px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 font-bold tracking-[0.2em] text-[9.5px] max-w-max hover:bg-blue-500/15" />
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto mt-2">Where creativity meets individuality.</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
@@ -71,7 +73,10 @@ export default function AboutPage() {
         <main className="bg-secondary min-h-screen pb-24 p-4">
           <Card className="card-glass mb-4">
              <CardContent className="p-6">
-                <h1 className="text-2xl font-bold text-center mb-4">Welcome to OKTOPUS CLOTHING</h1>
+                <div className="flex flex-col items-center gap-3 mb-4">
+                  <h1 className="text-2xl font-bold text-center">Welcome to OKTOPUS CLOTHING</h1>
+                  <BaskeyAttribution className="px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 font-bold tracking-[0.2em] text-[9.5px] max-w-max hover:bg-blue-500/15" />
+                </div>
                 <p className="text-sm text-center text-muted-foreground">We believe fashion is more than just clothing—it’s an expression of who you are. That’s why we specialize in customized apparel, giving you the freedom to bring your vision to life.</p>
              </CardContent>
           </Card>

@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { Github, Twitter, Instagram } from "lucide-react";
 import * as React from 'react';
 import Image from "next/image";
+import BaskeyAttribution from "./baskey-attribution";
 
 export function Footer() {
   const [logoUrl, setLogoUrl] = React.useState('');
@@ -81,8 +82,9 @@ export function Footer() {
             </div>
           </div>
         </div>
-        <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
+        <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground flex flex-col items-center gap-2">
           <p>© 2025. All rights reserved.</p>
+          <BaskeyAttribution className="text-[10px] mt-1" />
         </div>
       </div>
     </footer>

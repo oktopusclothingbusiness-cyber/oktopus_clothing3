@@ -15,18 +15,25 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from './ui/button';
 
 const ProductImageSlider = ({ imageUrls, alt, isMobile }: { imageUrls: string[], alt: string, isMobile: boolean }) => {
+    const validImageUrls = React.useMemo(() => {
+        return (imageUrls || []).filter(url => 
+            typeof url === 'string' && 
+            (url.trim().startsWith('http://') || url.trim().startsWith('https://') || url.trim().startsWith('/'))
+        );
+    }, [imageUrls]);
+
     const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
 
     React.useEffect(() => {
-        if (imageUrls && imageUrls.length > 1) {
+        if (validImageUrls && validImageUrls.length > 1) {
             const interval = setInterval(() => {
-                setCurrentImageIndex(prevIndex => (prevIndex + 1) % imageUrls.length);
+                setCurrentImageIndex(prevIndex => (prevIndex + 1) % validImageUrls.length);
             }, 3000); // Change image every 3 seconds
             return () => clearInterval(interval);
         }
-    }, [imageUrls]);
+    }, [validImageUrls]);
     
-    const imageUrl = (imageUrls && imageUrls.length > 0) ? imageUrls[currentImageIndex] : "https://placehold.co/600x800.png";
+    const imageUrl = validImageUrls.length > 0 ? validImageUrls[currentImageIndex] : "https://placehold.co/600x800.png";
 
     return (
         <Image

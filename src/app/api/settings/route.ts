@@ -9,7 +9,7 @@ export async function GET() {
     const db = client.db();
     
     // There should only ever be one settings document.
-    const settings = await db.collection('settings').findOne({ _id: 'global' });
+    const settings = await db.collection('settings').findOne({ _id: 'global' as any });
     
     return NextResponse.json(settings || {}, { status: 200 });
   } catch (error) {
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
 
     // Use upsert to create the document if it doesn't exist, or update it if it does.
     const result = await db.collection('settings').updateOne(
-        { _id: 'global' }, // Use a fixed ID to ensure only one settings document exists
+        { _id: 'global' as any }, // Use a fixed ID to ensure only one settings document exists
         { $set: settingsData },
         { upsert: true }
     );

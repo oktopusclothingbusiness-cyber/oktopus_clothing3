@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
-import { sendOrderConfirmationEmail } from '@/lib/mail';
+import { sendOrderConfirmationEmail, sendInvoiceEmail } from '@/lib/mail';
 
 // The Razorpay key secret is now hardcoded.
 // Replace with your actual key secret.
@@ -34,8 +34,8 @@ export async function POST(request: Request) {
       const client = await clientPromise;
       const db = client.db();
       
-      let finalOrder;
-      const settings = await db.collection('settings').findOne({ _id: 'global' });
+      let finalOrder: any;
+      const settings = await db.collection('settings').findOne({ _id: 'global' as any }) as any;
       const shippingCharge = settings?.deliveryCharge || 0;
 
       if (order_type === 'custom_design') {
@@ -115,6 +115,14 @@ export async function POST(request: Request) {
       }
       
       if (finalOrder) {
+          // Award Oktocoins if order total is over 499
+          if (finalOrder.total > 499) {
+            await db.collection('users').updateOne(
+              { _id: new ObjectId(finalOrder.userId) },
+              { $inc: { oktocoins: 100 } }
+            );
+          }
+
           const user = await db.collection('users').findOne({ _id: new ObjectId(finalOrder.userId) });
           if(user) {
                await sendOrderConfirmationEmail({
@@ -125,6 +133,12 @@ export async function POST(request: Request) {
                     total: finalOrder.total,
                     products: finalOrder.products
                 });
+               
+               await sendInvoiceEmail({
+                 to: user.email,
+                 order: finalOrder,
+                 settings: settings,
+               });
           }
       }
 

@@ -22,7 +22,25 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from '@/lib/utils';
 
 
-const emptyProduct = {
+type ProductFormData = {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+  cost: string;
+  originalPrice: string;
+  discountPercentage: number;
+  rating: number;
+  stock: number;
+  imageUrls: string;
+  sizes: string;
+  colors: string;
+  category: string[];
+  featured: boolean;
+  isHero: boolean;
+};
+
+const emptyProduct: ProductFormData = {
     id: '',
     name: '',
     description: '',
@@ -43,7 +61,7 @@ const emptyProduct = {
 export default function AdminProductsPage() {
     const { products, addProduct, deleteProduct, updateProduct, setHeroProduct, loading, fetchProducts } = useProduct();
     const { categories, loading: categoriesLoading } = useCategory();
-    const [formData, setFormData] = React.useState<Omit<Product, '_id' | 'createdAt' | 'category'> & { category: string[] }>(emptyProduct);
+    const [formData, setFormData] = React.useState<ProductFormData>(emptyProduct);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isEditing, setIsEditing] = React.useState(false);
     const [bulkFile, setBulkFile] = React.useState<File | null>(null);
@@ -112,16 +130,22 @@ export default function AdminProductsPage() {
                 discountPercentage: formData.discountPercentage,
                 rating: formData.rating,
                 stock: formData.stock,
-                imageUrls: formData.imageUrls.split(',').map(url => url.trim()).filter(url => url),
+                imageUrls: formData.imageUrls.split(',').map((url: string) => url.trim()).filter((url: string) => url),
                 category: formData.category,
-                sizes: formData.sizes.split(',').map(s => s.trim()).filter(s => s),
-                colors: formData.colors.split(',').map(c => c.trim()).filter(c => c),
+                sizes: formData.sizes.split(',').map((s: string) => s.trim()).filter((s: string) => s),
+                colors: formData.colors.split(',').map((c: string) => c.trim()).filter((c: string) => c),
                 featured: formData.featured,
                 isHero: formData.isHero,
             };
 
             if (isEditing) {
-                await updateProduct({ ...productData, id: formData.id, _id: formData.id });
+                const originalProduct = products.find(p => p.id === formData.id);
+                await updateProduct({ 
+                    ...productData, 
+                    id: formData.id, 
+                    _id: formData.id,
+                    createdAt: originalProduct?.createdAt || new Date().toISOString()
+                });
             } else {
                 await addProduct(productData);
             }

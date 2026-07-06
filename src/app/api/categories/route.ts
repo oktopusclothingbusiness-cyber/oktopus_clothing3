@@ -8,6 +8,19 @@ export async function GET() {
     const client = await clientPromise;
     const db = client.db();
     const categories = await db.collection('categories').find({}).toArray();
+    
+    // Ensure "women" category exists
+    const womenCategoryExists = categories.some(cat => cat.name.toLowerCase() === 'women');
+    if (!womenCategoryExists) {
+        const newCategory = {
+            name: 'Women',
+            imageUrl: 'https://picsum.photos/seed/womencat/400/400',
+            createdAt: new Date()
+        };
+        const result = await db.collection('categories').insertOne(newCategory);
+        categories.push({ ...newCategory, _id: result.insertedId });
+    }
+
     return NextResponse.json(categories, { status: 200 });
   } catch (error) {
     console.error('Failed to fetch categories:', error);

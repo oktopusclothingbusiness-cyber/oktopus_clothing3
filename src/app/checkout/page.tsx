@@ -17,6 +17,7 @@ import { MobileHeader } from '@/components/mobile-header';
 import { MobileFooter } from '@/components/mobile-footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
+import { getProductImage } from '@/lib/utils';
 
 declare global {
   interface Window {
@@ -300,7 +301,7 @@ export default function CheckoutPage() {
                 {cart.map(item => (
                   <div key={`${item.id}-${item.size}-${item.color}`} className="flex justify-between items-center text-sm">
                       <div className="flex items-center gap-2">
-                        <Image src={item.imageUrls[0]} alt={item.name} width={40} height={40} className="rounded-md" />
+                        <Image src={getProductImage(item.imageUrls, "https://placehold.co/40x40.png")} alt={item.name} width={40} height={40} className="rounded-md" />
                         <div>
                             <p className='font-medium'>{item.name} (x{item.quantity})</p>
                             <p className='text-muted-foreground text-xs'>Size: {item.size}, Color: {item.color}</p>

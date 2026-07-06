@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     const client = await clientPromise;
     const db = client.db();
     const usersCollection = db.collection('users');
-    let recipients: { email: string }[] = [];
+    let recipients: any[] = [];
 
     if (userId === 'all') {
       // Fetch all users
