@@ -342,7 +342,7 @@ export default function StreetifyStorePage() {
                     <Link href="/products">EXPLORE CATALOG</Link>
                   </Button>
                   <Button asChild variant="outline" size="lg" className="rounded-full h-14 px-8 text-md font-bold hover:scale-105 transition-transform">
-                    <Link href="/custom-design">CUSTOM DESIGN</Link>
+                    <Link href="/custom-design">CUSTOM DESIGNS</Link>
                   </Button>
                 </motion.div>
               </motion.div>
