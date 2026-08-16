@@ -1,6 +1,7 @@
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
+import { authenticateRequest } from '@/lib/auth';
 
 const MAPBOX_TOKEN = "pk.eyJ1Ijoib2t0b3B1c2MiLCJhIjoiY21keGUyNjU0MXhwYjJsc2FrcGZsd290eCJ9.mEjrHNxJYljQLhjVslo_iw";
 
@@ -22,10 +23,14 @@ const geocodeAddress = async (address: string) => {
 };
 
 
-// GET all orders (for admin)
-export async function GET(request: Request) {
+// GET all orders (for admin - requires Admin Auth)
+export async function GET(request: NextRequest) {
   try {
-    // In a real app, you'd protect this endpoint to ensure only admins can access it.
+    const auth = authenticateRequest(request, { requiredRole: 'admin', allowAppSecret: true });
+    if (!auth.authenticated) {
+      return NextResponse.json({ message: auth.error || 'Unauthorized access to orders.' }, { status: auth.statusCode || 401 });
+    }
+
     const client = await clientPromise;
     const db = client.db();
     const orders = await db.collection('orders').find({}).sort({ createdAt: -1 }).toArray();

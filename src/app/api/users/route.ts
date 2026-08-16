@@ -1,10 +1,15 @@
-
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
+import { authenticateRequest } from '@/lib/auth';
 
-// GET all users
-export async function GET() {
+// GET all users (Requires Admin Auth)
+export async function GET(request: NextRequest) {
   try {
+    const auth = authenticateRequest(request, { requiredRole: 'admin', allowAppSecret: true });
+    if (!auth.authenticated) {
+      return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
+    }
+
     const client = await clientPromise;
     const db = client.db();
     

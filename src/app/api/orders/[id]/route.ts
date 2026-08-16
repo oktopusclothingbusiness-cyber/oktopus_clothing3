@@ -1,14 +1,19 @@
-
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import { sendOrderStatusUpdateEmail } from '@/lib/mail';
+import { authenticateRequest } from '@/lib/auth';
 
 // This file is for a dynamic route segment. For example: /api/orders/123
 
-// GET a single order by ID
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+// GET a single order by ID (Requires Authentication)
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const auth = authenticateRequest(request, { allowAppSecret: true });
+    if (!auth.authenticated) {
+      return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
+    }
+
     const { id } = params;
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ message: 'Invalid order ID.' }, { status: 400 });
@@ -23,9 +28,12 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
     }
 
-    // Add id field for client-side convenience
-    const orderWithId = { ...order, id: order._id.toString() };
+    // Ensure non-admin users can only view their own order
+    if (auth.user?.role !== 'admin' && auth.user?.userId !== 'mobile-app' && auth.user?.userId !== order.userId) {
+      return NextResponse.json({ message: 'Access denied: You can only view your own orders.' }, { status: 403 });
+    }
 
+    const orderWithId = { ...order, id: order._id.toString() };
     return NextResponse.json(orderWithId, { status: 200 });
   } catch (error) {
     console.error('Failed to fetch order:', error);
@@ -34,9 +42,14 @@ export async function GET(request: Request, { params }: { params: { id: string }
 }
 
 
-// PUT (update) an order by ID, e.g., to change its status
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+// PUT (update) an order by ID (Requires Admin Privileges)
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const auth = authenticateRequest(request, { requiredRole: 'admin', allowAppSecret: true });
+    if (!auth.authenticated) {
+      return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
+    }
+
     const { id } = params;
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ message: 'Invalid order ID.' }, { status: 400 });
@@ -61,13 +74,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         if (!validPaymentStatuses.includes(paymentStatus)) {
             return NextResponse.json({ message: 'Invalid payment status provided.' }, { status: 400 });
         }
-        // To avoid overwriting Razorpay details, we use dot notation
         updateQuery['paymentDetails.paymentStatus'] = paymentStatus;
         responseMessage = `Order payment status updated to ${paymentStatus}.`;
     } else {
         return NextResponse.json({ message: 'No valid update field provided.' }, { status: 400 });
     }
-
 
     const client = await clientPromise;
     const db = client.db();
@@ -84,7 +95,6 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     
     const updatedOrder = result;
     
-    // Send email notification for order status change, but not for payment status change
     if(status && updatedOrder.status !== 'pending') {
       const user = await db.collection('users').findOne({ _id: new ObjectId(updatedOrder.userId) });
 
@@ -98,7 +108,6 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       }
     }
 
-
     return NextResponse.json({ message: responseMessage }, { status: 200 });
 
   } catch (error) {
@@ -107,15 +116,19 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-// DELETE an order by ID
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+// DELETE an order by ID (Requires Admin Privileges)
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
     try {
+        const auth = authenticateRequest(request, { requiredRole: 'admin', allowAppSecret: true });
+        if (!auth.authenticated) {
+          return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
+        }
+
         const { id } = params;
         if (!ObjectId.isValid(id)) {
             return NextResponse.json({ message: 'Invalid order ID.' }, { status: 400 });
         }
 
-        // In a real app, you would add authentication to ensure only admins can perform this.
         const client = await clientPromise;
         const db = client.db();
 
