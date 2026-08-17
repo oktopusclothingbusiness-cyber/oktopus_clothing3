@@ -5,9 +5,31 @@ import clientPromise from '../lib/mongodb.js';
 import firebaseAdmin from '../lib/firebaseAdmin.js';
 import mobileAuth from '../middleware/mobileAuth.js';
 import { authMobileRateLimiter } from '../middleware/mobileSecurity.js';
+import { formatCategoryForMobile } from '../lib/formatCategory.js';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'okto_jwt_secret_2026_production_key_baskey';
+
+/**
+ * GET /api/v1/mobile/categories
+ * Returns categories formatted with description, hero_image_url, icon_name, item_count, accent_color, bg_tint, and featured_products
+ */
+router.get('/categories', async (req, res) => {
+  try {
+    const client = await clientPromise;
+    const db = client.db();
+
+    const categories = await db.collection('categories').find({}).toArray();
+    const formattedCategories = await Promise.all(
+      categories.map((cat) => formatCategoryForMobile(cat, db))
+    );
+
+    return res.status(200).json(formattedCategories);
+  } catch (error) {
+    console.error('Express mobile categories error:', error);
+    return res.status(500).json({ message: 'Failed to fetch categories.' });
+  }
+});
 
 // Helper function to compare semver versions
 function isVersionLower(current, minimum) {
