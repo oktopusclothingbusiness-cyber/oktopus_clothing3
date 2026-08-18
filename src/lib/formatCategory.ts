@@ -12,7 +12,10 @@ export interface MobileCategoryResponse {
   id: string;
   name: string;
   description: string;
+  square_image_url: string;
+  landscape_image_url: string;
   hero_image_url: string;
+  imageUrl: string;
   icon_name: string;
   item_count: number;
   accent_color: string;
@@ -24,7 +27,8 @@ export interface MobileCategoryResponse {
 
 const DEFAULT_CATEGORY_METADATA: Record<string, {
   description: string;
-  hero_image_url: string;
+  square_image_url: string;
+  landscape_image_url: string;
   icon_name: string;
   accent_color: string;
   bg_tint: string;
@@ -32,7 +36,8 @@ const DEFAULT_CATEGORY_METADATA: Record<string, {
 }> = {
   'french terry': {
     description: 'Premium 400 GSM heavy loopback cotton engineered for relaxed streetwear fits.',
-    hero_image_url: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800&auto=format&fit=crop&q=80',
+    square_image_url: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=500&auto=format&fit=crop&q=80',
+    landscape_image_url: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=1000&auto=format&fit=crop&q=80',
     icon_name: 'shirt',
     accent_color: '#D4A02E',
     bg_tint: '#FAF6E8',
@@ -43,7 +48,8 @@ const DEFAULT_CATEGORY_METADATA: Record<string, {
   },
   'oversized tees': {
     description: 'Heavyweight boxy cut cotton tees crafted for maximum comfort and streetwear styling.',
-    hero_image_url: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=80',
+    square_image_url: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500&auto=format&fit=crop&q=80',
+    landscape_image_url: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=1000&auto=format&fit=crop&q=80',
     icon_name: 'square',
     accent_color: '#A1CF6B',
     bg_tint: '#F3FDF0',
@@ -54,7 +60,8 @@ const DEFAULT_CATEGORY_METADATA: Record<string, {
   },
   'sweatshirts': {
     description: 'Cozy fleece-lined streetwear crewnecks built for everyday layering.',
-    hero_image_url: 'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=800&auto=format&fit=crop&q=80',
+    square_image_url: 'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=500&auto=format&fit=crop&q=80',
+    landscape_image_url: 'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=1000&auto=format&fit=crop&q=80',
     icon_name: 'layers',
     accent_color: '#FF5E7E',
     bg_tint: '#FFF0F3',
@@ -65,7 +72,8 @@ const DEFAULT_CATEGORY_METADATA: Record<string, {
   },
   'hoodies': {
     description: 'Heavyweight pullover hoodies with double-lined hood and drop shoulders.',
-    hero_image_url: 'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=800&auto=format&fit=crop&q=80',
+    square_image_url: 'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=500&auto=format&fit=crop&q=80',
+    landscape_image_url: 'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=1000&auto=format&fit=crop&q=80',
     icon_name: 'zap',
     accent_color: '#3B82F6',
     bg_tint: '#EFF6FF',
@@ -76,7 +84,8 @@ const DEFAULT_CATEGORY_METADATA: Record<string, {
   },
   'cargo pants': {
     description: 'Technical utility cargo pants with multi-pocket storage and relaxed tapered fit.',
-    hero_image_url: 'https://images.unsplash.com/photo-1517445312882-bc9910d016b7?w=800&auto=format&fit=crop&q=80',
+    square_image_url: 'https://images.unsplash.com/photo-1517445312882-bc9910d016b7?w=500&auto=format&fit=crop&q=80',
+    landscape_image_url: 'https://images.unsplash.com/photo-1517445312882-bc9910d016b7?w=1000&auto=format&fit=crop&q=80',
     icon_name: 'box',
     accent_color: '#8B5CF6',
     bg_tint: '#F5F3FF',
@@ -87,7 +96,8 @@ const DEFAULT_CATEGORY_METADATA: Record<string, {
   },
   'women': {
     description: 'Curated streetwear essentials designed with modern oversized silhouettes.',
-    hero_image_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80',
+    square_image_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80',
+    landscape_image_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1000&auto=format&fit=crop&q=80',
     icon_name: 'tag',
     accent_color: '#EC4899',
     bg_tint: '#FDF2F8',
@@ -103,7 +113,8 @@ export async function formatCategoryForMobile(cat: any, db: Db): Promise<MobileC
   const nameKey = name.toLowerCase();
   const meta = DEFAULT_CATEGORY_METADATA[nameKey] || {
     description: `Premium streetwear ${name} engineered for comfort and modern relaxed fits.`,
-    hero_image_url: cat.imageUrl || cat.hero_image_url || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800',
+    square_image_url: cat.square_image_url || cat.imageUrl || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500',
+    landscape_image_url: cat.landscape_image_url || cat.hero_image_url || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=1000',
     icon_name: 'shirt',
     accent_color: '#D4A02E',
     bg_tint: '#FAF6E8',
@@ -142,7 +153,7 @@ export async function formatCategoryForMobile(cat: any, db: Db): Promise<MobileC
       const priceVal = typeof p.price === 'number' ? `₹${p.price.toLocaleString('en-IN')}` : String(p.price || '₹1,499');
       const imgUrl = Array.isArray(p.imageUrls) && p.imageUrls.length > 0
         ? p.imageUrls[0]
-        : (p.imageUrl || meta.hero_image_url);
+        : (p.imageUrl || meta.landscape_image_url);
       return {
         id: p._id ? p._id.toString() : String(p.id || 'p_0'),
         name: String(p.name || 'Product'),
@@ -157,7 +168,7 @@ export async function formatCategoryForMobile(cat: any, db: Db): Promise<MobileC
     featuredProducts = cat.featured_products.map((fp: any, idx: number) => ({
       id: String(fp.id || fp._id || `fp_${idx}`),
       name: String(fp.name || 'Product'),
-      image_url: String(fp.image_url || fp.imageUrl || meta.hero_image_url),
+      image_url: String(fp.image_url || fp.imageUrl || meta.landscape_image_url),
       price: String(fp.price || '₹1,499'),
     }));
   }
@@ -167,12 +178,18 @@ export async function formatCategoryForMobile(cat: any, db: Db): Promise<MobileC
     featuredProducts = meta.default_featured;
   }
 
+  const squareImage = cat.square_image_url || cat.imageUrl || meta.square_image_url;
+  const landscapeImage = cat.landscape_image_url || cat.hero_image_url || meta.landscape_image_url;
+
   return {
     _id: idStr,
     id: idStr,
     name,
     description: cat.description || meta.description,
-    hero_image_url: cat.hero_image_url || cat.imageUrl || meta.hero_image_url,
+    square_image_url: squareImage,
+    landscape_image_url: landscapeImage,
+    hero_image_url: landscapeImage,
+    imageUrl: squareImage,
     icon_name: cat.icon_name || meta.icon_name,
     item_count: itemCount,
     accent_color: cat.accent_color || cat.colorToken || meta.accent_color,

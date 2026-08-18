@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Layers, Plus, Trash2, RefreshCw, Sparkles, Edit, X } from "lucide-react";
+import { Layers, Plus, Trash2, RefreshCw, Sparkles, Edit, X, Image as ImageIcon } from "lucide-react";
 
 interface FeaturedProduct {
   id: string;
@@ -15,6 +15,8 @@ interface Category {
   id?: string;
   name: string;
   description?: string;
+  square_image_url?: string;
+  landscape_image_url?: string;
   hero_image_url?: string;
   imageUrl?: string;
   icon_name?: string;
@@ -36,7 +38,8 @@ export default function MobileCategoriesManager() {
   // Form State
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [heroImageUrl, setHeroImageUrl] = useState("");
+  const [squareImageUrl, setSquareImageUrl] = useState("");
+  const [landscapeImageUrl, setLandscapeImageUrl] = useState("");
   const [iconName, setIconName] = useState("shirt");
   const [accentColor, setAccentColor] = useState("#D4A02E");
   const [bgTint, setBgTint] = useState("#FAF6E8");
@@ -68,13 +71,13 @@ export default function MobileCategoriesManager() {
     setEditingId(cat._id);
     setName(cat.name || "");
     setDescription(cat.description || "");
-    setHeroImageUrl(cat.hero_image_url || cat.imageUrl || "");
+    setSquareImageUrl(cat.square_image_url || cat.imageUrl || "");
+    setLandscapeImageUrl(cat.landscape_image_url || cat.hero_image_url || "");
     setIconName(cat.icon_name || "shirt");
     setAccentColor(cat.accent_color || cat.colorToken || "#D4A02E");
     setBgTint(cat.bg_tint || "#FAF6E8");
     setGender(cat.gender || "Unisex");
 
-    // Scroll form into view if needed
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -82,7 +85,8 @@ export default function MobileCategoriesManager() {
     setEditingId(null);
     setName("");
     setDescription("");
-    setHeroImageUrl("");
+    setSquareImageUrl("");
+    setLandscapeImageUrl("");
     setIconName("shirt");
     setAccentColor("#D4A02E");
     setBgTint("#FAF6E8");
@@ -95,11 +99,16 @@ export default function MobileCategoriesManager() {
 
     try {
       setSaving(true);
+      const sqImg = squareImageUrl || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500";
+      const landImg = landscapeImageUrl || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=1000";
+
       const payload = {
         name,
         description: description || `Premium ${name} collection for streetwear fits.`,
-        hero_image_url: heroImageUrl || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800",
-        imageUrl: heroImageUrl || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500",
+        square_image_url: sqImg,
+        landscape_image_url: landImg,
+        imageUrl: sqImg,
+        hero_image_url: landImg,
         icon_name: iconName || "shirt",
         accent_color: accentColor || "#D4A02E",
         colorToken: accentColor || "#D4A02E",
@@ -109,7 +118,6 @@ export default function MobileCategoriesManager() {
 
       let res;
       if (editingId) {
-        // Update existing category
         res = await fetch(`/api/categories/${editingId}`, {
           method: "PUT",
           headers: {
@@ -119,7 +127,6 @@ export default function MobileCategoriesManager() {
           body: JSON.stringify(payload),
         });
       } else {
-        // Create new category
         res = await fetch("/api/categories", {
           method: "POST",
           headers: {
@@ -164,10 +171,10 @@ export default function MobileCategoriesManager() {
         <div>
           <div className="flex items-center space-x-2">
             <Layers className="w-5 h-5 text-white" />
-            <h2 className="text-xl font-bold text-white">Category Page API Config & Editor</h2>
+            <h2 className="text-xl font-bold text-white">Category Dual-Image & Layout Manager</h2>
           </div>
           <p className="text-xs text-zinc-400 mt-1">
-            Create, edit, or customize any category's title, description, cover image, icons, and colors for <code className="text-amber-400 font-mono">GET /api/categories</code>.
+            Configure <code className="text-amber-400 font-mono">square_image_url</code> (1:1 for small panels/chips) and <code className="text-amber-400 font-mono">landscape_image_url</code> (16:9 for big hero cards).
           </p>
         </div>
 
@@ -194,7 +201,7 @@ export default function MobileCategoriesManager() {
                 ) : (
                   <Plus className="w-4 h-4 text-amber-400" />
                 )}
-                <span>{editingId ? "Edit Category Details" : "Create New Category Entry"}</span>
+                <span>{editingId ? "Edit Category Dual Images" : "Create New Dual-Image Category"}</span>
               </h3>
 
               {editingId && (
@@ -233,13 +240,30 @@ export default function MobileCategoriesManager() {
                 />
               </div>
 
+              {/* 1. Square Image (1:1) */}
               <div>
-                <label className="text-xs font-semibold text-zinc-300 block mb-1">Cover Image URL (`hero_image_url`)</label>
+                <label className="text-xs font-semibold text-amber-400 block mb-1 flex items-center gap-1">
+                  <ImageIcon className="w-3.5 h-3.5" /> 🔳 Square Image URL (`square_image_url` - 1:1 for Small Panels)
+                </label>
                 <input
                   type="url"
-                  placeholder="https://images.unsplash.com/photo-..."
-                  value={heroImageUrl}
-                  onChange={(e) => setHeroImageUrl(e.target.value)}
+                  placeholder="https://images.unsplash.com/photo-... (Square 500x500)"
+                  value={squareImageUrl}
+                  onChange={(e) => setSquareImageUrl(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              {/* 2. Landscape Image (16:9) */}
+              <div>
+                <label className="text-xs font-semibold text-amber-400 block mb-1 flex items-center gap-1">
+                  <ImageIcon className="w-3.5 h-3.5" /> 🖼️ Landscape Image URL (`landscape_image_url` - 16:9 for Big Hero Panels)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://images.unsplash.com/photo-... (Landscape 1000x562)"
+                  value={landscapeImageUrl}
+                  onChange={(e) => setLandscapeImageUrl(e.target.value)}
                   className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400"
                 />
               </div>
@@ -303,23 +327,50 @@ export default function MobileCategoriesManager() {
                 </div>
               </div>
 
-              {/* Fan-Out Card Preview Container */}
+              {/* Fan-Out Card & Circle Preview */}
               <div
-                className="p-4 border rounded-xl space-y-2 transition shadow-md"
+                className="p-4 border rounded-xl space-y-3 transition shadow-md"
                 style={{ backgroundColor: bgTint, borderColor: accentColor }}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-black/70 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" /> Fan-Out Card Live Preview
+                    <Sparkles className="w-3 h-3" /> Dual Image Live Preview
                   </span>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-black text-white">
                     {iconName}
                   </span>
                 </div>
-                <h4 className="text-sm font-extrabold text-black">{name || "French Terry"}</h4>
-                <p className="text-[11px] text-black/80 line-clamp-2">
-                  {description || "Premium 400 GSM heavy loopback cotton engineered for relaxed streetwear fits."}
-                </p>
+
+                <div className="flex items-center space-x-3">
+                  {/* Small Square 1:1 Chip */}
+                  <div className="w-12 h-12 rounded-full border-2 p-0.5 shrink-0 overflow-hidden bg-black/10 border-black">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={squareImageUrl || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500"}
+                      alt="Square 1:1"
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-bold text-black/60 uppercase">Small Circle/Square (1:1)</span>
+                    <h4 className="text-sm font-extrabold text-black">{name || "French Terry"}</h4>
+                  </div>
+                </div>
+
+                {/* Big Landscape 16:9 Hero Cover */}
+                <div className="w-full h-24 rounded-lg overflow-hidden border border-black/20 relative bg-black/10">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={landscapeImageUrl || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=1000"}
+                    alt="Landscape 16:9"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/30 p-2 flex items-end">
+                    <span className="text-[10px] font-bold text-white uppercase tracking-wider">
+                      Big Hero Panel (16:9 Landscape)
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -329,7 +380,7 @@ export default function MobileCategoriesManager() {
                 disabled={saving}
                 className="flex-1 py-2.5 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs rounded-xl shadow-lg transition"
               >
-                {saving ? "Saving Category..." : editingId ? "Update Category" : "Save New Category"}
+                {saving ? "Saving Category..." : editingId ? "Update Category Images" : "Save New Category"}
               </button>
 
               {editingId && (
@@ -361,62 +412,89 @@ export default function MobileCategoriesManager() {
               <div className="space-y-3">
                 {categories.map((cat) => {
                   const isBeingEdited = editingId === cat._id;
+                  const sq = cat.square_image_url || cat.imageUrl;
+                  const land = cat.landscape_image_url || cat.hero_image_url;
                   return (
                     <div
                       key={cat._id}
-                      className={`p-4 bg-zinc-900 border rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group transition ${
+                      className={`p-4 bg-zinc-900 border rounded-xl flex flex-col space-y-3 transition ${
                         isBeingEdited ? "border-amber-400 bg-amber-400/5" : "border-zinc-800 hover:border-zinc-700"
                       }`}
                     >
-                      <div className="flex items-center space-x-3.5 min-w-0">
-                        <div
-                          className="w-12 h-12 rounded-xl border-2 p-0.5 shrink-0 overflow-hidden"
-                          style={{ borderColor: cat.accent_color || cat.colorToken || "#D4A02E" }}
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={cat.hero_image_url || cat.imageUrl || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=300"}
-                            alt={cat.name}
-                            className="w-full h-full object-cover rounded-lg"
-                          />
-                        </div>
-                        <div className="min-w-0 space-y-0.5">
-                          <div className="flex items-center space-x-2">
-                            <h4 className="text-sm font-bold text-white truncate">{cat.name}</h4>
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-amber-400 border border-amber-400/20">
-                              {cat.icon_name || "shirt"}
-                            </span>
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
-                              {cat.item_count ?? 14} items
-                            </span>
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center space-x-3 min-w-0">
+                          {/* Square 1:1 Small Thumbnail */}
+                          <div
+                            className="w-10 h-10 rounded-full border-2 p-0.5 shrink-0 overflow-hidden"
+                            style={{ borderColor: cat.accent_color || cat.colorToken || "#D4A02E" }}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={sq || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=300"}
+                              alt={cat.name}
+                              className="w-full h-full object-cover rounded-full"
+                            />
                           </div>
-                          <p className="text-xs text-zinc-400 line-clamp-1">
-                            {cat.description || "Premium streetwear collection."}
-                          </p>
+
+                          <div className="min-w-0">
+                            <div className="flex items-center space-x-2">
+                              <h4 className="text-sm font-bold text-white truncate">{cat.name}</h4>
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-amber-400 border border-amber-400/20">
+                                {cat.icon_name || "shirt"}
+                              </span>
+                            </div>
+                            <p className="text-xs text-zinc-400 line-clamp-1">
+                              {cat.description || "Premium streetwear collection."}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2 shrink-0">
+                          <button
+                            onClick={() => handleStartEdit(cat)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                              isBeingEdited
+                                ? "bg-amber-400 text-black"
+                                : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
+                            }`}
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                            <span>{isBeingEdited ? "Editing" : "Edit"}</span>
+                          </button>
+
+                          <button
+                            onClick={() => deleteCategory(cat._id)}
+                            className="p-1.5 rounded-lg bg-zinc-800 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition"
+                            title="Delete Category"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-2 w-full sm:w-auto justify-end border-t sm:border-t-0 border-zinc-800 pt-2 sm:pt-0">
-                        <button
-                          onClick={() => handleStartEdit(cat)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
-                            isBeingEdited
-                              ? "bg-amber-400 text-black"
-                              : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
-                          }`}
-                          title="Edit Category"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                          <span>{isBeingEdited ? "Editing" : "Edit"}</span>
-                        </button>
+                      {/* Dual Image Preview Strip */}
+                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-zinc-800/80 text-[10px] text-zinc-400">
+                        <div className="flex items-center space-x-2 bg-zinc-950 p-2 rounded-lg border border-zinc-800/60">
+                          <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-zinc-700">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={sq || ""} alt="Square" className="w-full h-full object-cover" />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="font-bold text-zinc-300 block">Square (1:1 Small)</span>
+                            <span className="truncate block font-mono text-[9px] text-zinc-500">{sq}</span>
+                          </div>
+                        </div>
 
-                        <button
-                          onClick={() => deleteCategory(cat._id)}
-                          className="p-1.5 rounded-lg bg-zinc-800 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition"
-                          title="Delete Category"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center space-x-2 bg-zinc-950 p-2 rounded-lg border border-zinc-800/60">
+                          <div className="w-10 h-6 rounded-md overflow-hidden shrink-0 border border-zinc-700">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={land || ""} alt="Landscape" className="w-full h-full object-cover" />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="font-bold text-zinc-300 block">Landscape (16:9 Hero)</span>
+                            <span className="truncate block font-mono text-[9px] text-zinc-500">{land}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );
