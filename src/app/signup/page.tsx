@@ -17,8 +17,6 @@ import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
 import { GoogleIcon } from "@/components/icons/google-icon";
 import { useAuth } from "@/context/auth-context";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { PhoneOtpForm } from "@/components/auth/phone-otp-form";
 
 const formSchema = z.object({
   firstName: z.string().min(1, { message: "First name is required." }),
@@ -82,11 +80,11 @@ export default function SignupPage() {
       <div className="hidden md:flex flex-col min-h-screen">
         <Header />
         <main className="flex-grow flex items-center justify-center bg-secondary py-12">
-          <Card className="w-full max-w-md shadow-md">
+          <Card className="w-full max-w-sm shadow-md">
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
+              <CardTitle className="text-2xl font-bold">Sign Up</CardTitle>
               <CardDescription>
-                Sign up with Google, Mobile OTP, or Email below.
+                Enter your information to create an account.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
@@ -101,85 +99,72 @@ export default function SignupPage() {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-background px-2 text-muted-foreground">
-                    Or choose method
+                    Or continue with
                   </span>
                 </div>
               </div>
 
-              <Tabs defaultValue="phone" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="phone">Phone OTP</TabsTrigger>
-                  <TabsTrigger value="email">Email Signup</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="phone" className="pt-4">
-                  <PhoneOtpForm mode="signup" />
-                </TabsContent>
-
-                <TabsContent value="email" className="pt-4">
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="firstName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>First name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Max" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="lastName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Last name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Robinson" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input placeholder="m@example.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                              <Input type="password" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
-                        {form.formState.isSubmitting ? 'Creating Account...' : 'Create account'}
-                      </Button>
-                    </form>
-                  </Form>
-                </TabsContent>
-              </Tabs>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>First name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Max" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Robinson" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="m@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
+                    {form.formState.isSubmitting ? 'Creating Account...' : 'Create account'}
+                  </Button>
+                </form>
+              </Form>
             </CardContent>
             <CardFooter className="flex flex-col">
               <div className="text-center text-sm">
@@ -217,85 +202,72 @@ export default function SignupPage() {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-secondary px-2 text-muted-foreground">
-                    Or choose method
+                    Or continue with
                   </span>
                 </div>
               </div>
 
-              <Tabs defaultValue="phone" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="phone">Phone OTP</TabsTrigger>
-                  <TabsTrigger value="email">Email</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="phone" className="pt-4">
-                  <PhoneOtpForm mode="signup" />
-                </TabsContent>
-
-                <TabsContent value="email" className="pt-4">
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="firstName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>First name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Max" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="lastName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Last name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Robinson" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input placeholder="m@example.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                              <Input type="password" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
-                        {form.formState.isSubmitting ? 'Creating Account...' : 'Create account'}
-                      </Button>
-                    </form>
-                  </Form>
-                </TabsContent>
-              </Tabs>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>First name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Max" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Robinson" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="m@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
+                    {form.formState.isSubmitting ? 'Creating Account...' : 'Create account'}
+                  </Button>
+                </form>
+              </Form>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
               <div className="text-center text-sm">
