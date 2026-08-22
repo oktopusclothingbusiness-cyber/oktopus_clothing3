@@ -5,7 +5,16 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useCa
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from "firebase/auth";
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  setPersistence,
+  browserLocalPersistence,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  ConfirmationResult
+} from "firebase/auth";
 
 type User = {
     _id: string;
@@ -27,6 +36,8 @@ type AuthContextType = {
   logout: () => void;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithPhoneOtp: (phoneNumber: string, appVerifier: RecaptchaVerifier) => Promise<ConfirmationResult>;
+  confirmPhoneOtp: (confirmationResult: ConfirmationResult, otpCode: string, firstName?: string, lastName?: string) => Promise<void>;
   addToWishlist: (productId: string) => void;
   removeFromWishlist: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
@@ -106,12 +117,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const googleUser = result.user;
 
       if (googleUser) {
+        const idToken = await googleUser.getIdToken();
         const response = await fetch('/api/auth/google', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            idToken,
             email: googleUser.email,
             firstName: googleUser.displayName?.split(' ')[0] || '',
             lastName: googleUser.displayName?.split(' ').slice(1).join(' ') || '',
@@ -124,7 +137,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           login(data.user);
           toast({
             title: "Sign-In Successful",
-            description: "Welcome!",
+            description: "Welcome back!",
           });
           if (data.user.role === 'admin') {
             router.push('/admin');
@@ -142,6 +155,77 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: error.message || "An unexpected error occurred.",
         variant: "destructive",
       });
+    }
+  };
+
+  const signInWithPhoneOtp = async (phoneNumber: string, appVerifier: RecaptchaVerifier): Promise<ConfirmationResult> => {
+    try {
+      await setPersistence(auth, browserLocalPersistence);
+      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+      toast({
+        title: "OTP Sent",
+        description: `Verification code sent to ${phoneNumber}`,
+      });
+      return confirmationResult;
+    } catch (error: any) {
+      console.error("Phone OTP Error:", error);
+      toast({
+        title: "Failed to send OTP",
+        description: error.message || "Please check your phone number and try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const confirmPhoneOtp = async (
+    confirmationResult: ConfirmationResult,
+    otpCode: string,
+    firstName?: string,
+    lastName?: string
+  ) => {
+    try {
+      const userCredential = await confirmationResult.confirm(otpCode);
+      const idToken = await userCredential.user.getIdToken();
+
+      const response = await fetch('/api/v1/mobile/auth/firebase-phone', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-platform': 'android',
+          'x-app-signature': 'web_client_signature',
+        },
+        body: JSON.stringify({
+          idToken,
+          firstName: firstName || '',
+          lastName: lastName || '',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.user) {
+        login(data.user);
+        toast({
+          title: data.isNewUser ? "Welcome to Oktopus!" : "Login Successful",
+          description: data.isNewUser ? "You earned 100 Oktocoins welcome bonus!" : "Welcome back!",
+        });
+        if (data.user.role === 'admin') {
+          router.push('/admin');
+        } else {
+          router.push('/store');
+        }
+      } else {
+        throw new Error(data.message || 'Failed to authenticate phone OTP with server.');
+      }
+    } catch (error: any) {
+      console.error("OTP Verification Error:", error);
+      toast({
+        title: "Invalid Verification Code",
+        description: error.message || "Please double-check the OTP code entered.",
+        variant: "destructive",
+      });
+      throw error;
     }
   };
 
@@ -195,7 +279,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, signInWithGoogle, addToWishlist, removeFromWishlist, isInWishlist, refreshUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        loading,
+        signInWithGoogle,
+        signInWithPhoneOtp,
+        confirmPhoneOtp,
+        addToWishlist,
+        removeFromWishlist,
+        isInWishlist,
+        refreshUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

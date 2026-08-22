@@ -17,7 +17,8 @@ import { useAuth } from "@/context/auth-context";
 import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
 import { GoogleIcon } from "@/components/icons/google-icon";
-import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { PhoneOtpForm } from "@/components/auth/phone-otp-form";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -76,73 +77,87 @@ export default function LoginPage() {
     }
   };
 
-
   return (
     <>
       {/* Desktop View */}
       <div className="hidden md:flex flex-col min-h-screen">
         <Header />
-        <main className="flex-grow flex items-center justify-center bg-secondary">
-          <Card className="w-full max-w-sm">
-            <CardHeader>
-              <CardTitle className="text-2xl">Login</CardTitle>
+        <main className="flex-grow flex items-center justify-center bg-secondary py-12">
+          <Card className="w-full max-w-md shadow-md">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl font-bold">Login to Oktopus</CardTitle>
               <CardDescription>
-                Enter your email below to login to your account.
+                Sign in with Google, Mobile OTP, or Email below.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
-               <Button variant="outline" onClick={signInWithGoogle}>
-                  <GoogleIcon className="mr-2 h-4 w-4" />
-                  Sign in with Google
-                </Button>
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
-                      Or continue with
-                    </span>
-                  </div>
+              <Button variant="outline" onClick={signInWithGoogle} className="w-full">
+                <GoogleIcon className="mr-2 h-4 w-4" />
+                Sign in with Google
+              </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
                 </div>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input placeholder="m@example.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
-                     {form.formState.isSubmitting ? 'Signing In...' : 'Sign in'}
-                    </Button>
-                </form>
-              </Form>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or choose method
+                  </span>
+                </div>
+              </div>
+
+              <Tabs defaultValue="phone" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="phone">Phone OTP</TabsTrigger>
+                  <TabsTrigger value="email">Email & Password</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="phone" className="pt-4">
+                  <PhoneOtpForm mode="login" />
+                </TabsContent>
+
+                <TabsContent value="email" className="pt-4">
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input placeholder="m@example.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <Input type="password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
+                        {form.formState.isSubmitting ? 'Signing In...' : 'Sign in'}
+                      </Button>
+                    </form>
+                  </Form>
+                </TabsContent>
+              </Tabs>
             </CardContent>
             <CardFooter className="flex flex-col">
               <div className="text-center text-sm">
                 Don&apos;t have an account?{" "}
-                <Link href="/signup" className="underline">
+                <Link href="/signup" className="underline font-medium text-primary">
                   Sign up
                 </Link>
               </div>
@@ -155,62 +170,77 @@ export default function LoginPage() {
       {/* Mobile View */}
       <div className="md:hidden">
         <MobileHeader title="Login" />
-        <main className="flex-grow flex items-center justify-center bg-secondary min-h-screen">
+        <main className="flex-grow flex items-center justify-center bg-secondary min-h-screen p-4">
           <Card className="w-full max-w-sm shadow-none border-none bg-transparent">
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Welcome Back!</CardTitle>
+              <CardTitle className="text-2xl font-bold">Welcome Back!</CardTitle>
               <CardDescription>
                 Login to your account to continue.
               </CardDescription>
             </CardHeader>
-             <CardContent className="grid gap-4">
-               <Button variant="outline" onClick={signInWithGoogle}>
-                  <GoogleIcon className="mr-2 h-4 w-4" />
-                  Sign in with Google
-                </Button>
-                 <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-secondary px-2 text-muted-foreground">
-                      Or continue with
-                    </span>
-                  </div>
+            <CardContent className="grid gap-4">
+              <Button variant="outline" onClick={signInWithGoogle} className="w-full">
+                <GoogleIcon className="mr-2 h-4 w-4" />
+                Sign in with Google
+              </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
                 </div>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input placeholder="m@example.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
-                     {form.formState.isSubmitting ? 'Signing In...' : 'Sign in'}
-                  </Button>
-                </form>
-              </Form>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-secondary px-2 text-muted-foreground">
+                    Or choose method
+                  </span>
+                </div>
+              </div>
+
+              <Tabs defaultValue="phone" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="phone">Phone OTP</TabsTrigger>
+                  <TabsTrigger value="email">Email</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="phone" className="pt-4">
+                  <PhoneOtpForm mode="login" />
+                </TabsContent>
+
+                <TabsContent value="email" className="pt-4">
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input placeholder="m@example.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <Input type="password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
+                        {form.formState.isSubmitting ? 'Signing In...' : 'Sign in'}
+                      </Button>
+                    </form>
+                  </Form>
+                </TabsContent>
+              </Tabs>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
               <div className="text-center text-sm">

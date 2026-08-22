@@ -8,7 +8,7 @@ async function getAdminAuth() {
     const { getAuth } = await import('firebase-admin/auth');
 
     if (!getApps().length) {
-      const projectId = process.env.FIREBASE_PROJECT_ID || 'personaverse-bhx1q';
+      const projectId = process.env.FIREBASE_PROJECT_ID || 'oktopus-app-e16ad';
       const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
       const privateKey = process.env.FIREBASE_PRIVATE_KEY
         ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')

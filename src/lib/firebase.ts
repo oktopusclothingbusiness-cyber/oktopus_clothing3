@@ -3,12 +3,13 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  "projectId": "personaverse-bhx1q",
-  "appId": "1:481706654131:web:b826f918e66a9310dd33c6",
-  "storageBucket": "personaverse-bhx1q.firebasestorage.app",
-  "apiKey": "AIzaSyClJshM8w8qznHs2l2wZtGONNiLGwnNFQc",
-  "authDomain": "personaverse-bhx1q.firebaseapp.com",
-  "messagingSenderId": "481706654131"
+  apiKey: "AIzaSyBNwmT3Iu4-Z17GHeJ8GidrJe3AN6Yidt8",
+  authDomain: "oktopus-app-e16ad.firebaseapp.com",
+  projectId: "oktopus-app-e16ad",
+  storageBucket: "oktopus-app-e16ad.firebasestorage.app",
+  messagingSenderId: "605248451744",
+  appId: "1:605248451744:web:c002733263973c656e05c5",
+  measurementId: "G-YDN2D68LJX"
 };
 
 // Initialize Firebase
