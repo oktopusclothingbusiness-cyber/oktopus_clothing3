@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import firebaseAdmin from '@/lib/firebaseAdmin';
+import { generateJWT } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
@@ -48,7 +49,25 @@ export async function POST(request: Request) {
         user = { ...user, ...updateFields };
       }
       const { password, ...userWithoutPassword } = (user as any) || {};
-      return NextResponse.json({ message: 'Login successful.', user: userWithoutPassword }, { status: 200 });
+
+      const token = generateJWT({
+        userId: (user as any)._id.toString(),
+        email: (user as any).email,
+        role: (user as any).role || 'user',
+      });
+
+
+      const response = NextResponse.json({ message: 'Login successful.', user: userWithoutPassword, token }, { status: 200 });
+
+      response.cookies.set('admin_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+      });
+
+      return response;
     } else {
       // User does not exist, create a new user
       const newUser = {
@@ -69,10 +88,27 @@ export async function POST(request: Request) {
       const insertedUser = await usersCollection.findOne({ _id: result.insertedId });
       const { password, ...userWithoutPassword } = (insertedUser as any) || {};
 
-      return NextResponse.json({ message: 'User created and logged in successfully.', user: userWithoutPassword }, { status: 201 });
+      const token = generateJWT({
+        userId: insertedUser!._id.toString(),
+        email: insertedUser!.email,
+        role: insertedUser!.role || 'user',
+      });
+
+      const response = NextResponse.json({ message: 'User created and logged in successfully.', user: userWithoutPassword, token }, { status: 201 });
+
+      response.cookies.set('admin_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+      });
+
+      return response;
     }
   } catch (error) {
     console.error('Google Auth Error:', error);
     return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
   }
 }
+

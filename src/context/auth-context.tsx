@@ -96,6 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     try {
         await signOut(auth);
+        await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
         localStorage.removeItem('user');
     } catch (error) {
         console.error("Failed to sign out or remove user from local storage", error);
@@ -108,6 +109,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, 0);
     router.push('/login');
   };
+
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
