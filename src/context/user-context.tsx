@@ -1,8 +1,9 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth-context';
 
 export type User = {
   _id: string;
@@ -32,32 +33,44 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
+    if (authLoading) return;
+    if (user?.role !== 'admin') {
+      setLoading(false);
+      setUsers([]);
+      return;
+    }
+
     try {
       setLoading(true);
       const response = await fetch('/api/users');
       if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('Admin session expired or unauthorized. Please re-login.');
+        }
         throw new Error('Failed to fetch users');
       }
       const data = await response.json();
       const usersWithId = data.map((u: any) => ({ ...u, id: u._id.toString() }));
       setUsers(usersWithId);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       toast({
-        title: 'Error fetching users',
-        description: 'Could not load users from the database.',
+        title: 'Admin Authorization Needed',
+        description: error?.message || 'Could not load users from the database. Please log out and log back in as Admin.',
         variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.role, authLoading, toast]);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
+
 
   const deleteUser = async (userId: string) => {
     try {

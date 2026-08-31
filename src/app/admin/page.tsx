@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Bar, BarChart, CartesianGrid, XAxis, Tooltip, Legend, YAxis } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { IndianRupee, Users, CreditCard, Activity, ShoppingBag, Eye } from 'lucide-react';
+import { IndianRupee, Users, CreditCard, Activity, ShoppingBag, Eye, Download, Printer } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useUser } from '@/context/user-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format, subDays } from 'date-fns';
@@ -111,14 +112,64 @@ export default function AdminDashboardPage() {
             visitors: visitorMap.get(dateString) || 0,
         }
     });
-}, [orders, visitors]);
-
+  }, [orders, visitors]);
 
   const loading = usersLoading || ordersLoading || visitorsLoading;
 
+  const exportToCSV = () => {
+    const headers = ['Order ID', 'Customer', 'Date', 'Status', 'Total (INR)'];
+    const rows = orders.map(o => [
+      o._id,
+      `"${(o.userName || '').replace(/"/g, '""')}"`,
+      o.createdAt ? o.createdAt.split('T')[0] : '',
+      o.status || '',
+      o.total || 0
+    ]);
+    
+    const summaryLines = [
+      'OKTOPUS CLOTHING - ADMIN SUMMARY REPORT',
+      `Generated At,${new Date().toLocaleString()}`,
+      `Total Revenue,₹${totalRevenue.toFixed(2)}`,
+      `Total Sales Count,${totalSales}`,
+      `Total Registered Users,${users.length}`,
+      `Today Visitors,${todaysVisitors}`,
+      '',
+      headers.join(',')
+    ];
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + summaryLines.concat(rows.map(e => e.join(','))).join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `oktopus_sales_report_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handlePrintReport = () => {
+    window.print();
+  };
+
   return (
     <>
-      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-xs text-muted-foreground mt-1">Real-time overview of store revenue, sales performance, and active visitors.</p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={exportToCSV} className="h-8 text-xs gap-1.5 font-semibold">
+            <Download className="h-3.5 w-3.5" />
+            Export CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={handlePrintReport} className="h-8 text-xs gap-1.5 font-semibold">
+            <Printer className="h-3.5 w-3.5" />
+            Print Report
+          </Button>
+        </div>
+      </div>
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

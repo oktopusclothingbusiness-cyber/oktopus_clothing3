@@ -16,14 +16,15 @@ import * as React from "react";
 import { ProductCard } from "@/components/product-card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
-import { Shapes, TrendingUp, X, TrainFront } from "lucide-react";
+import { Shapes, TrendingUp, X, TrainFront, ArrowRight, Sparkles, Truck, ShieldCheck, RefreshCw, Gift, Flame } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn, getProductImage } from "@/lib/utils";
 import { usePopup } from "@/context/popup-context";
 import { useCoupon } from "@/context/coupon-context";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
 
 // Doodle SVG components
 const Doodle1 = () => (
@@ -84,7 +85,7 @@ const cardVariants = (targetRotate: number) => ({
     scale: 1.15,
     rotate: 0,
     zIndex: 50,
-    boxShadow: "0px 15px 35px rgba(252, 195, 36, 0.3)", // gold streetwear glow
+    boxShadow: "0px 20px 40px rgba(252, 195, 36, 0.35)", // gold streetwear glow
     transition: {
       duration: 0.25,
       ease: "easeOut"
@@ -110,7 +111,7 @@ const hoverCollectionVariants = {
   initial: { scale: 1 },
   hover: {
     scale: 1.02,
-    boxShadow: "0px 15px 30px rgba(252, 195, 36, 0.15)", // gold glow matching primary
+    boxShadow: "0px 20px 40px rgba(252, 195, 36, 0.25)",
     transition: { duration: 0.3, ease: "easeOut" }
   }
 };
@@ -129,7 +130,7 @@ const categoryIconVariants = {
   initial: { scale: 1 },
   hover: {
     scale: 1.08,
-    boxShadow: "0px 0px 15px rgba(252, 195, 36, 0.4)", // gold accent glow
+    boxShadow: "0px 0px 15px rgba(252, 195, 36, 0.4)",
     transition: { type: "spring", stiffness: 200, damping: 10 }
   }
 };
@@ -156,7 +157,7 @@ const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
       </Button>
     </div>
   </div>
-)
+);
 
 const PromoPopup = () => {
   const { popups, loading: popupsLoading } = usePopup();
@@ -281,7 +282,7 @@ export default function StreetifyStorePage() {
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const { clientX, clientY, currentTarget } = e;
     const { offsetWidth, offsetHeight } = currentTarget;
-    const xPos = (clientX / offsetWidth - 0.5) * 40; // Multiplier for parallax effect
+    const xPos = (clientX / offsetWidth - 0.5) * 40;
     const yPos = (clientY / offsetHeight - 0.5) * 40;
 
     const layers = heroRef.current?.querySelectorAll('[data-layer]');
@@ -300,14 +301,14 @@ export default function StreetifyStorePage() {
 
   return (
     <>
-      {/* Desktop View */}
-      <div className="hidden md:block bg-background text-foreground font-sans overflow-hidden">
+      {/* DESKTOP VIEW (REDESIGNED LUXURY STOREFRONT EXPERIENCE) */}
+      <div className="hidden md:block bg-background text-foreground font-sans overflow-hidden min-h-screen">
         <Header />
         <PromoPopup />
         <main>
-          {/* Hero Section */}
-          <section className="bg-background relative overflow-hidden" ref={heroRef} onMouseMove={handleMouseMove}>
-            <div className="absolute inset-0 opacity-10 dark:opacity-5">
+          {/* SECTION 1: HERO PARALLAX BILLBOARD */}
+          <section className="bg-background relative overflow-hidden border-b border-white/5 py-16 lg:py-24" ref={heroRef} onMouseMove={handleMouseMove}>
+            <div className="absolute inset-0 opacity-10 dark:opacity-5 pointer-events-none">
               <div data-layer data-speed="0.3" className="absolute top-[10%] left-[5%] w-24 h-24 animate-float"><Doodle1 /></div>
               <div data-layer data-speed="-0.2" className="absolute top-[20%] right-[10%] w-32 h-32 animate-float-delay-1"><Doodle2 /></div>
               <div data-layer data-speed="0.4" className="absolute bottom-[15%] left-[15%] w-20 h-20 animate-float-delay-2"><Doodle3 /></div>
@@ -315,49 +316,53 @@ export default function StreetifyStorePage() {
               <div data-layer data-speed="0.2" className="absolute top-[50%] left-[20%] w-16 h-16 animate-float-delay-1"><Doodle2 /></div>
             </div>
 
-            <div className="container mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center min-h-[80vh] relative z-10">
-              {/* Left typographic billboard */}
+            <div className="container mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center min-h-[75vh] relative z-10">
+              {/* Left Column: Typographic Billboard */}
               <motion.div
                 initial="hidden"
                 animate="visible"
                 variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
-                className="text-left space-y-6 flex flex-col justify-center"
+                className="lg:col-span-6 text-left space-y-6 flex flex-col justify-center"
               >
-                <div data-layer data-speed="0.1">
+                <div data-layer data-speed="0.1" className="space-y-4">
                   <motion.h1
                     variants={fadeUpVariants}
-                    className="text-7xl md:text-9xl font-black uppercase tracking-tighter font-bebas leading-none bg-gradient-to-b from-white via-white to-gray-500 bg-clip-text text-transparent select-none"
+                    className="text-6xl lg:text-8xl font-black uppercase tracking-tighter font-bebas leading-[0.95] bg-gradient-to-b from-white via-white to-gray-400 bg-clip-text text-transparent select-none"
                   >
                     OKTOPUS<br />CLOTHING
                   </motion.h1>
+                  
                   <motion.p
                     variants={fadeUpVariants}
-                    className="text-muted-foreground text-lg max-w-md mt-4"
+                    className="text-muted-foreground text-base lg:text-lg max-w-lg leading-relaxed pt-2"
                   >
-                    Functional streetwear designed for expression and built for utility. Stand out. Make a statement.
+                    Functional streetwear designed for expression and built for utility. Heavyweight tees, limited custom drops, and high-craft apparel.
                   </motion.p>
                 </div>
-                <motion.div variants={fadeUpVariants} data-layer data-speed="-0.1" className="pt-4 flex gap-4">
-                  <Button asChild variant="default" size="lg" className="rounded-full h-14 px-8 text-md font-bold shadow-lg hover:scale-105 transition-transform bg-white text-black hover:bg-gray-200">
-                    <Link href="/products">EXPLORE CATALOG</Link>
+
+                <motion.div variants={fadeUpVariants} data-layer data-speed="-0.1" className="pt-4 flex flex-wrap items-center gap-4">
+                  <Button asChild variant="default" size="lg" className="rounded-full h-14 px-8 text-sm font-bold shadow-xl hover:scale-105 transition-transform bg-white text-black hover:bg-gray-200">
+                    <Link href="/products" className="flex items-center gap-2">
+                      EXPLORE CATALOG <ArrowRight className="h-4 w-4" />
+                    </Link>
                   </Button>
-                  <Button asChild variant="outline" size="lg" className="rounded-full h-14 px-8 text-md font-bold hover:scale-105 transition-transform">
+                  <Button asChild variant="outline" size="lg" className="rounded-full h-14 px-8 text-sm font-bold hover:scale-105 transition-transform border-white/20">
                     <Link href="/custom-design">CUSTOM DESIGNS</Link>
                   </Button>
                 </motion.div>
               </motion.div>
 
-              {/* Right fanned showcase collage */}
-              <div className="relative w-full h-[400px] flex items-center justify-center select-none" data-layer data-speed="0.15">
+              {/* Right Column: Fanned Showcase Collage */}
+              <div className="lg:col-span-6 relative w-full h-[440px] flex items-center justify-center select-none" data-layer data-speed="0.15">
                 {/* Fanned product card 1 */}
                 <motion.div
                   variants={cardVariants(-15)}
                   initial="hidden"
                   animate="visible"
                   whileHover="hover"
-                  className="absolute left-[calc(50%-180px)] rounded-2xl w-[140px] h-[190px] md:w-[170px] md:h-[230px] overflow-hidden shadow-2xl origin-bottom cursor-pointer border border-white/5"
+                  className="absolute left-[calc(50%-190px)] rounded-2xl w-[150px] h-[210px] lg:w-[190px] lg:h-[260px] overflow-hidden shadow-2xl origin-bottom cursor-pointer border border-white/10 bg-card"
                 >
-                  <Image src="https://i.ibb.co/3yN11ZtH/mrvl-model-1.png" alt="Featured card 1" layout="fill" objectFit="cover" />
+                  <Image src="https://i.ibb.co/3yN11ZtH/mrvl-model-1.png" alt="Featured card 1" layout="fill" objectFit="cover" unoptimized />
                 </motion.div>
 
                 {/* Fanned product card 2 (center focus) */}
@@ -366,9 +371,9 @@ export default function StreetifyStorePage() {
                   initial="hidden"
                   animate="visible"
                   whileHover="hover"
-                  className="absolute z-20 rounded-2xl w-[160px] h-[210px] md:w-[200px] md:h-[270px] overflow-hidden shadow-2xl origin-bottom cursor-pointer border border-white/10"
+                  className="absolute z-20 rounded-2xl w-[170px] h-[230px] lg:w-[220px] lg:h-[300px] overflow-hidden shadow-2xl origin-bottom cursor-pointer border-2 border-white/20 bg-card"
                 >
-                  <Image src="https://i.ibb.co/23vrv2sM/Gemini-Generated-Image-4ytc2a4ytc2a4ytc.png" alt="Featured card 2" layout="fill" objectFit="cover" />
+                  <Image src="https://i.ibb.co/23vrv2sM/Gemini-Generated-Image-4ytc2a4ytc2a4ytc.png" alt="Featured card 2" layout="fill" objectFit="cover" unoptimized />
                 </motion.div>
 
                 {/* Fanned product card 3 */}
@@ -377,18 +382,27 @@ export default function StreetifyStorePage() {
                   initial="hidden"
                   animate="visible"
                   whileHover="hover"
-                  className="absolute right-[calc(50%-180px)] rounded-2xl w-[140px] h-[190px] md:w-[170px] md:h-[230px] overflow-hidden shadow-2xl origin-bottom cursor-pointer border border-white/5"
+                  className="absolute right-[calc(50%-190px)] rounded-2xl w-[150px] h-[210px] lg:w-[190px] lg:h-[260px] overflow-hidden shadow-2xl origin-bottom cursor-pointer border border-white/10 bg-card"
                 >
-                  <Image src="https://i.ibb.co/LdxSvMMd/mrvl-model-5.png" alt="Featured card 3" layout="fill" objectFit="cover" />
+                  <Image src="https://i.ibb.co/LdxSvMMd/mrvl-model-5.png" alt="Featured card 3" layout="fill" objectFit="cover" unoptimized />
                 </motion.div>
               </div>
             </div>
           </section>
 
-          {/* Categories Catalog (Desktop Only) */}
-          <section className="bg-background py-16 border-t border-white/5">
-            <div className="container mx-auto px-4">
-              <h2 className="text-4xl font-black font-bebas tracking-tight mb-8">Categories</h2>
+          {/* SECTION 2: CATEGORIES CATALOG */}
+          <section className="bg-background py-16 border-b border-white/5">
+            <div className="container mx-auto px-6 lg:px-12">
+              <div className="flex items-center justify-between mb-10">
+                <div>
+                  <h2 className="text-4xl font-black font-bebas tracking-tight">CATEGORIES</h2>
+                  <p className="text-xs text-muted-foreground mt-1">Browse active store apparel categories</p>
+                </div>
+                <Link href="/products" className="text-xs font-bold text-amber-400 hover:underline flex items-center gap-1">
+                  View All Apparel <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {categoriesLoading ? Array.from({ length: 4 }).map((_, i) => (
                   <Skeleton key={i} className="h-32 rounded-2xl" />
@@ -396,14 +410,14 @@ export default function StreetifyStorePage() {
                   <Link href={`/products?category=${category.id}`} key={category.id} className="block group">
                     <motion.div
                       whileHover={{ scale: 1.03, borderColor: "rgba(252, 195, 36, 0.4)" }}
-                      className="relative h-32 rounded-2xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-md flex items-center p-6 gap-6 transition-all duration-300"
+                      className="relative h-32 rounded-2xl overflow-hidden border border-white/10 bg-card/60 backdrop-blur-md flex items-center p-6 gap-5 transition-all duration-300 shadow-sm"
                     >
                       <div className="w-16 h-16 rounded-full overflow-hidden bg-secondary border border-white/10 flex-shrink-0">
-                        <Image src={category.imageUrl} alt={category.name} width={64} height={64} className="object-cover w-full h-full" />
+                        <Image src={category.imageUrl} alt={category.name} width={64} height={64} className="object-cover w-full h-full" unoptimized />
                       </div>
                       <div>
-                        <p className="text-xl font-bold uppercase font-bebas tracking-wider text-white group-hover:text-yellow-500 transition-colors">{category.name}</p>
-                        <p className="text-xs text-muted-foreground mt-1">Explore Drops</p>
+                        <p className="text-xl font-bold uppercase font-bebas tracking-wider text-foreground group-hover:text-amber-400 transition-colors">{category.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Explore Drops →</p>
                       </div>
                     </motion.div>
                   </Link>
@@ -412,54 +426,60 @@ export default function StreetifyStorePage() {
             </div>
           </section>
 
-          {/* Summer Collection Section */}
-          <section className="bg-background py-16 border-t border-white/5">
-            <div className="container mx-auto px-4">
-              <h2 className="text-4xl font-black font-bebas tracking-tight mb-8">Collections</h2>
-              <div className="grid grid-cols-3 gap-8">
+          {/* SECTION 3: CURATED COLLECTIONS */}
+          <section className="bg-background py-16 border-b border-white/5">
+            <div className="container mx-auto px-6 lg:px-12">
+              <div className="flex items-center justify-between mb-10">
+                <div>
+                  <h2 className="text-4xl font-black font-bebas tracking-tight">CURATED COLLECTIONS</h2>
+                  <p className="text-xs text-muted-foreground mt-1">Exclusive streetwear drops and limited editions</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left block: Double width (col-span-2) */}
                 <motion.div
                   initial="initial"
                   whileHover="hover"
                   variants={hoverCollectionVariants}
-                  className="col-span-2 relative h-[60vh] rounded-2xl overflow-hidden cursor-pointer group"
+                  className="lg:col-span-2 relative h-[56vh] min-h-[380px] rounded-2xl overflow-hidden cursor-pointer group border border-white/10"
                 >
-                  {collection1Product &&
-                    <Image src={getProductImage(collection1Product.imageUrls)} alt={collection1Product.name} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" />
-                  }
-                  <div className="absolute inset-0 flex flex-col justify-between p-8 text-white bg-black/40 transition-colors duration-500 group-hover:bg-black/55">
+                  {collection1Product && (
+                    <Image src={getProductImage(collection1Product.imageUrls)} alt={collection1Product.name} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" unoptimized />
+                  )}
+                  <div className="absolute inset-0 flex flex-col justify-between p-8 text-white bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-colors duration-500 group-hover:bg-black/60">
                     <motion.ul
                       variants={listContainerVariants}
                       className="space-y-1"
                     >
-                      {['T-SHIRTS', 'HOODIES', 'ZIP HOODIES', 'SWEATSHIRTS', 'BOMBERS', 'WINDBREAKERS'].map(item => (
-                        <motion.li key={item} variants={listItemVariants} className="text-xs font-bold tracking-widest">{item}</motion.li>
+                      {['HEAVYWEIGHT TEES', 'HOODIES', 'ZIP HOODIES', 'SWEATSHIRTS', 'BOMBERS'].map(item => (
+                        <motion.li key={item} variants={listItemVariants} className="text-xs font-bold tracking-widest text-amber-400">{item}</motion.li>
                       ))}
                     </motion.ul>
                     <div>
-                      <h2 className="text-5xl font-black font-bebas tracking-tighter">SUMMER DROPS</h2>
-                      <p className="mt-2 font-mono text-xs tracking-widest text-yellow-500">LIMITED STOCKS • 2024</p>
+                      <h2 className="text-5xl font-black font-bebas tracking-tighter">AUTUMN DROPS</h2>
+                      <p className="mt-2 font-mono text-xs tracking-widest text-amber-400">LIMITED STOCKS • 2026</p>
                     </div>
                   </div>
                 </motion.div>
 
                 {/* Right block: Single width (col-span-1) */}
-                <div className="col-span-1 flex flex-col gap-6">
+                <div className="lg:col-span-1 flex flex-col gap-6">
                   {/* Upper card */}
                   <motion.div
                     initial="initial"
                     whileHover="hover"
                     variants={hoverCollectionVariants}
-                    className="relative h-[28vh] rounded-2xl overflow-hidden cursor-pointer group"
+                    className="relative h-[26vh] min-h-[180px] rounded-2xl overflow-hidden cursor-pointer group border border-white/10"
                   >
-                    {collection2Product &&
-                      <Image src={getProductImage(collection2Product.imageUrls)} alt={collection2Product.name} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" />
-                    }
-                    <div className="absolute inset-0 flex flex-col justify-between p-6 text-white bg-black/40 transition-colors duration-500 group-hover:bg-black/55">
+                    {collection2Product && (
+                      <Image src={getProductImage(collection2Product.imageUrls)} alt={collection2Product.name} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" unoptimized />
+                    )}
+                    <div className="absolute inset-0 flex flex-col justify-between p-6 text-white bg-gradient-to-t from-black/90 via-black/30 to-transparent">
                       <div />
                       <div>
                         <h2 className="text-3xl font-black font-bebas tracking-tighter">ESSENTIALS</h2>
-                        <p className="mt-1 font-mono text-[10px] tracking-widest text-yellow-500">CORE BASICS</p>
+                        <p className="mt-1 font-mono text-[10px] tracking-widest text-amber-400">CORE BASICS</p>
                       </div>
                     </div>
                   </motion.div>
@@ -469,16 +489,16 @@ export default function StreetifyStorePage() {
                     initial="initial"
                     whileHover="hover"
                     variants={hoverCollectionVariants}
-                    className="relative h-[28vh] rounded-2xl overflow-hidden cursor-pointer group"
+                    className="relative h-[26vh] min-h-[180px] rounded-2xl overflow-hidden cursor-pointer group border border-white/10"
                   >
-                    {heroProduct &&
-                      <Image src={getProductImage(heroProduct.imageUrls)} alt={heroProduct.name} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" />
-                    }
-                    <div className="absolute inset-0 flex flex-col justify-between p-6 text-white bg-black/40 transition-colors duration-500 group-hover:bg-black/55">
+                    {heroProduct && (
+                      <Image src={getProductImage(heroProduct.imageUrls)} alt={heroProduct.name} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" unoptimized />
+                    )}
+                    <div className="absolute inset-0 flex flex-col justify-between p-6 text-white bg-gradient-to-t from-black/90 via-black/30 to-transparent">
                       <div />
                       <div>
                         <h2 className="text-3xl font-black font-bebas tracking-tighter">LIMITED RUNS</h2>
-                        <p className="mt-1 font-mono text-[10px] tracking-widest text-yellow-500">EXCLUSIVE RELEASES</p>
+                        <p className="mt-1 font-mono text-[10px] tracking-widest text-amber-400">EXCLUSIVE RELEASES</p>
                       </div>
                     </div>
                   </motion.div>
@@ -487,19 +507,23 @@ export default function StreetifyStorePage() {
             </div>
           </section>
 
-          {/* Bestsellers Section */}
-          <section className="py-20">
+          {/* SECTION 4: BESTSELLERS CAROUSEL */}
+          <section className="py-20 bg-background">
             <motion.div
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: "-100px" }}
               variants={sectionVariants}
-              className="container mx-auto px-4"
+              className="container mx-auto px-6 lg:px-12"
             >
               <div className="flex justify-between items-center mb-12">
-                <h2 className="text-5xl font-black font-bebas tracking-tight">Bestsellers</h2>
-                <Button asChild variant="outline" className="rounded-full h-12 px-8">
-                  <Link href="/products">TO CATALOG</Link>
+                <div>
+                  <h2 className="text-5xl font-black font-bebas tracking-tight">BESTSELLERS</h2>
+                  <p className="text-xs text-muted-foreground mt-1">High demand customer favorites</p>
+                </div>
+
+                <Button asChild variant="outline" className="rounded-full h-12 px-8 font-bold border-white/20">
+                  <Link href="/products">VIEW CATALOG</Link>
                 </Button>
               </div>
 
@@ -514,26 +538,73 @@ export default function StreetifyStorePage() {
                 <CarouselContent>
                   {loading ?
                     Array.from({ length: 4 }).map((_, i) => (
-                      <CarouselItem key={i} className="md:basis-1/4">
+                      <CarouselItem key={i} className="md:basis-1/3 lg:basis-1/4">
                         <Skeleton className="aspect-[3/4] rounded-xl" />
                       </CarouselItem>
                     ))
                     : bestSellers.map((product) => (
-                      <CarouselItem key={product.id} className="md:basis-1/4">
+                      <CarouselItem key={product.id} className="md:basis-1/3 lg:basis-1/4">
                         <ProductCard product={product} />
                       </CarouselItem>
                     ))}
                 </CarouselContent>
-                <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12" />
-                <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12" />
+                <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6" />
+                <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-6" />
               </Carousel>
             </motion.div>
+          </section>
+
+          {/* SECTION 5: SHOPPING PERKS STRIP */}
+          <section className="border-t border-white/10 bg-card/60 py-10">
+            <div className="container mx-auto px-6 lg:px-12">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-full bg-primary/10 text-primary shrink-0">
+                    <Truck className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold">Free Express Delivery</h4>
+                    <p className="text-[10px] text-muted-foreground">On all orders above ₹999</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-full bg-emerald-500/10 text-emerald-600 shrink-0">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold">Premium Quality Fabric</h4>
+                    <p className="text-[10px] text-muted-foreground">100% Heavyweight Cotton</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-full bg-blue-500/10 text-blue-600 shrink-0">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold">100% Authentic Drop</h4>
+                    <p className="text-[10px] text-muted-foreground">Guaranteed quality craft</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-full bg-amber-500/10 text-amber-500 shrink-0">
+                    <Gift className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold">Oktocoin Loyalty Rewards</h4>
+                    <p className="text-[10px] text-muted-foreground">Earn points on every buy</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </section>
         </main>
         <Footer />
       </div>
 
-      {/* Mobile View */}
+      {/* MOBILE VIEW (UNTOUCHED & FULLY PRESERVED) */}
       <div className="md:hidden bg-background font-sans overflow-hidden">
         <MobileHeader />
         <PromoPopup />
@@ -586,7 +657,7 @@ export default function StreetifyStorePage() {
                       variants={categoryIconVariants}
                       className="w-16 h-16 rounded-full overflow-hidden bg-secondary border border-white/5"
                     >
-                      <Image src={category.imageUrl} alt={category.name} width={64} height={64} className="object-cover w-full h-full" />
+                      <Image src={category.imageUrl} alt={category.name} width={64} height={64} className="object-cover w-full h-full" unoptimized />
                     </motion.div>
                     <p className="text-xs font-semibold mt-2 truncate">{category.name}</p>
                   </Link>
@@ -684,7 +755,7 @@ export default function StreetifyStorePage() {
                       whileTap={{ scale: 0.95 }}
                       className="relative aspect-square rounded-lg overflow-hidden group border border-white/5"
                     >
-                      <Image src={trend.imageUrl} alt={trend.title} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" />
+                      <Image src={trend.imageUrl} alt={trend.title} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" unoptimized />
                       <div className="absolute inset-0 bg-black/40 flex items-end p-2 transition-colors group-hover:bg-black/50">
                         <h3 className="text-white font-bold text-md tracking-wide">{trend.title}</h3>
                       </div>
@@ -694,7 +765,6 @@ export default function StreetifyStorePage() {
               )}
             </div>
           </section>
-
         </main>
         <MobileFooter />
       </div>

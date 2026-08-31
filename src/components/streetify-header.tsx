@@ -48,7 +48,7 @@ export function StreetifyHeader() {
           <div className="flex gap-4">
             <span>Free Shipping on Orders Over ₹500</span>
             <span>|</span>
-            <span>Easy Returns & Exchanges</span>
+            <span>Premium Quality Apparel</span>
           </div>
           <div className="flex gap-4 items-center">
             <span>Stay Connected</span>

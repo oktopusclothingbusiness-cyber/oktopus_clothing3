@@ -74,6 +74,43 @@ export default function OrdersPage() {
     }
   }, [toast]);
 
+  type OrderSortField = 'total' | 'createdAt' | 'status' | 'userName';
+  type OrderSortOrder = 'asc' | 'desc';
+
+  const [sortField, setSortField] = React.useState<OrderSortField>('createdAt');
+  const [sortOrder, setSortOrder] = React.useState<OrderSortOrder>('desc');
+
+  const handleSort = (field: OrderSortField) => {
+    if (sortField === field) {
+      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const sortedOrders = React.useMemo(() => {
+    return [...orders].sort((a, b) => {
+      let valA: any = a[sortField];
+      let valB: any = b[sortField];
+
+      if (sortField === 'createdAt') {
+        valA = new Date(valA || 0).getTime();
+        valB = new Date(valB || 0).getTime();
+      } else if (sortField === 'total') {
+        valA = Number(valA || 0);
+        valB = Number(valB || 0);
+      } else {
+        valA = (valA || '').toString().toLowerCase();
+        valB = (valB || '').toString().toLowerCase();
+      }
+
+      if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+      if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [orders, sortField, sortOrder]);
+
   React.useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
@@ -201,11 +238,19 @@ export default function OrdersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Order ID</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Order Status</TableHead>
+                  <TableHead className="cursor-pointer select-none hover:text-primary transition-colors" onClick={() => handleSort('userName')}>
+                    Customer {sortField === 'userName' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none hover:text-primary transition-colors" onClick={() => handleSort('createdAt')}>
+                    Date {sortField === 'createdAt' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none hover:text-primary transition-colors" onClick={() => handleSort('status')}>
+                    Order Status {sortField === 'status' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </TableHead>
                   <TableHead>Payment</TableHead>
-                  <TableHead>Total</TableHead>
+                  <TableHead className="cursor-pointer select-none hover:text-primary transition-colors" onClick={() => handleSort('total')}>
+                    Total {sortField === 'total' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -222,8 +267,8 @@ export default function OrdersPage() {
                        <TableCell><Skeleton className="h-8 w-20" /></TableCell>
                     </TableRow>
                   ))
-                ) : orders.length > 0 ? (
-                  orders.map((order) => (
+                ) : sortedOrders.length > 0 ? (
+                  sortedOrders.map((order) => (
                     <TableRow key={order._id}>
                       <TableCell>
                          <span className="font-mono text-xs">#{order._id.slice(-6)}</span>

@@ -40,6 +40,7 @@ const ProductImageSlider = ({ imageUrls, alt, isMobile }: { imageUrls: string[],
             src={imageUrl}
             alt={alt}
             fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className={cn("object-cover transition-all duration-500 ease-in-out", !isMobile && "group-hover:scale-105")}
             data-ai-hint="clothing item"
         />

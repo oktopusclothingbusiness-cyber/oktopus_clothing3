@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 86400, // Cache optimized images for 24 hours
     remotePatterns: [
       {
         protocol: 'https',
