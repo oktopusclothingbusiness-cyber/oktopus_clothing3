@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { authenticateRequest } from '@/lib/auth';
+import { ObjectId } from 'mongodb';
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,7 +38,59 @@ export async function POST(request: NextRequest) {
       }
 
       if (Array.isArray(filter.categories) && filter.categories.length > 0) {
-        conditions.push({ category: { $in: filter.categories } });
+        const catConds: any[] = [];
+        for (const catIdOrName of filter.categories) {
+          if (!catIdOrName || catIdOrName === 'all') continue;
+
+          const terms: any[] = [catIdOrName];
+
+          try {
+            let catDoc: any = null;
+            if (ObjectId.isValid(catIdOrName)) {
+              catDoc = await db.collection('categories').findOne({ _id: new ObjectId(catIdOrName) });
+            }
+            if (!catDoc) {
+              catDoc = await db.collection('categories').findOne({
+                $or: [
+                  { id: catIdOrName },
+                  { name: { $regex: `^${catIdOrName}$`, $options: 'i' } }
+                ]
+              });
+            }
+
+            if (catDoc) {
+              if (catDoc._id) terms.push(catDoc._id.toString());
+              if (catDoc.id) terms.push(catDoc.id);
+              if (catDoc.name) {
+                terms.push(catDoc.name);
+                terms.push(catDoc.name.toLowerCase());
+                terms.push(new RegExp(`^${catDoc.name.trim()}$`, 'i'));
+              }
+            } else {
+              terms.push(new RegExp(`^${catIdOrName.trim()}$`, 'i'));
+            }
+          } catch (e) {
+            terms.push(new RegExp(`^${catIdOrName.trim()}$`, 'i'));
+          }
+
+          catConds.push(
+            { category: { $in: terms } },
+            { category: { $elemMatch: { $in: terms } } }
+          );
+        }
+
+        if (catConds.length > 0) {
+          conditions.push({ $or: catConds });
+        }
+      }
+
+      if (filter.productId && typeof filter.productId === 'string' && filter.productId !== 'all') {
+        const idStr = filter.productId.trim();
+        if (ObjectId.isValid(idStr)) {
+          conditions.push({ $or: [{ _id: new ObjectId(idStr) }, { id: idStr }] });
+        } else {
+          conditions.push({ id: idStr });
+        }
       }
 
       if (filter.searchQuery && typeof filter.searchQuery === 'string' && filter.searchQuery.trim()) {
@@ -69,6 +122,7 @@ export async function POST(request: NextRequest) {
           stock: 1,
           category: 1,
           imageUrls: 1,
+          description: 1,
         })
         .toArray();
 
@@ -168,6 +222,63 @@ export async function POST(request: NextRequest) {
           } else {
             updateDoc = { $addToSet: { category: { $each: catIds } }, $set: { updatedAt: new Date() } };
             taskDescription = `Assigned categories to matching products`;
+          }
+          break;
+        }
+
+        case 'DESCRIPTION_UPDATE': {
+          const descMode = payload?.descriptionMode || 'set';
+          const descText = payload?.descriptionText?.toString() || '';
+          const findText = payload?.descriptionFindText?.toString() || '';
+          const replaceText = payload?.descriptionReplaceText?.toString() || '';
+
+          if (descMode === 'clear') {
+            updateDoc = { $set: { description: '', updatedAt: new Date() } };
+            taskDescription = `Cleared description for matching products`;
+          } else if (descMode === 'append') {
+            if (!descText.trim()) {
+              return NextResponse.json({ message: 'Description text to append is required.' }, { status: 400 });
+            }
+            updateDoc = [
+              {
+                $set: {
+                  description: {
+                    $concat: [
+                      { $ifNull: ['$description', ''] },
+                      { $cond: [{ $eq: [{ $ifNull: ['$description', ''] }, ''] }, '', ' '] },
+                      descText,
+                    ],
+                  },
+                  updatedAt: new Date(),
+                },
+              },
+            ];
+            taskDescription = `Appended text to descriptions of matching products`;
+          } else if (descMode === 'replace') {
+            if (!findText) {
+              return NextResponse.json({ message: 'Find text is required for replace mode.' }, { status: 400 });
+            }
+            updateDoc = [
+              {
+                $set: {
+                  description: {
+                    $replaceAll: {
+                      input: { $ifNull: ['$description', ''] },
+                      find: findText,
+                      replacement: replaceText,
+                    },
+                  },
+                  updatedAt: new Date(),
+                },
+              },
+            ];
+            taskDescription = `Replaced "${findText}" with "${replaceText}" in descriptions`;
+          } else {
+            // 'set' / 'overwrite'
+            updateDoc = { $set: { description: descText, updatedAt: new Date() } };
+            taskDescription = descText
+              ? `Set description to "${descText.length > 35 ? descText.slice(0, 35) + '...' : descText}"`
+              : `Cleared description for matching products`;
           }
           break;
         }

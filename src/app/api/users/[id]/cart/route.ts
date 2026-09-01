@@ -4,14 +4,14 @@ import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
 // GET a user's cart
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: userId } = params;
-    
+    const { id: userId } = await params;
+
     if (!ObjectId.isValid(userId)) {
       return NextResponse.json({ message: 'Invalid user ID.' }, { status: 400 });
     }
-    
+
     const client = await clientPromise;
     const db = client.db();
 
@@ -30,9 +30,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
 }
 
 // PUT (update/overwrite) a user's cart
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const { id: userId } = params;
+        const { id: userId } = await params;
         if (!ObjectId.isValid(userId)) {
             return NextResponse.json({ message: 'Invalid user ID.' }, { status: 400 });
         }

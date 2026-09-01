@@ -25,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Layers,
   IndianRupee,
@@ -40,9 +41,10 @@ import {
   Sparkles,
   ArrowRight,
   Filter,
+  FileText,
 } from 'lucide-react';
 
-type TaskAction = 'PRICE_UPDATE' | 'ADD_SIZE' | 'REMOVE_SIZE' | 'STOCK_UPDATE' | 'CATEGORY_ASSIGN';
+type TaskAction = 'PRICE_UPDATE' | 'ADD_SIZE' | 'REMOVE_SIZE' | 'STOCK_UPDATE' | 'CATEGORY_ASSIGN' | 'DESCRIPTION_UPDATE';
 
 type PreviewProduct = {
   _id: string;
@@ -53,6 +55,7 @@ type PreviewProduct = {
   stock?: number;
   category?: string[];
   imageUrls?: string[];
+  description?: string;
 };
 
 type BatchLog = {
@@ -65,8 +68,11 @@ type BatchLog = {
   executedAt: string;
 };
 
+import { useProduct } from '@/context/product-context';
+
 export default function AdminBatchTasksPage() {
   const { categories, loading: categoriesLoading } = useCategory();
+  const { products, loading: productsLoading } = useProduct();
   const { toast } = useToast();
 
   // Task selection
@@ -74,7 +80,7 @@ export default function AdminBatchTasksPage() {
 
   // Filter state
   const [allProducts, setAllProducts] = React.useState(false);
-  const [targetPriceFilter, setTargetPriceFilter] = React.useState<string>('549');
+  const [targetPriceFilter, setTargetPriceFilter] = React.useState<string>('');
   const [priceMinFilter, setPriceMinFilter] = React.useState<string>('');
   const [priceMaxFilter, setPriceMaxFilter] = React.useState<string>('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = React.useState<string>('all');
@@ -88,6 +94,14 @@ export default function AdminBatchTasksPage() {
   const [stockMode, setStockMode] = React.useState<'set' | 'add' | 'subtract'>('set');
   const [categoryIds, setCategoryIds] = React.useState<string[]>([]);
   const [categoryMode, setCategoryMode] = React.useState<'add' | 'remove'>('add');
+
+  // Description batch task state
+  const [descriptionMode, setDescriptionMode] = React.useState<'set' | 'append' | 'replace' | 'clear'>('set');
+  const [descriptionText, setDescriptionText] = React.useState<string>('Premium 240 GSM heavy cotton oversized fit.');
+  const [descriptionFindText, setDescriptionFindText] = React.useState<string>('');
+  const [descriptionReplaceText, setDescriptionReplaceText] = React.useState<string>('');
+  const [descTargetingType, setDescTargetingType] = React.useState<'category' | 'product'>('category');
+  const [selectedProductId, setSelectedProductId] = React.useState<string>('all');
 
   // Preview & execution state
   const [isPreviewing, setIsPreviewing] = React.useState(false);
@@ -120,12 +134,28 @@ export default function AdminBatchTasksPage() {
   }, [fetchHistory]);
 
   const buildFilterObject = () => {
+    let catFilterList: string[] | undefined = undefined;
+    if (selectedCategoryFilter !== 'all') {
+      const foundCat = categories.find((c) => c.id === selectedCategoryFilter || c._id === selectedCategoryFilter);
+      if (foundCat) {
+        catFilterList = Array.from(new Set([foundCat.id, foundCat._id, foundCat.name].filter(Boolean)));
+      } else {
+        catFilterList = [selectedCategoryFilter];
+      }
+    }
+
     return {
-      allProducts,
+      allProducts: selectedAction === 'DESCRIPTION_UPDATE' ? false : allProducts,
       targetPrice: targetPriceFilter ? parseFloat(targetPriceFilter) : undefined,
       priceMin: priceMinFilter ? parseFloat(priceMinFilter) : undefined,
       priceMax: priceMaxFilter ? parseFloat(priceMaxFilter) : undefined,
-      categories: selectedCategoryFilter !== 'all' ? [selectedCategoryFilter] : undefined,
+      categories: catFilterList,
+      productId:
+        selectedAction === 'DESCRIPTION_UPDATE' && descTargetingType === 'product'
+          ? selectedProductId !== 'all'
+            ? selectedProductId
+            : undefined
+          : undefined,
       searchQuery: searchQueryFilter || undefined,
     };
   };
@@ -139,10 +169,33 @@ export default function AdminBatchTasksPage() {
       stockMode,
       categoryIds,
       categoryMode,
+      descriptionMode,
+      descriptionText,
+      descriptionFindText,
+      descriptionReplaceText,
     };
   };
 
   const handlePreview = async () => {
+    if (selectedAction === 'DESCRIPTION_UPDATE') {
+      if (descTargetingType === 'category' && selectedCategoryFilter === 'all') {
+        toast({
+          title: 'Target Category Required',
+          description: 'Please select a specific Category first before changing descriptions.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      if (descTargetingType === 'product' && selectedProductId === 'all') {
+        toast({
+          title: 'Target Product Required',
+          description: 'Please select a specific Product first before changing descriptions.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     try {
       setIsPreviewing(true);
       const response = await fetch('/api/products/batch-tasks', {
@@ -252,7 +305,7 @@ export default function AdminBatchTasksPage() {
               <CardDescription>Choose the type of bulk task you want to execute.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div
                   onClick={() => setSelectedAction('PRICE_UPDATE')}
                   className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center text-center space-y-2 ${
@@ -312,6 +365,21 @@ export default function AdminBatchTasksPage() {
                   <div className="font-semibold text-sm">Category Batching</div>
                   <p className="text-xs text-muted-foreground">Assign or unassign categories in bulk</p>
                 </div>
+
+                <div
+                  onClick={() => setSelectedAction('DESCRIPTION_UPDATE')}
+                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center text-center space-y-2 ${
+                    selectedAction === 'DESCRIPTION_UPDATE'
+                      ? 'border-primary bg-primary/5 shadow-sm'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <div className="p-3 rounded-full bg-rose-500/10 text-rose-600">
+                    <FileText className="h-6 w-6" />
+                  </div>
+                  <div className="font-semibold text-sm">Description Batching</div>
+                  <p className="text-xs text-muted-foreground">Add, edit, replace, or delete descriptions category-wise</p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -328,86 +396,168 @@ export default function AdminBatchTasksPage() {
                 <CardDescription>Specify which products should be targeted by this operation.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-3 rounded-lg border bg-secondary/30">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="all-products-switch" className="font-medium">Target ALL Products</Label>
-                    <p className="text-xs text-muted-foreground">Apply operation across the entire catalog</p>
-                  </div>
-                  <Switch
-                    id="all-products-switch"
-                    checked={allProducts}
-                    onCheckedChange={setAllProducts}
-                  />
-                </div>
-
-                {!allProducts && (
-                  <div className="space-y-4 pt-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="target-price">Exact Price Match (₹)</Label>
-                      <Input
-                        id="target-price"
-                        type="number"
-                        placeholder="e.g., 549"
-                        value={targetPriceFilter}
-                        onChange={(e) => setTargetPriceFilter(e.target.value)}
-                      />
-                      <p className="text-xs text-muted-foreground">Leave empty if matching by range or category instead.</p>
+                {selectedAction === 'DESCRIPTION_UPDATE' ? (
+                  <div className="space-y-4">
+                    <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-xs text-rose-700 dark:text-rose-300 font-medium">
+                      🎯 <strong>Target Selection Required:</strong> First choose whether to target a specific Category or a specific Product to update its description.
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="price-min">Min Price (₹)</Label>
-                        <Input
-                          id="price-min"
-                          type="number"
-                          placeholder="Min"
-                          value={priceMinFilter}
-                          onChange={(e) => setPriceMinFilter(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="price-max">Max Price (₹)</Label>
-                        <Input
-                          id="price-max"
-                          type="number"
-                          placeholder="Max"
-                          value={priceMaxFilter}
-                          onChange={(e) => setPriceMaxFilter(e.target.value)}
-                        />
+                    <div className="space-y-2">
+                      <Label>Targeting Method</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          type="button"
+                          variant={descTargetingType === 'category' ? 'default' : 'outline'}
+                          className="text-xs flex items-center justify-center gap-1.5"
+                          onClick={() => setDescTargetingType('category')}
+                        >
+                          <Shapes className="h-4 w-4" />
+                          Target by Category
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={descTargetingType === 'product' ? 'default' : 'outline'}
+                          className="text-xs flex items-center justify-center gap-1.5"
+                          onClick={() => setDescTargetingType('product')}
+                        >
+                          <Package className="h-4 w-4" />
+                          Target Specific Product
+                        </Button>
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="category-filter">Category Filter</Label>
-                      <Select
-                        value={selectedCategoryFilter}
-                        onValueChange={setSelectedCategoryFilter}
-                        disabled={categoriesLoading}
-                      >
-                        <SelectTrigger id="category-filter">
-                          <SelectValue placeholder="All Categories" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Categories</SelectItem>
-                          {categories.map((cat) => (
-                            <SelectItem key={cat.id} value={cat.id}>
-                              {cat.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="search-filter">Keyword / Name Match</Label>
-                      <Input
-                        id="search-filter"
-                        placeholder="e.g., Shirt, Hoodie..."
-                        value={searchQueryFilter}
-                        onChange={(e) => setSearchQueryFilter(e.target.value)}
+                    {descTargetingType === 'category' ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="category-filter-required" className="font-semibold text-rose-600 dark:text-rose-400">
+                          Select Category *
+                        </Label>
+                        <Select
+                          value={selectedCategoryFilter}
+                          onValueChange={setSelectedCategoryFilter}
+                          disabled={categoriesLoading}
+                        >
+                          <SelectTrigger id="category-filter-required">
+                            <SelectValue placeholder="-- Select a Category --" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all" disabled>-- Choose Category --</SelectItem>
+                            {categories.map((cat) => (
+                              <SelectItem key={cat.id} value={cat.id}>
+                                {cat.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Label htmlFor="product-filter-required" className="font-semibold text-rose-600 dark:text-rose-400">
+                          Select Specific Product *
+                        </Label>
+                        <Select
+                          value={selectedProductId}
+                          onValueChange={setSelectedProductId}
+                          disabled={productsLoading}
+                        >
+                          <SelectTrigger id="product-filter-required">
+                            <SelectValue placeholder="-- Select a Product --" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all" disabled>-- Choose Product --</SelectItem>
+                            {products.map((p) => (
+                              <SelectItem key={p._id} value={p._id}>
+                                {p.name} (₹{p.price})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between p-3 rounded-lg border bg-secondary/30">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="all-products-switch" className="font-medium">Target ALL Products</Label>
+                        <p className="text-xs text-muted-foreground">Apply operation across the entire catalog</p>
+                      </div>
+                      <Switch
+                        id="all-products-switch"
+                        checked={allProducts}
+                        onCheckedChange={setAllProducts}
                       />
                     </div>
-                  </div>
+
+                    {!allProducts && (
+                      <div className="space-y-4 pt-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="target-price">Exact Price Match (₹)</Label>
+                          <Input
+                            id="target-price"
+                            type="number"
+                            placeholder="e.g., 549"
+                            value={targetPriceFilter}
+                            onChange={(e) => setTargetPriceFilter(e.target.value)}
+                          />
+                          <p className="text-xs text-muted-foreground">Leave empty if matching by range or category instead.</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="price-min">Min Price (₹)</Label>
+                            <Input
+                              id="price-min"
+                              type="number"
+                              placeholder="Min"
+                              value={priceMinFilter}
+                              onChange={(e) => setPriceMinFilter(e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="price-max">Max Price (₹)</Label>
+                            <Input
+                              id="price-max"
+                              type="number"
+                              placeholder="Max"
+                              value={priceMaxFilter}
+                              onChange={(e) => setPriceMaxFilter(e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="category-filter">Category Filter</Label>
+                          <Select
+                            value={selectedCategoryFilter}
+                            onValueChange={setSelectedCategoryFilter}
+                            disabled={categoriesLoading}
+                          >
+                            <SelectTrigger id="category-filter">
+                              <SelectValue placeholder="All Categories" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Categories</SelectItem>
+                              {categories.map((cat) => (
+                                <SelectItem key={cat.id} value={cat.id}>
+                                  {cat.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="search-filter">Keyword / Name Match</Label>
+                          <Input
+                            id="search-filter"
+                            placeholder="e.g., Shirt, Hoodie..."
+                            value={searchQueryFilter}
+                            onChange={(e) => setSearchQueryFilter(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -562,6 +712,79 @@ export default function AdminBatchTasksPage() {
                     </div>
                   </div>
                 )}
+
+                {selectedAction === 'DESCRIPTION_UPDATE' && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="description-mode">Description Operation Mode</Label>
+                      <Select
+                        value={descriptionMode}
+                        onValueChange={(val: any) => setDescriptionMode(val)}
+                      >
+                        <SelectTrigger id="description-mode">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="set">📝 Set / Overwrite Description</SelectItem>
+                          <SelectItem value="append">➕ Append / Add Text to Description</SelectItem>
+                          <SelectItem value="replace">🔍 Find & Replace Substring</SelectItem>
+                          <SelectItem value="clear">🗑️ Clear / Delete Description</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {(descriptionMode === 'set' || descriptionMode === 'append') && (
+                      <div className="space-y-2">
+                        <Label htmlFor="description-text">
+                          {descriptionMode === 'set' ? 'New Description Content' : 'Text to Append'}
+                        </Label>
+                        <Textarea
+                          id="description-text"
+                          rows={4}
+                          placeholder="e.g. Premium 240 GSM heavy cotton oversized fit. Machine wash cold."
+                          value={descriptionText}
+                          onChange={(e) => setDescriptionText(e.target.value)}
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          {descriptionMode === 'set'
+                            ? 'This text will overwrite existing descriptions for all targeted products.'
+                            : 'This text will be appended to the end of existing descriptions for targeted products.'}
+                        </p>
+                      </div>
+                    )}
+
+                    {descriptionMode === 'replace' && (
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="desc-find">Find Text</Label>
+                          <Input
+                            id="desc-find"
+                            placeholder="Text to look for in descriptions..."
+                            value={descriptionFindText}
+                            onChange={(e) => setDescriptionFindText(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="desc-replace">Replace With</Label>
+                          <Input
+                            id="desc-replace"
+                            placeholder="Replacement text..."
+                            value={descriptionReplaceText}
+                            onChange={(e) => setDescriptionReplaceText(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {descriptionMode === 'clear' && (
+                      <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-xs text-destructive flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4 shrink-0" />
+                        Warning: Executing this will completely wipe/clear the description field for all targeted products in the selected category.
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
               <CardFooter className="flex gap-3">
                 <Button
@@ -663,6 +886,17 @@ export default function AdminBatchTasksPage() {
                               {selectedAction === 'CATEGORY_ASSIGN' && (
                                 <span className="text-purple-600 font-bold">Categories Modified</span>
                               )}
+                              {selectedAction === 'DESCRIPTION_UPDATE' && (
+                                <span className="text-rose-600 font-bold">
+                                  {descriptionMode === 'clear'
+                                    ? '[Wipe Description]'
+                                    : descriptionMode === 'append'
+                                    ? `+ "${descriptionText.slice(0, 20)}..."`
+                                    : descriptionMode === 'replace'
+                                    ? `Replace "${descriptionFindText}"`
+                                    : `Set "${descriptionText.slice(0, 20)}..."`}
+                                </span>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -751,7 +985,8 @@ export default function AdminBatchTasksPage() {
                   <div><strong>Action:</strong> {selectedAction}</div>
                   {selectedAction === 'PRICE_UPDATE' && <div><strong>Target Price:</strong> ₹{newPrice}</div>}
                   {(selectedAction === 'ADD_SIZE' || selectedAction === 'REMOVE_SIZE') && <div><strong>Size:</strong> {sizeInput}</div>}
-                  <div><strong>Filter:</strong> {allProducts ? 'ALL PRODUCTS' : targetPriceFilter ? `Price = ₹${targetPriceFilter}` : 'Custom Criteria'}</div>
+                  {selectedAction === 'DESCRIPTION_UPDATE' && <div><strong>Mode:</strong> {descriptionMode.toUpperCase()}</div>}
+                  <div><strong>Filter:</strong> {allProducts ? 'ALL PRODUCTS' : selectedCategoryFilter !== 'all' ? `Category = ${selectedCategoryFilter}` : targetPriceFilter ? `Price = ₹${targetPriceFilter}` : 'Custom Criteria'}</div>
                 </div>
               </div>
             </AlertDialogDescription>
