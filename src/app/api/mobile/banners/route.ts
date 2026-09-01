@@ -13,7 +13,15 @@ export async function GET(request: NextRequest) {
     const client = await clientPromise;
     const db = client.db();
     
-    const banners = await db.collection('promotions').find({ isActive: true }).sort({ order: 1 }).toArray();
+    const banners = await db.collection('promotions').find({
+      isActive: true,
+      $or: [
+        { placement: 'home_page' },
+        { placement: 'mobile_banner' },
+        { placement: { $exists: false } },
+        { placement: null }
+      ]
+    }).sort({ order: 1 }).toArray();
     return NextResponse.json(banners, { status: 200 });
   } catch (error) {
     console.error('Failed to fetch mobile banners:', error);

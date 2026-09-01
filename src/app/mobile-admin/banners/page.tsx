@@ -14,25 +14,44 @@ interface Banner {
   imageUrl: string;
   title: string;
   targetRoute: string;
+  placement?: string;
   isActive: boolean;
   order: number;
 }
+
+const PLACEMENT_OPTIONS = [
+  { id: "products_page", label: "🛍️ Products Page (products_page)" },
+  { id: "home_page", label: "🏠 Home Page (home_page)" },
+  { id: "mobile_banner", label: "📱 Mobile App Hero (mobile_banner)" },
+  { id: "category_page", label: "🏷️ Category Page (category_page)" },
+  { id: "checkout_page", label: "💳 Checkout Page (checkout_page)" },
+];
 
 export default function MobileBannersManager() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Filter State
+  const [activePlacementFilter, setActivePlacementFilter] = useState<string>("all");
+
   // New Banner Form State
   const [title, setTitle] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [targetRoute, setTargetRoute] = useState("/category/oversized-tshirts");
+  const [placement, setPlacement] = useState("home_page");
+  const [customPlacement, setCustomPlacement] = useState("");
   const [isActive, setIsActive] = useState(true);
 
-  const fetchBanners = async () => {
+  const fetchBanners = async (filterPlacement?: string) => {
     try {
       setLoading(true);
-      const res = await fetch("/api/promotions", {
+      const targetFilter = filterPlacement !== undefined ? filterPlacement : activePlacementFilter;
+      const url = targetFilter && targetFilter !== 'all' 
+        ? `/api/promotions?placement=${encodeURIComponent(targetFilter)}` 
+        : '/api/promotions';
+        
+      const res = await fetch(url, {
         headers: { "X-App-Secret": "okto_mobile_sec_2026_prod" },
       });
       if (res.ok) {
@@ -47,12 +66,14 @@ export default function MobileBannersManager() {
   };
 
   useEffect(() => {
-    fetchBanners();
-  }, []);
+    fetchBanners(activePlacementFilter);
+  }, [activePlacementFilter]);
 
   const handleCreateBanner = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !imageUrl) return;
+
+    const finalPlacement = placement === 'custom' ? customPlacement.trim() : placement;
 
     try {
       setSaving(true);
@@ -66,6 +87,7 @@ export default function MobileBannersManager() {
           title,
           imageUrl,
           targetRoute,
+          placement: finalPlacement || 'home_page',
           isActive,
           order: banners.length + 1,
         }),
@@ -74,12 +96,32 @@ export default function MobileBannersManager() {
       if (res.ok) {
         setTitle("");
         setImageUrl("");
-        fetchBanners();
+        fetchBanners(activePlacementFilter);
       }
     } catch (err) {
       console.error("Failed to create banner", err);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const updateBannerPlacement = async (banner: Banner, newPlacement: string) => {
+    try {
+      const res = await fetch(`/api/promotions/${banner._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-App-Secret": "okto_mobile_sec_2026_prod",
+        },
+        body: JSON.stringify({ placement: newPlacement }),
+      });
+      if (res.ok) {
+        setBanners((prev) =>
+          prev.map((b) => (b._id === banner._id ? { ...b, placement: newPlacement } : b))
+        );
+      }
+    } catch (err) {
+      console.error("Failed to update banner placement", err);
     }
   };
 
@@ -134,7 +176,7 @@ export default function MobileBannersManager() {
         </div>
 
         <button
-          onClick={fetchBanners}
+          onClick={() => fetchBanners(activePlacementFilter)}
           className="px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-zinc-300 flex items-center space-x-2 transition self-start sm:self-auto"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -187,32 +229,64 @@ export default function MobileBannersManager() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-semibold text-zinc-300 block mb-1">
-                    Deep-Link Target Route
+                    API Placement Slot *
                   </label>
                   <select
-                    value={targetRoute}
-                    onChange={(e) => setTargetRoute(e.target.value)}
+                    value={placement}
+                    onChange={(e) => setPlacement(e.target.value)}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white"
                   >
-                    <option value="/category/oversized-tshirts">/category/oversized-tshirts</option>
-                    <option value="/category/hoodies">/category/hoodies</option>
-                    <option value="/product/featured">/product/featured</option>
-                    <option value="/rewards">/rewards (Oktocoins Store)</option>
-                    <option value="/custom-design">/custom-design (Studio)</option>
+                    {PLACEMENT_OPTIONS.map((opt) => (
+                      <option key={opt.id} value={opt.id}>{opt.label}</option>
+                    ))}
+                    <option value="custom">✏️ Custom Placement Slot...</option>
                   </select>
                 </div>
 
-                <div className="flex items-center space-x-3 pt-5">
-                  <label className="text-xs font-semibold text-zinc-300 flex items-center space-x-2 cursor-pointer">
+                {placement === 'custom' ? (
+                  <div>
+                    <label className="text-xs font-semibold text-zinc-300 block mb-1">
+                      Custom Placement Name
+                    </label>
                     <input
-                      type="checkbox"
-                      checked={isActive}
-                      onChange={(e) => setIsActive(e.target.checked)}
-                      className="w-4 h-4 rounded border-zinc-700 text-white focus:ring-white bg-zinc-900"
+                      type="text"
+                      placeholder="e.g. promo_popup"
+                      value={customPlacement}
+                      onChange={(e) => setCustomPlacement(e.target.value)}
+                      required
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white"
                     />
-                    <span>Publish Immediately</span>
-                  </label>
-                </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="text-xs font-semibold text-zinc-300 block mb-1">
+                      Deep-Link Target Route
+                    </label>
+                    <select
+                      value={targetRoute}
+                      onChange={(e) => setTargetRoute(e.target.value)}
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white"
+                    >
+                      <option value="/category/oversized-tshirts">/category/oversized-tshirts</option>
+                      <option value="/category/hoodies">/category/hoodies</option>
+                      <option value="/product/featured">/product/featured</option>
+                      <option value="/rewards">/rewards (Oktocoins Store)</option>
+                      <option value="/custom-design">/custom-design (Studio)</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-3 pt-2">
+                <label className="text-xs font-semibold text-zinc-300 flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isActive}
+                    onChange={(e) => setIsActive(e.target.checked)}
+                    className="w-4 h-4 rounded border-zinc-700 text-white focus:ring-white bg-zinc-900"
+                  />
+                  <span>Publish Immediately</span>
+                </label>
               </div>
             </div>
 
@@ -221,23 +295,57 @@ export default function MobileBannersManager() {
               disabled={saving}
               className="w-full py-2.5 bg-white hover:bg-zinc-200 text-black font-bold text-xs rounded-xl shadow-lg transition"
             >
-              {saving ? "Publishing Banner..." : "Publish Mobile Banner"}
+              {saving ? "Publishing Banner..." : "Publish Banner Image"}
             </button>
           </form>
 
           {/* Active Banners List */}
           <div className="bg-[#161616] border border-zinc-800 rounded-2xl p-5 space-y-4">
-            <h3 className="text-sm font-bold text-white flex items-center justify-between border-b border-zinc-800 pb-3">
-              <span>Database App Banners ({banners.length})</span>
-              <span className="text-xs text-emerald-400 font-medium">
-                {activeBanners.length} Active on App
-              </span>
-            </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800 pb-3 gap-2">
+              <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+                <span>Database Images & Banners ({banners.length})</span>
+                <span className="text-xs text-emerald-400 font-medium ml-2">
+                  ({activeBanners.length} Active)
+                </span>
+              </h3>
+            </div>
+
+            {/* Placement Filter Bar */}
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-semibold text-zinc-400">Filter by API Placement Slot:</span>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setActivePlacementFilter("all")}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                    activePlacementFilter === "all"
+                      ? "bg-white text-black font-bold"
+                      : "bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800"
+                  }`}
+                >
+                  All Slots
+                </button>
+                {PLACEMENT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setActivePlacementFilter(opt.id)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                      activePlacementFilter === opt.id
+                        ? "bg-rose-500 text-white font-bold"
+                        : "bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800"
+                    }`}
+                  >
+                    {opt.id}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {loading ? (
               <div className="py-8 text-center text-xs text-zinc-500">Loading mobile banners...</div>
             ) : banners.length === 0 ? (
-              <div className="py-8 text-center text-xs text-zinc-500">No banners found in database. Add one above!</div>
+              <div className="py-8 text-center text-xs text-zinc-500">No banners found for this placement filter.</div>
             ) : (
               <div className="space-y-3">
                 {banners.map((banner) => (
@@ -254,8 +362,22 @@ export default function MobileBannersManager() {
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <div className="min-w-0">
-                        <h4 className="text-xs font-bold text-white truncate">{banner.title}</h4>
+                      <div className="min-w-0 space-y-0.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h4 className="text-xs font-bold text-white truncate">{banner.title}</h4>
+                          <select
+                            value={banner.placement || 'home_page'}
+                            onChange={(e) => updateBannerPlacement(banner, e.target.value)}
+                            className="bg-zinc-800 border border-zinc-700 text-rose-400 text-[10px] font-mono rounded px-1.5 py-0.5 focus:outline-none focus:border-rose-500 cursor-pointer"
+                          >
+                            {PLACEMENT_OPTIONS.map((opt) => (
+                              <option key={opt.id} value={opt.id}>{opt.id}</option>
+                            ))}
+                            {banner.placement && !PLACEMENT_OPTIONS.some(o => o.id === banner.placement) && (
+                              <option value={banner.placement}>{banner.placement}</option>
+                            )}
+                          </select>
+                        </div>
                         <span className="text-[10px] text-zinc-400 font-mono block truncate">
                           {banner.targetRoute}
                         </span>

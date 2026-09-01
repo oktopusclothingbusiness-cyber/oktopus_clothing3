@@ -14,6 +14,8 @@ import { usePromotion, Promotion } from '@/context/promotion-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 
+import { Badge } from "@/components/ui/badge";
+
 const emptyPromotion = {
     id: '',
     title: '',
@@ -21,6 +23,7 @@ const emptyPromotion = {
     imageUrl: '',
     ctaText: '',
     ctaLink: '',
+    placement: 'products_page',
     isActive: false,
 };
 
@@ -30,7 +33,9 @@ export default function AdminPromotionsPage() {
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isEditing, setIsEditing] = React.useState(false);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const [selectedPlacementFilter, setSelectedPlacementFilter] = React.useState<string>('all');
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
@@ -44,6 +49,7 @@ export default function AdminPromotionsPage() {
             imageUrl: promotion.imageUrl,
             ctaText: promotion.ctaText,
             ctaLink: promotion.ctaLink,
+            placement: promotion.placement || 'products_page',
             isActive: promotion.isActive || false
         });
     };
@@ -59,6 +65,7 @@ export default function AdminPromotionsPage() {
                 imageUrl: formData.imageUrl,
                 ctaText: formData.ctaText,
                 ctaLink: formData.ctaLink,
+                placement: formData.placement || 'products_page',
                 isActive: formData.isActive
             };
 
@@ -115,6 +122,23 @@ export default function AdminPromotionsPage() {
                   <Label htmlFor="ctaLink">CTA Button Link</Label>
                   <Input id="ctaLink" name="ctaLink" value={formData.ctaLink} onChange={handleInputChange} placeholder="e.g., /products" disabled={isSubmitting} />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="placement">API Placement Slot</Label>
+                  <select
+                    id="placement"
+                    name="placement"
+                    value={formData.placement}
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="products_page">🛍️ Products Page (products_page)</option>
+                    <option value="home_page">🏠 Home Page (home_page)</option>
+                    <option value="mobile_banner">📱 Mobile App Hero (mobile_banner)</option>
+                    <option value="category_page">🏷️ Category Page (category_page)</option>
+                    <option value="checkout_page">💳 Checkout Page (checkout_page)</option>
+                  </select>
+                </div>
                 <div className="flex items-center space-x-2">
                     <Switch id="isActive" name="isActive" checked={formData.isActive} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))} disabled={isSubmitting} />
                     <Label htmlFor="isActive">Active</Label>
@@ -133,9 +157,27 @@ export default function AdminPromotionsPage() {
         </div>
         <div className="md:col-span-2">
           <Card>
-            <CardHeader>
-              <CardTitle>Manage Promotions</CardTitle>
-              <CardDescription>View, edit, or delete your existing promotions.</CardDescription>
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <CardTitle>Manage Promotions & Banners</CardTitle>
+                <CardDescription>View, filter by placement slot, edit, or delete existing promotional assets.</CardDescription>
+              </div>
+
+              {/* Placement Filter */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {['all', 'products_page', 'home_page', 'mobile_banner', 'category_page'].map((slot) => (
+                  <Button
+                    key={slot}
+                    type="button"
+                    variant={selectedPlacementFilter === slot ? 'default' : 'outline'}
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => setSelectedPlacementFilter(slot)}
+                  >
+                    {slot === 'all' ? 'All Slots' : slot}
+                  </Button>
+                ))}
+              </div>
             </CardHeader>
             <CardContent>
               <div className="border rounded-lg overflow-hidden">
@@ -143,7 +185,7 @@ export default function AdminPromotionsPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Image</TableHead>
-                      <TableHead>Title</TableHead>
+                      <TableHead>Title & Placement</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -159,12 +201,19 @@ export default function AdminPromotionsPage() {
                           </TableRow>
                       ))
                     ) : promotions.length > 0 ? (
-                      promotions.map((promo) => (
+                      promotions
+                        .filter(p => selectedPlacementFilter === 'all' || p.placement === selectedPlacementFilter || (!p.placement && selectedPlacementFilter === 'home_page'))
+                        .map((promo) => (
                         <TableRow key={promo.id}>
                           <TableCell>
                             <Image src={promo.imageUrl || 'https://placehold.co/80x40.png'} alt={promo.title} width={80} height={40} className="rounded-md object-cover" />
                           </TableCell>
-                          <TableCell className="font-medium">{promo.title}</TableCell>
+                          <TableCell className="font-medium">
+                            <div>{promo.title}</div>
+                            <Badge variant="outline" className="text-[10px] font-mono mt-1 text-rose-500 border-rose-200">
+                              {promo.placement || 'home_page'}
+                            </Badge>
+                          </TableCell>
                            <TableCell>
                                 <Switch
                                     checked={promo.isActive}
@@ -187,7 +236,7 @@ export default function AdminPromotionsPage() {
                         <TableCell colSpan={4} className="text-center h-24">
                           <div className="flex flex-col items-center gap-2">
                               <Megaphone className="h-8 w-8 text-muted-foreground" />
-                              <p>No promotions found.</p>
+                              <p>No promotions found for selected placement filter.</p>
                               <Button variant="outline" size="sm" onClick={() => document.getElementById('title')?.focus()}>
                                   <PlusCircle className="mr-2 h-4 w-4" />
                                   Add New Promotion

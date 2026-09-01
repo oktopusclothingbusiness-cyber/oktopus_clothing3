@@ -12,6 +12,7 @@ export type Promotion = {
   imageUrl: string;
   ctaText: string;
   ctaLink: string;
+  placement?: string;
   isActive: boolean;
 };
 
