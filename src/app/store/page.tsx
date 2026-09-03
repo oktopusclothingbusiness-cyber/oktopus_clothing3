@@ -264,15 +264,15 @@ export default function StreetifyStorePage() {
   const heroRef = React.useRef<HTMLDivElement>(null);
 
   const loading = productsLoading || promotionsLoading || categoriesLoading || trendsLoading;
-  const activePromotions = promotions.filter(p => p.isActive);
-  const activeTrends = trends.filter(t => t.isActive);
+  const activePromotions = (promotions || []).filter(p => p && p.isActive);
+  const activeTrends = (trends || []).filter(t => t && t.isActive);
 
   const featuredProducts = React.useMemo(() =>
-    products.filter(p => p.featured),
+    (products || []).filter(p => p && p.featured),
     [products]);
 
   const newArrivals = React.useMemo(() =>
-    [...products].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 4),
+    [...(products || [])].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 4),
     [products]);
 
   const autoplayPlugin = React.useRef(
@@ -293,11 +293,12 @@ export default function StreetifyStorePage() {
     });
   };
 
-  const heroProduct = products.find(p => p.isHero) || products[0];
-  const collection1Product = products.length > 1 ? products[1] : heroProduct;
-  const collection2Product = products.length > 2 ? products[2] : heroProduct;
+  const safeProducts = products || [];
+  const heroProduct = safeProducts.find(p => p && p.isHero) || safeProducts[0];
+  const collection1Product = safeProducts.length > 1 ? safeProducts[1] : heroProduct;
+  const collection2Product = safeProducts.length > 2 ? safeProducts[2] : heroProduct;
 
-  const bestSellers = products.slice(0, 8);
+  const bestSellers = safeProducts.slice(0, 8);
 
   return (
     <>

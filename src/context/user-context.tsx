@@ -53,7 +53,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Failed to fetch users');
       }
       const data = await response.json();
-      const usersWithId = data.map((u: any) => ({ ...u, id: u._id.toString() }));
+      const usersWithId = Array.isArray(data) 
+        ? data.map((u: any) => ({ ...u, id: u._id ? u._id.toString() : (u.id || '') })) 
+        : [];
       setUsers(usersWithId);
     } catch (error: any) {
       console.error(error);

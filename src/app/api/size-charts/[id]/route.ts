@@ -4,9 +4,9 @@ import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
 // DELETE a size chart by ID
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ message: 'Invalid size chart ID.' }, { status: 400 });
     }
@@ -28,9 +28,9 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
 }
 
 // PUT (update) a size chart by ID
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const { id } = params;
+        const { id } = await params;
         if (!ObjectId.isValid(id)) {
             return NextResponse.json({ message: 'Invalid size chart ID.' }, { status: 400 });
         }
@@ -58,9 +58,9 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 // GET a single size chart by ID
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ message: 'Invalid size chart ID.' }, { status: 400 });
     }

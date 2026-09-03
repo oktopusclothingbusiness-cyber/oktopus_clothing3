@@ -22,7 +22,9 @@ export function FloatingCartButton() {
     '/profile', // also covers /profile/*
   ];
 
-  const shouldHide = hiddenPaths.some(path => pathname.startsWith(path));
+  if (!pathname) return null;
+
+  const shouldHide = hiddenPaths.some(path => pathname?.startsWith(path));
 
   if (shouldHide || cartItemCount === 0) {
     return null;

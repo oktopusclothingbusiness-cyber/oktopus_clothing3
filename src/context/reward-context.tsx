@@ -39,7 +39,9 @@ export const RewardProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Failed to fetch rewards');
       }
       const data = await response.json();
-      const rewardsWithId = data.map((r: any) => ({ ...r, id: r._id.toString() }));
+      const rewardsWithId = Array.isArray(data) 
+        ? data.map((r: any) => ({ ...r, id: r._id ? r._id.toString() : (r.id || '') })) 
+        : [];
       setRewards(rewardsWithId);
     } catch (error) {
       console.error(error);

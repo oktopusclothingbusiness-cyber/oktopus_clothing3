@@ -42,7 +42,9 @@ export const CouponProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Failed to fetch coupons');
       }
       const data = await response.json();
-      const couponsWithId = data.map((c: any) => ({ ...c, id: c._id.toString() }));
+      const couponsWithId = Array.isArray(data) 
+        ? data.map((c: any) => ({ ...c, id: c._id ? c._id.toString() : (c.id || '') })) 
+        : [];
       setCoupons(couponsWithId);
     } catch (error) {
       console.error(error);

@@ -37,7 +37,9 @@ export const CategoryProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Failed to fetch categories');
       }
       const data = await response.json();
-      const categoriesWithId = data.map((c: any) => ({ ...c, id: c._id.toString() }));
+      const categoriesWithId = Array.isArray(data) 
+        ? data.map((c: any) => ({ ...c, id: c._id ? c._id.toString() : (c.id || '') })) 
+        : [];
       setCategories(categoriesWithId);
     } catch (error) {
       console.error(error);

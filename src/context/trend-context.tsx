@@ -39,7 +39,9 @@ export const TrendProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Failed to fetch trends');
       }
       const data = await response.json();
-      const trendsWithId = data.map((t: any) => ({ ...t, id: t._id.toString() }));
+      const trendsWithId = Array.isArray(data) 
+        ? data.map((t: any) => ({ ...t, id: t._id ? t._id.toString() : (t.id || '') })) 
+        : [];
       setTrends(trendsWithId);
     } catch (error) {
       console.error(error);

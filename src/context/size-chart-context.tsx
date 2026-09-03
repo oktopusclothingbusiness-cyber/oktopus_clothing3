@@ -44,7 +44,7 @@ export const SizeChartProvider = ({ children }: { children: ReactNode }) => {
       const response = await fetch('/api/size-charts');
       if (!response.ok) throw new Error('Failed to fetch size charts');
       const data = await response.json();
-      setSizeCharts(data);
+      setSizeCharts(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error(error);
       toast({ title: 'Error', description: 'Could not load size charts.', variant: 'destructive' });

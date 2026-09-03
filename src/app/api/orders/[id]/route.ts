@@ -7,14 +7,14 @@ import { authenticateRequest } from '@/lib/auth';
 // This file is for a dynamic route segment. For example: /api/orders/123
 
 // GET a single order by ID (Requires Authentication)
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = authenticateRequest(request, { allowAppSecret: true });
     if (!auth.authenticated) {
       return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ message: 'Invalid order ID.' }, { status: 400 });
     }
@@ -43,68 +43,55 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
 
 // PUT (update) an order by ID (Requires Admin Privileges)
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = authenticateRequest(request, { requiredRole: 'admin', allowAppSecret: true });
     if (!auth.authenticated) {
       return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ message: 'Invalid order ID.' }, { status: 400 });
     }
-    
-    const body = await request.json();
-    const { status, paymentStatus } = body;
-    
-    let updateQuery: any = {};
-    let responseMessage = '';
 
-    if (status) {
-        const validStatuses = ['pending', 'accepted', 'rejected', 'packed', 'shipped', 'delivered'];
-        if (!validStatuses.includes(status)) {
-            return NextResponse.json({ message: 'Invalid status provided.' }, { status: 400 });
-        }
-        updateQuery['status'] = status;
-        responseMessage = `Order status updated to ${status}.`;
-
-    } else if (paymentStatus) {
-         const validPaymentStatuses = ['pending', 'paid', 'paid externally'];
-        if (!validPaymentStatuses.includes(paymentStatus)) {
-            return NextResponse.json({ message: 'Invalid payment status provided.' }, { status: 400 });
-        }
-        updateQuery['paymentDetails.paymentStatus'] = paymentStatus;
-        responseMessage = `Order payment status updated to ${paymentStatus}.`;
-    } else {
-        return NextResponse.json({ message: 'No valid update field provided.' }, { status: 400 });
-    }
+    const updateData = await request.json();
+    const { status, deliveryDate } = updateData;
 
     const client = await clientPromise;
     const db = client.db();
 
-    const result = await db.collection('orders').findOneAndUpdate(
+    const updateFields: any = {};
+    if (status) updateFields.status = status;
+    if (deliveryDate) updateFields.deliveryDate = deliveryDate;
+
+    const result = await db.collection('orders').updateOne(
       { _id: new ObjectId(id) },
-      { $set: updateQuery },
-      { returnDocument: 'after' }
+      { $set: updateFields }
     );
 
-    if (!result) {
+    if (result.matchedCount === 0) {
       return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
     }
-    
-    const updatedOrder = result;
-    
-    if(status && updatedOrder.status !== 'pending') {
-      const user = await db.collection('users').findOne({ _id: new ObjectId(updatedOrder.userId) });
 
-      if(user) {
+    let responseMessage = 'Order updated successfully.';
+    
+    // Optionally trigger an email notification when status changes
+    if (status) {
+      const updatedOrder = await db.collection('orders').findOne({ _id: new ObjectId(id) });
+      if (updatedOrder && updatedOrder.shippingAddress?.email) {
+        try {
           await sendOrderStatusUpdateEmail({
-              to: user.email,
-              orderId: updatedOrder._id.toString(),
-              orderStatus: updatedOrder.status,
-              userName: updatedOrder.userName
+            to: updatedOrder.shippingAddress.email,
+            orderId: updatedOrder._id.toString(),
+            orderStatus: status,
+            userName: updatedOrder.userName || 'Customer'
           });
+          responseMessage += ' Email notification sent to customer.';
+        } catch (emailError) {
+          console.error('Failed to send status update email:', emailError);
+          responseMessage += ' Warning: Failed to send email notification.';
+        }
       }
     }
 
@@ -117,14 +104,14 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE an order by ID (Requires Admin Privileges)
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = authenticateRequest(request, { requiredRole: 'admin', allowAppSecret: true });
         if (!auth.authenticated) {
           return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
         }
 
-        const { id } = params;
+        const { id } = await params;
         if (!ObjectId.isValid(id)) {
             return NextResponse.json({ message: 'Invalid order ID.' }, { status: 400 });
         }

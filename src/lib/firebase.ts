@@ -1,6 +1,6 @@
 
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, Auth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBNwmT3Iu4-Z17GHeJ8GidrJe3AN6Yidt8",
@@ -12,8 +12,17 @@ const firebaseConfig = {
   measurementId: "G-YDN2D68LJX"
 };
 
-// Initialize Firebase
+// Initialize Firebase safely
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
 
-export { app, auth };
+let authInstance: Auth;
+try {
+  authInstance = getAuth(app);
+} catch (e) {
+  console.warn("Failed to getAuth(app):", e);
+  authInstance = null as unknown as Auth;
+}
+
+export const auth = authInstance;
+export { app };
+

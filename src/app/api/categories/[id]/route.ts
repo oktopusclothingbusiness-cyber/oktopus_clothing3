@@ -4,9 +4,9 @@ import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
 // DELETE a category by ID
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ message: 'Invalid category ID.' }, { status: 400 });
     }
@@ -34,9 +34,9 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
 }
 
 // PUT (update) a category by ID
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const { id } = params;
+        const { id } = await params;
         if (!ObjectId.isValid(id)) {
             return NextResponse.json({ message: 'Invalid category ID.' }, { status: 400 });
         }

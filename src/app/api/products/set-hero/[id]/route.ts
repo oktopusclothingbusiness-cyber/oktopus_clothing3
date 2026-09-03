@@ -3,9 +3,9 @@ import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const { id } = params;
+        const { id } = await params;
         if (!ObjectId.isValid(id)) {
             return NextResponse.json({ message: 'Invalid product ID.' }, { status: 400 });
         }

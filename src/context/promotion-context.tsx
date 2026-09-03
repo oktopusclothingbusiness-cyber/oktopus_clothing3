@@ -42,7 +42,9 @@ export const PromotionProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Failed to fetch promotions');
       }
       const data = await response.json();
-      const promotionsWithId = data.map((p: any) => ({ ...p, id: p._id.toString() }));
+      const promotionsWithId = Array.isArray(data) 
+        ? data.map((p: any) => ({ ...p, id: p._id ? p._id.toString() : (p.id || '') })) 
+        : [];
       setPromotions(promotionsWithId);
     } catch (error) {
       console.error(error);

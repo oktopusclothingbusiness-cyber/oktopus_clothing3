@@ -47,6 +47,10 @@ export function PhoneOtpForm({ mode = 'login', firstName = '', lastName = '' }: 
       (window as any).recaptchaVerifier = null;
     }
 
+    if (!auth) {
+      throw new Error('Firebase Auth instance is not available.');
+    }
+
     const containerEl = document.getElementById('recaptcha-container');
     if (!containerEl) {
       throw new Error('reCAPTCHA container element not found in DOM.');

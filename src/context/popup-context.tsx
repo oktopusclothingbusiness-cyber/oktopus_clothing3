@@ -42,7 +42,9 @@ export const PopupProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Failed to fetch popups');
       }
       const data = await response.json();
-      const popupsWithId = data.map((p: any) => ({ ...p, id: p._id.toString() }));
+      const popupsWithId = Array.isArray(data) 
+        ? data.map((p: any) => ({ ...p, id: p._id ? p._id.toString() : (p.id || '') })) 
+        : [];
       setPopups(popupsWithId);
     } catch (error) {
       console.error(error);

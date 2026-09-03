@@ -50,8 +50,14 @@ const ProductImageSlider = ({ imageUrls, alt, isMobile }: { imageUrls: string[],
 export function ProductCard({ product, isMobile = false }: { product: Product, isMobile?: boolean }) {
     const [deliveryDate] = React.useState(format(addDays(new Date(), 5), 'MMM dd'));
 
+    if (!product) return null;
+
+    const priceFormatted = (product.price || 0).toFixed(2);
+    const originalPriceFormatted = product.originalPrice ? (product.originalPrice || 0).toFixed(2) : null;
+    const shortDescription = product.description ? (product.description.split(' ').slice(0, 5).join(' ') + '...') : '';
+
     const isNew = product.createdAt && isWithinInterval(new Date(product.createdAt), {
-        start: subDays(new Date(), 7), // A week for new
+        start: subDays(new Date(), 7),
         end: new Date(),
     });
 
@@ -60,7 +66,7 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
              <Card className="overflow-hidden group rounded-lg card-glass">
               <Link href={`/products/${product.id}`}>
                 <div className="relative aspect-[3/4]">
-                    <ProductImageSlider imageUrls={product.imageUrls} alt={product.name} isMobile={isMobile} />
+                    <ProductImageSlider imageUrls={product.imageUrls} alt={product.name || 'Product'} isMobile={isMobile} />
                      {isNew && <Badge variant="destructive" className="absolute top-2 left-2">Fresh</Badge>}
                       {product.discountPercentage && product.discountPercentage > 0 && (
                         <Badge variant="destructive" className="absolute top-2 right-2">
@@ -69,11 +75,11 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
                     )}
                 </div>
                 <div className="p-2 space-y-1">
-                  <h3 className="truncate text-sm font-semibold">{product.name}</h3>
+                  <h3 className="truncate text-sm font-semibold">{product.name || 'Unnamed Product'}</h3>
                   <div className="flex items-baseline gap-1">
-                    <p className="text-sm font-bold">₹{product.price.toFixed(2)}</p>
+                    <p className="text-sm font-bold">₹{priceFormatted}</p>
                     {product.originalPrice && product.originalPrice > product.price && (
-                        <p className="text-xs text-muted-foreground line-through">₹{product.originalPrice.toFixed(2)}</p>
+                        <p className="text-xs text-muted-foreground line-through">₹{originalPriceFormatted}</p>
                     )}
                   </div>
                    <p className="text-xs text-green-600">Get it by {deliveryDate}</p>
@@ -87,7 +93,7 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
         <Card className="overflow-hidden group border rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-300">
             <Link href={`/products/${product.id}`}>
                 <div className="relative aspect-[3/4] bg-gray-100">
-                    <ProductImageSlider imageUrls={product.imageUrls} alt={product.name} isMobile={isMobile} />
+                    <ProductImageSlider imageUrls={product.imageUrls} alt={product.name || 'Product'} isMobile={isMobile} />
                      {isNew && <Badge variant="default" className="absolute top-3 left-3 bg-stone-900 text-white">New</Badge>}
                       {product.discountPercentage && product.discountPercentage > 0 && (
                         <Badge variant="destructive" className="absolute top-3 right-3">
@@ -96,12 +102,12 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
                     )}
                 </div>
                 <CardContent className="p-4 text-center">
-                    <h3 className="font-bold text-lg truncate font-serif">{product.name}</h3>
-                    <p className="text-muted-foreground text-sm">{product.description.split(' ').slice(0, 5).join(' ') + '...'}</p>
+                    <h3 className="font-bold text-lg truncate font-serif">{product.name || 'Unnamed Product'}</h3>
+                    {shortDescription && <p className="text-muted-foreground text-sm">{shortDescription}</p>}
                     <div className="flex items-baseline justify-center gap-2 mt-2">
-                        <p className="text-xl font-bold">₹{product.price.toFixed(2)}</p>
+                        <p className="text-xl font-bold">₹{priceFormatted}</p>
                         {product.originalPrice && product.originalPrice > product.price && (
-                            <p className="text-md text-muted-foreground line-through">₹{product.originalPrice.toFixed(2)}</p>
+                            <p className="text-md text-muted-foreground line-through">₹{originalPriceFormatted}</p>
                         )}
                     </div>
                 </CardContent>

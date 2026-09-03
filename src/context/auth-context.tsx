@@ -68,7 +68,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        await setPersistence(auth, browserLocalPersistence);
+        if (typeof window !== 'undefined' && auth) {
+          await setPersistence(auth, browserLocalPersistence).catch((e) => {
+            console.warn("Firebase persistence error:", e);
+          });
+        }
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
           setUser(JSON.parse(storedUser));
@@ -95,7 +99,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     setUser(null);
     try {
-        await signOut(auth);
+        if (auth) {
+          await signOut(auth).catch(() => {});
+        }
         await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
         localStorage.removeItem('user');
     } catch (error) {
@@ -112,9 +118,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 
   const signInWithGoogle = async () => {
+    if (!auth) {
+      toast({ title: "Auth Error", description: "Firebase Auth is not available.", variant: "destructive" });
+      return;
+    }
     const provider = new GoogleAuthProvider();
     try {
-      await setPersistence(auth, browserLocalPersistence);
+      await setPersistence(auth, browserLocalPersistence).catch(() => {});
       const result = await signInWithPopup(auth, provider);
       const googleUser = result.user;
 
@@ -161,8 +171,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithPhoneOtp = async (phoneNumber: string, appVerifier: RecaptchaVerifier): Promise<ConfirmationResult> => {
+    if (!auth) {
+      throw new Error("Firebase Auth is not initialized.");
+    }
     try {
-      await setPersistence(auth, browserLocalPersistence);
+      await setPersistence(auth, browserLocalPersistence).catch(() => {});
       const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
       toast({
         title: "OTP Sent",
