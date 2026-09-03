@@ -151,8 +151,8 @@ const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
     </div>
     <div className="relative z-20">
       <Button asChild className="bg-white text-black rounded-lg h-8 px-4 mt-2 font-semibold">
-        <Link href={promotion.ctaLink}>
-          {promotion.ctaText}
+        <Link href={promotion?.ctaLink || '/products'}>
+          {promotion?.ctaText || 'Shop Now'}
         </Link>
       </Button>
     </div>
@@ -408,7 +408,7 @@ export default function StreetifyStorePage() {
                 {categoriesLoading ? Array.from({ length: 4 }).map((_, i) => (
                   <Skeleton key={i} className="h-32 rounded-2xl" />
                 )) : categories.slice(0, 4).map(category => (
-                  <Link href={`/products?category=${category.id}`} key={category.id} className="block group">
+                  <Link href={category?.id ? `/products?category=${category.id}` : '/products'} key={category?.id || category?._id} className="block group">
                     <motion.div
                       whileHover={{ scale: 1.03, borderColor: "rgba(252, 195, 36, 0.4)" }}
                       className="relative h-32 rounded-2xl overflow-hidden border border-white/10 bg-card/60 backdrop-blur-md flex items-center p-6 gap-5 transition-all duration-300 shadow-sm"
@@ -651,7 +651,7 @@ export default function StreetifyStorePage() {
                 </div>
               )) : categories.length > 0 ? (
                 categories.map(category => (
-                  <Link href={`/products?category=${category.id}`} key={category.id} className="snap-center flex-shrink-0 w-16 text-center block">
+                  <Link href={category?.id ? `/products?category=${category.id}` : '/products'} key={category?.id || category?._id} className="snap-center flex-shrink-0 w-16 text-center block">
                     <motion.div
                       initial="initial"
                       whileHover="hover"
@@ -751,7 +751,7 @@ export default function StreetifyStorePage() {
                 ))
               ) : (
                 activeTrends.map(trend => (
-                  <Link href={trend.ctaLink} key={trend.id} className="snap-center flex-shrink-0 w-48 block">
+                  <Link href={trend?.ctaLink || '/products'} key={trend?.id || trend?._id} className="snap-center flex-shrink-0 w-48 block">
                     <motion.div
                       whileTap={{ scale: 0.95 }}
                       className="relative aspect-square rounded-lg overflow-hidden group border border-white/5"

@@ -142,7 +142,7 @@ export default function MobileAdminLayout({
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={item.href || '/mobile-admin'}
                   className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                     isActive
                       ? "bg-white text-black font-bold shadow-lg shadow-white/10"

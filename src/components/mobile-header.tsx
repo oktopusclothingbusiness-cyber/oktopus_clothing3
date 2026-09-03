@@ -116,11 +116,15 @@ export const MobileHeader = ({ showCart = true, title }: MobileHeaderProps) => {
                                 {categoriesLoading ? (
                                     <p>Loading categories...</p>
                                 ) : (
-                                    categories.map(category => (
-                                        <Button asChild key={category.id} variant="outline">
-                                            <Link href={`/products?category=${category.id}`}>{category.name}</Link>
-                                        </Button>
-                                    ))
+                                    categories.map(category => {
+                                        const catId = category?.id || (category as any)?._id?.toString() || '';
+                                        const href = catId ? `/products?category=${catId}` : '/products';
+                                        return (
+                                            <Button asChild key={category.id || catId} variant="outline">
+                                                <Link href={href}>{category.name}</Link>
+                                            </Button>
+                                        );
+                                    })
                                 )}
                             </div>
                         </div>

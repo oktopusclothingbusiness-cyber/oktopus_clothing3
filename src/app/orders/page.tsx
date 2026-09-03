@@ -128,7 +128,7 @@ export default function OrdersPage() {
                                           <TableCell>₹{order.total.toFixed(2)}</TableCell>
                                           <TableCell className="text-right">
                                               <Button variant="outline" size="sm" asChild>
-                                                  <Link href={`/track-order/${order._id}`}>View Details</Link>
+                                                  <Link href={order?._id ? `/track-order/${order._id}` : '/orders'}>View Details</Link>
                                               </Button>
                                           </TableCell>
                                       </TableRow>
@@ -186,7 +186,7 @@ export default function OrdersPage() {
                   </CardContent>
                   <CardFooter>
                       <Button variant="outline" size="sm" className="w-full" asChild>
-                        <Link href={`/track-order/${order._id}`}>Track Order</Link>
+                        <Link href={order?._id ? `/track-order/${order._id}` : '/orders'}>Track Order</Link>
                       </Button>
                   </CardFooter>
                 </Card>

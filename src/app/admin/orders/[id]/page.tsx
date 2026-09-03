@@ -166,7 +166,7 @@ export default function OrderDetailsPage() {
                 </div>
                  <div className="flex items-center gap-2">
                     <Button asChild>
-                        <Link href={`/invoice/${order._id}`} target="_blank">
+                        <Link href={order?._id ? `/invoice/${order._id}` : '/admin/orders'} target="_blank">
                             <FileText className="mr-2 h-4 w-4" />
                             View Invoice
                         </Link>

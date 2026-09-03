@@ -61,10 +61,13 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
         end: new Date(),
     });
 
+    const productId = product?.id || (product as any)?._id?.toString() || '';
+    const productHref = productId ? `/products/${productId}` : '/products';
+
     if (isMobile) {
         return (
              <Card className="overflow-hidden group rounded-lg card-glass">
-              <Link href={`/products/${product.id}`}>
+              <Link href={productHref}>
                 <div className="relative aspect-[3/4]">
                     <ProductImageSlider imageUrls={product.imageUrls} alt={product.name || 'Product'} isMobile={isMobile} />
                      {isNew && <Badge variant="destructive" className="absolute top-2 left-2">Fresh</Badge>}
@@ -91,7 +94,7 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
 
     return (
         <Card className="overflow-hidden group border rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-300">
-            <Link href={`/products/${product.id}`}>
+            <Link href={productHref}>
                 <div className="relative aspect-[3/4] bg-gray-100">
                     <ProductImageSlider imageUrls={product.imageUrls} alt={product.name || 'Product'} isMobile={isMobile} />
                      {isNew && <Badge variant="default" className="absolute top-3 left-3 bg-stone-900 text-white">New</Badge>}

@@ -40,7 +40,11 @@ export const TrendProvider = ({ children }: { children: ReactNode }) => {
       }
       const data = await response.json();
       const trendsWithId = Array.isArray(data) 
-        ? data.map((t: any) => ({ ...t, id: t._id ? t._id.toString() : (t.id || '') })) 
+        ? data.map((t: any) => ({
+            ...t,
+            id: t._id ? t._id.toString() : (t.id || ''),
+            ctaLink: t.ctaLink || '/products',
+          })) 
         : [];
       setTrends(trendsWithId);
     } catch (error) {

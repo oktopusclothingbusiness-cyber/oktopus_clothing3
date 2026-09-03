@@ -180,7 +180,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 return (
                   <Link
                     key={item.href}
-                    href={item.href}
+                    href={item.href || '/admin'}
                     className={cn(
                       'flex items-center gap-3 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all',
                       isActive

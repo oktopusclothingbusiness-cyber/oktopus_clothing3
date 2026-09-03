@@ -43,7 +43,12 @@ export const PromotionProvider = ({ children }: { children: ReactNode }) => {
       }
       const data = await response.json();
       const promotionsWithId = Array.isArray(data) 
-        ? data.map((p: any) => ({ ...p, id: p._id ? p._id.toString() : (p.id || '') })) 
+        ? data.map((p: any) => ({
+            ...p,
+            id: p._id ? p._id.toString() : (p.id || ''),
+            ctaLink: p.ctaLink || '/products',
+            ctaText: p.ctaText || 'Shop Now',
+          })) 
         : [];
       setPromotions(promotionsWithId);
     } catch (error) {

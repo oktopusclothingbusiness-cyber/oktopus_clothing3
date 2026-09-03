@@ -141,7 +141,7 @@ export default function VerifyProductPage() {
                             <ShieldCheck className="mx-auto h-16 w-16" />
                             <h3 className="mt-4 text-2xl font-semibold">Product Verified!</h3>
                         </div>
-                        <Link href={`/products/${verifiedProduct.id}`}>
+                        <Link href={verifiedProduct?.id ? `/products/${verifiedProduct.id}` : '/products'}>
                             <Card className="w-full overflow-hidden cursor-pointer hover:shadow-lg transition-shadow mt-6">
                                 <CardContent className="p-0">
                                    <div className="relative w-full aspect-square bg-muted">

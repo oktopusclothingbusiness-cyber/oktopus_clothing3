@@ -52,8 +52,8 @@ export const MobileFooter = () => {
                     return (
                         <Link 
                             key={item.label}
-                            href={item.href}
-                            onClick={(e) => handleClick(e, item.href)}
+                            href={item.href || '/store'}
+                            onClick={(e) => handleClick(e, item.href || '/store')}
                             className={cn(
                                 "flex flex-col items-center justify-center gap-1 w-16 h-12 rounded-full transition-colors",
                                 isActive ? 'text-primary' : 'text-muted-foreground'

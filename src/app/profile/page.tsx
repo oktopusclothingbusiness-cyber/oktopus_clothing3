@@ -55,7 +55,7 @@ export default function ProfilePage() {
   }
 
   const ListItem = ({ item }: { item: { label: string, icon: React.ElementType, href: string }}) => (
-     <Link href={item.href}>
+     <Link href={item.href || '#'}>
         <div className="flex items-center justify-between p-4 hover:bg-muted/50 rounded-lg cursor-pointer">
             <div className="flex items-center gap-4">
                 <item.icon className="h-5 w-5 text-muted-foreground" />
@@ -156,7 +156,7 @@ export default function ProfilePage() {
             <Card className="card-glass">
                 <CardContent className="p-2">
                     {menuItems.map((item, index) => (
-                        <Link href={item.href} key={item.label}>
+                        <Link href={item.href || '#'} key={item.label}>
                           <div className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg">
                             <div className="flex items-center gap-4">
                               <item.icon className="h-5 w-5 text-muted-foreground" />
@@ -173,7 +173,7 @@ export default function ProfilePage() {
                  <CardContent className="p-2">
                     {settingsItems.map((item) => (
                         <div key={item.label} className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg" onClick={() => item.href === '#' && !item.isThemeToggle ? router.push(item.href) : null}>
-                            <Link href={item.href} className="flex items-center gap-4">
+                            <Link href={item.href || '#'} className="flex items-center gap-4">
                                 <item.icon className="h-5 w-5 text-muted-foreground" />
                                 <span className="font-medium">{item.label}</span>
                             </Link>
@@ -186,7 +186,7 @@ export default function ProfilePage() {
              <Card className="card-glass">
                 <CardContent className="p-2">
                     {policyItems.map((item, index) => (
-                        <Link href={item.href} key={item.label}>
+                        <Link href={item.href || '#'} key={item.label}>
                           <div className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg">
                             <div className="flex items-center gap-4">
                               <item.icon className="h-5 w-5 text-muted-foreground" />
