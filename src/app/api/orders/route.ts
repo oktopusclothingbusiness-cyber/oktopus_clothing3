@@ -44,7 +44,20 @@ export async function GET(request: NextRequest) {
 // POST a new order
 export async function POST(request: Request) {
   try {
-    const { userId, userName, products, total, shippingAddress, subtotal, discount, shipping } = await request.json();
+    const {
+      userId,
+      userName,
+      products,
+      total,
+      shippingAddress,
+      subtotal,
+      discount,
+      shipping,
+      status,
+      orderSource,
+      isOfflineSale,
+      paymentDetails,
+    } = await request.json();
 
     if (!userId || !products || !total || !shippingAddress) {
       return NextResponse.json({ message: 'Missing required fields.' }, { status: 400 });
@@ -71,9 +84,11 @@ export async function POST(request: Request) {
       shipping,
       total,
       shippingAddress,
-      status: 'pending', // Initial status
+      status: status || 'pending', // Initial status
+      orderSource: orderSource || (isOfflineSale ? 'offline' : 'online'),
+      isOfflineSale: Boolean(isOfflineSale),
       createdAt: new Date(),
-      paymentDetails: {}
+      paymentDetails: paymentDetails || {}
     };
 
     const result = await db.collection('orders').insertOne(orderData);

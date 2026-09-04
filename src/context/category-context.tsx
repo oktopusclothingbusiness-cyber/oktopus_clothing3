@@ -9,6 +9,8 @@ export type Category = {
   id: string;
   name: string;
   imageUrl: string;
+  animation_video_url?: string | null;
+  splash_animation_url?: string | null;
 };
 
 type AddCategory = Omit<Category, 'id' | '_id'>;

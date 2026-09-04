@@ -20,7 +20,17 @@ export async function GET() {
   }
 }
 
-// POST a new category with full dual-image mobile fields
+function isValidAnimationUrl(url: string | null | undefined): boolean {
+  if (!url || typeof url !== 'string' || !url.trim()) return true;
+  try {
+    const parsed = new URL(url.trim());
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+// POST a new category with full dual-image mobile fields and splash animation video
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -36,12 +46,23 @@ export async function POST(request: Request) {
       bg_tint,
       gender,
       colorToken,
+      animation_video_url,
+      splash_animation_url,
     } = body;
 
     if (!name) {
       return NextResponse.json({ message: 'Missing required field: name.' }, { status: 400 });
     }
 
+    const rawAnim = (animation_video_url !== undefined ? animation_video_url : splash_animation_url);
+    if (rawAnim && !isValidAnimationUrl(rawAnim)) {
+      return NextResponse.json(
+        { message: 'Invalid animation_video_url. Must be a valid HTTP/HTTPS URL (e.g. Cloudinary, MP4, JSON, WebP, GIF).' },
+        { status: 400 }
+      );
+    }
+
+    const animUrl = rawAnim && typeof rawAnim === 'string' && rawAnim.trim() ? rawAnim.trim() : null;
     const sqImg = square_image_url || imageUrl || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500';
     const landImg = landscape_image_url || hero_image_url || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=1000';
 
@@ -60,6 +81,8 @@ export async function POST(request: Request) {
       bg_tint: bg_tint || '#FAF6E8',
       gender: gender || 'Unisex',
       colorToken: colorToken || accent_color || '#D4A02E',
+      animation_video_url: animUrl,
+      splash_animation_url: animUrl,
       createdAt: new Date(),
     };
 

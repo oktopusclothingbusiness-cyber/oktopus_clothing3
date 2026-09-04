@@ -22,6 +22,8 @@ export interface MobileCategoryResponse {
   bg_tint: string;
   gender?: string;
   colorToken?: string;
+  animation_video_url?: string | null;
+  splash_animation_url?: string | null;
   featured_products: FeaturedProduct[];
 }
 
@@ -180,6 +182,7 @@ export async function formatCategoryForMobile(cat: any, db: Db): Promise<MobileC
 
   const squareImage = cat.square_image_url || cat.imageUrl || meta.square_image_url;
   const landscapeImage = cat.landscape_image_url || cat.hero_image_url || meta.landscape_image_url;
+  const animationVideoUrl = cat.animation_video_url || cat.splash_animation_url || null;
 
   return {
     _id: idStr,
@@ -196,6 +199,8 @@ export async function formatCategoryForMobile(cat: any, db: Db): Promise<MobileC
     bg_tint: cat.bg_tint || meta.bg_tint,
     gender: cat.gender || 'Unisex',
     colorToken: cat.colorToken || cat.accent_color || meta.accent_color,
+    animation_video_url: animationVideoUrl,
+    splash_animation_url: animationVideoUrl,
     featured_products: featuredProducts,
   };
 }

@@ -5,8 +5,11 @@ import {
   Truck,
   RefreshCw,
   MapPin,
-  ShieldCheck
+  ShieldCheck,
+  Plus,
+  Store,
 } from "lucide-react";
+import { OfflineSaleDialog } from "@/components/admin/offline-sale-dialog";
 
 interface OrderItem {
   name: string;
@@ -36,7 +39,10 @@ interface Order {
   paymentDetails?: {
     razorpay_payment_id?: string;
     paymentStatus?: "paid" | "pending";
+    paymentMethod?: string;
   };
+  orderSource?: "online" | "offline";
+  isOfflineSale?: boolean;
 }
 
 const STATUS_BADGES: Record<string, { label: string; style: string }> = {
@@ -52,6 +58,7 @@ export default function MobileOrdersManager() {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
 
   const fetchOrders = async () => {
     try {
@@ -123,13 +130,22 @@ export default function MobileOrdersManager() {
           </p>
         </div>
 
-        <button
-          onClick={fetchOrders}
-          className="px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-zinc-300 flex items-center space-x-2 transition"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          <span>Refresh Database Pipeline</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsOfflineModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white flex items-center space-x-1.5 transition shadow-md shrink-0"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>+ Offline Sale</span>
+          </button>
+          <button
+            onClick={fetchOrders}
+            className="px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-zinc-300 flex items-center space-x-2 transition shrink-0"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -185,10 +201,17 @@ export default function MobileOrdersManager() {
                       </div>
 
                       <div className="mt-2 flex items-center justify-between">
-                        <span className="text-xs text-zinc-300 font-medium truncate max-w-[140px]">
-                          {order.userName || "Customer"}
-                        </span>
-                        <span className="text-xs font-black text-white">₹{order.total}</span>
+                        <div className="flex items-center gap-1.5 min-w-0 flex-1 mr-2">
+                          <span className="text-xs text-zinc-300 font-medium truncate">
+                            {order.userName || "Customer"}
+                          </span>
+                          {(order.isOfflineSale || order.orderSource === "offline") && (
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 shrink-0 flex items-center gap-0.5">
+                              <Store className="w-2.5 h-2.5" /> Offline
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs font-black text-white shrink-0">₹{order.total}</span>
                       </div>
                     </div>
                   );
@@ -308,6 +331,12 @@ export default function MobileOrdersManager() {
           )}
         </div>
       </div>
+
+      <OfflineSaleDialog
+        open={isOfflineModalOpen}
+        onOpenChange={setIsOfflineModalOpen}
+        onOrderCreated={fetchOrders}
+      />
     </div>
   );
 }

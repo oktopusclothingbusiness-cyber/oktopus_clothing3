@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Eye } from 'lucide-react';
+import { Trash2, Eye, PlusCircle, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { OfflineSaleDialog } from '@/components/admin/offline-sale-dialog';
 
 type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'packed' | 'shipped' | 'delivered';
 type PaymentStatus = 'pending' | 'paid' | 'paid externally';
@@ -44,12 +45,16 @@ type Order = {
   paymentDetails: {
     razorpay_payment_id?: string;
     paymentStatus?: PaymentStatus;
+    paymentMethod?: string;
   };
+  orderSource?: 'online' | 'offline';
+  isOfflineSale?: boolean;
 };
 
 export default function OrdersPage() {
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [isOfflineModalOpen, setIsOfflineModalOpen] = React.useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -226,7 +231,18 @@ export default function OrdersPage() {
 
   return (
     <>
-      <h1 className="text-3xl font-bold mb-8">Order Management</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">Order Management</h1>
+          <p className="text-sm text-muted-foreground mt-1">View and manage all customer orders, or record in-store offline counter sales.</p>
+        </div>
+        <Button
+          onClick={() => setIsOfflineModalOpen(true)}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium flex items-center gap-2 shadow-md shrink-0"
+        >
+          <PlusCircle className="w-4 h-4" /> Record Offline Sale
+        </Button>
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>All Orders</CardTitle>
@@ -273,7 +289,19 @@ export default function OrdersPage() {
                       <TableCell>
                          <span className="font-mono text-xs">#{order._id.slice(-6)}</span>
                       </TableCell>
-                      <TableCell className="font-medium">{order.userName}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span>{order.userName}</span>
+                          {(order.isOfflineSale || order.orderSource === 'offline') && (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] px-1.5 py-0 border-emerald-500/40 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 flex items-center gap-1 font-semibold"
+                            >
+                              <Store className="w-2.5 h-2.5" /> Offline
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>{format(new Date(order.createdAt), 'PP')}</TableCell>
                       <TableCell>
                         <Select
@@ -354,6 +382,12 @@ export default function OrdersPage() {
           </div>
         </CardContent>
       </Card>
+
+      <OfflineSaleDialog
+        open={isOfflineModalOpen}
+        onOpenChange={setIsOfflineModalOpen}
+        onOrderCreated={fetchOrders}
+      />
     </>
   );
 }

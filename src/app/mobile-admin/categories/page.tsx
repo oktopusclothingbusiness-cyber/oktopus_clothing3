@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Layers, Plus, Trash2, RefreshCw, Sparkles, Edit, X, Image as ImageIcon } from "lucide-react";
+import { Layers, Plus, Trash2, RefreshCw, Sparkles, Edit, X, Image as ImageIcon, Video, Film } from "lucide-react";
 
 interface FeaturedProduct {
   id: string;
@@ -25,6 +25,8 @@ interface Category {
   colorToken?: string;
   bg_tint?: string;
   gender?: "Men" | "Women" | "Unisex";
+  animation_video_url?: string | null;
+  splash_animation_url?: string | null;
   featured_products?: FeaturedProduct[];
 }
 
@@ -40,6 +42,7 @@ export default function MobileCategoriesManager() {
   const [description, setDescription] = useState("");
   const [squareImageUrl, setSquareImageUrl] = useState("");
   const [landscapeImageUrl, setLandscapeImageUrl] = useState("");
+  const [animationVideoUrl, setAnimationVideoUrl] = useState("");
   const [iconName, setIconName] = useState("shirt");
   const [accentColor, setAccentColor] = useState("#D4A02E");
   const [bgTint, setBgTint] = useState("#FAF6E8");
@@ -73,6 +76,7 @@ export default function MobileCategoriesManager() {
     setDescription(cat.description || "");
     setSquareImageUrl(cat.square_image_url || cat.imageUrl || "");
     setLandscapeImageUrl(cat.landscape_image_url || cat.hero_image_url || "");
+    setAnimationVideoUrl(cat.animation_video_url || cat.splash_animation_url || "");
     setIconName(cat.icon_name || "shirt");
     setAccentColor(cat.accent_color || cat.colorToken || "#D4A02E");
     setBgTint(cat.bg_tint || "#FAF6E8");
@@ -87,6 +91,7 @@ export default function MobileCategoriesManager() {
     setDescription("");
     setSquareImageUrl("");
     setLandscapeImageUrl("");
+    setAnimationVideoUrl("");
     setIconName("shirt");
     setAccentColor("#D4A02E");
     setBgTint("#FAF6E8");
@@ -101,6 +106,7 @@ export default function MobileCategoriesManager() {
       setSaving(true);
       const sqImg = squareImageUrl || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500";
       const landImg = landscapeImageUrl || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=1000";
+      const animUrl = animationVideoUrl.trim() || null;
 
       const payload = {
         name,
@@ -109,6 +115,8 @@ export default function MobileCategoriesManager() {
         landscape_image_url: landImg,
         imageUrl: sqImg,
         hero_image_url: landImg,
+        animation_video_url: animUrl,
+        splash_animation_url: animUrl,
         icon_name: iconName || "shirt",
         accent_color: accentColor || "#D4A02E",
         colorToken: accentColor || "#D4A02E",
@@ -266,6 +274,94 @@ export default function MobileCategoriesManager() {
                   onChange={(e) => setLandscapeImageUrl(e.target.value)}
                   className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400"
                 />
+              </div>
+
+              {/* 3. Splash Animation Video / Cloudinary URL */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
+                    <Film className="w-3.5 h-3.5" /> 🎬 Splash Animation Video / Cloudinary URL
+                  </label>
+                  {animationVideoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setAnimationVideoUrl("")}
+                      className="text-[10px] font-semibold text-zinc-400 hover:text-red-400 flex items-center gap-1 bg-zinc-800/80 hover:bg-zinc-800 px-2 py-0.5 rounded transition"
+                    >
+                      <X className="w-3 h-3" /> Clear Video
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="url"
+                  placeholder="https://res.cloudinary.com/.../animation.mp4 (or .json, .webp)"
+                  value={animationVideoUrl}
+                  onChange={(e) => setAnimationVideoUrl(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-400 transition"
+                />
+                <p className="text-[10px] text-zinc-400">
+                  Attach a Cloudinary video (MP4) or Lottie/GIF to play when mobile users enter this category.
+                </p>
+
+                {/* Media Preview Widget */}
+                {animationVideoUrl.trim() && (
+                  <div className="mt-2 p-3 bg-zinc-950 border border-emerald-500/30 rounded-xl space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1 uppercase tracking-wider">
+                        <Video className="w-3 h-3" /> Media Preview
+                      </span>
+                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-emerald-950/70 text-emerald-400 border border-emerald-500/30">
+                        {(() => {
+                          const clean = animationVideoUrl.toLowerCase().split('?')[0];
+                          if (clean.endsWith('.json') || clean.includes('/raw/upload/')) return 'Lottie JSON';
+                          if (clean.endsWith('.gif') || clean.endsWith('.webp') || clean.endsWith('.png') || clean.endsWith('.jpg') || clean.includes('/image/upload/')) return 'Image / GIF';
+                          return 'Video (MP4/WebM)';
+                        })()}
+                      </span>
+                    </div>
+
+                    {(() => {
+                      const clean = animationVideoUrl.toLowerCase().split('?')[0];
+                      if (clean.endsWith('.json') || clean.includes('/raw/upload/')) {
+                        return (
+                          <div className="p-2.5 bg-zinc-900/90 rounded-lg border border-zinc-800 space-y-1">
+                            <div className="flex items-center gap-2 text-xs text-zinc-200">
+                              <span className="px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 font-mono text-[10px] font-bold">LOTTIE</span>
+                              <span className="truncate font-mono text-[10px] text-zinc-300">{animationVideoUrl}</span>
+                            </div>
+                            <p className="text-[10px] text-zinc-400">Vector animation ready for mobile splash screen render.</p>
+                          </div>
+                        );
+                      }
+                      if (clean.endsWith('.gif') || clean.endsWith('.webp') || clean.endsWith('.png') || clean.endsWith('.jpg') || clean.endsWith('.jpeg') || clean.includes('/image/upload/')) {
+                        return (
+                          <div className="relative rounded-lg overflow-hidden border border-zinc-800 bg-black/60 flex items-center justify-center p-2">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={animationVideoUrl}
+                              alt="Splash Animation Preview"
+                              className="max-h-40 w-full object-contain rounded"
+                            />
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className="relative rounded-lg overflow-hidden border border-zinc-800 bg-black">
+                          <video
+                            key={animationVideoUrl}
+                            src={animationVideoUrl}
+                            muted
+                            autoPlay
+                            loop
+                            controls
+                            playsInline
+                            className="w-full max-h-44 object-contain rounded"
+                          />
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -442,6 +538,15 @@ export default function MobileCategoriesManager() {
                               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-amber-400 border border-amber-400/20">
                                 {cat.icon_name || "shirt"}
                               </span>
+                              {cat.animation_video_url ? (
+                                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                                  <Film className="w-2.5 h-2.5" /> 🎬 Video Attached
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-zinc-800/80 text-zinc-500 border border-zinc-700/40">
+                                  None
+                                </span>
+                              )}
                             </div>
                             <p className="text-xs text-zinc-400 line-clamp-1">
                               {cat.description || "Premium streetwear collection."}
@@ -496,6 +601,37 @@ export default function MobileCategoriesManager() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Animation Video Row if Attached */}
+                      {cat.animation_video_url && (
+                        <div className="pt-2 border-t border-zinc-800/80">
+                          <div className="flex items-center space-x-3 bg-zinc-950 p-2 rounded-lg border border-emerald-500/20">
+                            <div className="w-16 h-10 rounded overflow-hidden shrink-0 border border-zinc-700 bg-black flex items-center justify-center">
+                              {cat.animation_video_url.toLowerCase().endsWith('.json') ? (
+                                <span className="text-[9px] font-mono font-bold text-amber-400">JSON</span>
+                              ) : cat.animation_video_url.toLowerCase().match(/\.(gif|webp|png|jpe?g)$/) ? (
+                                /* eslint-disable-next-line @next/next/no-img-element */
+                                <img src={cat.animation_video_url} alt="Splash" className="w-full h-full object-cover" />
+                              ) : (
+                                <video src={cat.animation_video_url} muted loop autoPlay playsInline className="w-full h-full object-cover" />
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <span className="font-bold text-emerald-400 text-[10px] flex items-center gap-1">
+                                <Film className="w-3 h-3" /> Splash Animation URL
+                              </span>
+                              <a
+                                href={cat.animation_video_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="truncate block font-mono text-[9px] text-zinc-400 hover:text-emerald-300 transition"
+                              >
+                                {cat.animation_video_url}
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
