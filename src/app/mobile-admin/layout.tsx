@@ -22,6 +22,7 @@ import {
   ShieldAlert,
   Loader2
 } from "lucide-react";
+import { AdminViewSwitcherButton, AdminViewSwitcherSidebar } from "@/components/admin/admin-view-switcher";
 
 const NAV_ITEMS = [
   { name: "Dashboard", href: "/mobile-admin", icon: LayoutDashboard },
@@ -159,6 +160,9 @@ export default function MobileAdminLayout({
 
         {/* Footer info */}
         <div className="p-3 border-t border-zinc-800/80 space-y-2">
+          {/* SWITCH TO MAIN ADMIN IN SIDEBAR */}
+          <AdminViewSwitcherSidebar isSidebarOpen={!collapsed} />
+
           {!collapsed && (
             <div className="px-3 py-2 rounded-xl bg-zinc-900/80 border border-zinc-800">
               <div className="flex items-center justify-between">
@@ -198,6 +202,9 @@ export default function MobileAdminLayout({
           </div>
 
           <div className="flex items-center space-x-3">
+            {/* SWITCH TO MAIN ADMIN */}
+            <AdminViewSwitcherButton />
+
             <div className="relative hidden md:block">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
               <input

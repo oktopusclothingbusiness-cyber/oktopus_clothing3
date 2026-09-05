@@ -38,6 +38,7 @@ import { AdminNotificationPanel } from '@/components/admin/admin-notification-pa
 import { AdminCommandPalette } from '@/components/admin/admin-command-palette';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Badge } from '@/components/ui/badge';
+import { AdminViewSwitcherButton, AdminViewSwitcherSidebar } from '@/components/admin/admin-view-switcher';
 
 type NavGroup = {
   title: string;
@@ -198,6 +199,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ))}
         </nav>
 
+        {/* MOBILE ADMIN SWITCHER IN SIDEBAR */}
+        <div className="p-2.5 border-t bg-muted/20">
+          <AdminViewSwitcherSidebar isSidebarOpen={isSidebarOpen} />
+        </div>
+
         {/* SIDEBAR FOOTER (ADMIN INFO & LOGOUT) */}
         <div className="border-t p-3 bg-card">
           <div className="flex items-center justify-between gap-2">
@@ -248,6 +254,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex items-center gap-3">
             {/* COMMAND PALETTE SEARCH (Cmd + K) */}
             <AdminCommandPalette />
+
+            {/* SWITCH TO MOBILE ADMIN */}
+            <AdminViewSwitcherButton />
 
             {/* VIEW STOREFRONT LINK */}
             <Button variant="outline" size="sm" asChild className="h-8 text-xs font-medium gap-1.5 hidden sm:flex">

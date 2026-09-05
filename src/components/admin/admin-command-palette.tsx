@@ -33,6 +33,7 @@ import {
   Settings,
   PlusCircle,
   ExternalLink,
+  Smartphone,
 } from 'lucide-react';
 
 export function AdminCommandPalette() {
@@ -149,6 +150,10 @@ export function AdminCommandPalette() {
             <CommandItem onSelect={() => runCommand(() => router.push('/admin/batch-tasks'))}>
               <Layers className="mr-2 h-4 w-4 text-blue-500" />
               <span>Run Batch Price / Stock Task</span>
+            </CommandItem>
+            <CommandItem onSelect={() => runCommand(() => router.push('/mobile-admin'))}>
+              <Smartphone className="mr-2 h-4 w-4 text-emerald-500" />
+              <span>Switch to Mobile App Admin</span>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => window.open('/store', '_blank'))}>
               <ExternalLink className="mr-2 h-4 w-4" />
