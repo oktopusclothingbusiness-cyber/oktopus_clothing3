@@ -728,7 +728,7 @@ export default function AnalyticsPage() {
                           <div className="flex items-center gap-2 shrink-0">
                             {activeDrawer === 'cart_users' ? (
                               <Badge variant="outline" className="border-amber-500/40 text-amber-600 bg-amber-500/10 text-[10px]">
-                                🛒 {cartCount} item(s)
+                                Cart: {cartCount} item(s)
                               </Badge>
                             ) : (
                               <Badge variant="destructive" className="text-[10px]">

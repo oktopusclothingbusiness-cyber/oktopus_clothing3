@@ -132,11 +132,11 @@ export default function AdminPromotionsPage() {
                     disabled={isSubmitting}
                     className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
                   >
-                    <option value="products_page">🛍️ Products Page (products_page)</option>
-                    <option value="home_page">🏠 Home Page (home_page)</option>
-                    <option value="mobile_banner">📱 Mobile App Hero (mobile_banner)</option>
-                    <option value="category_page">🏷️ Category Page (category_page)</option>
-                    <option value="checkout_page">💳 Checkout Page (checkout_page)</option>
+                    <option value="products_page">Products Page (products_page)</option>
+                    <option value="home_page">Home Page (home_page)</option>
+                    <option value="mobile_banner">Mobile App Hero (mobile_banner)</option>
+                    <option value="category_page">Category Page (category_page)</option>
+                    <option value="checkout_page">Checkout Page (checkout_page)</option>
                   </select>
                 </div>
                 <div className="flex items-center space-x-2">

@@ -64,9 +64,9 @@ export default function ReturnPolicyPage() {
               <h2>6. Contact Us</h2>
               <p>If you have any questions, please reach out to us:</p>
               <ul>
-                <li>📧 <strong>Email:</strong> <a href="mailto:oktopusclothing.business@gmail.com">oktopusclothing.business@gmail.com</a></li>
-                <li>📞 <strong>Phone:</strong> <a href="tel:6291337506">+91 62913 37506</a></li>
-                <li>🏢 <strong>Operating Address:</strong> Kolkata, West Bengal, India</li>
+                <li><strong>Email:</strong> <a href="mailto:oktopusclothing.business@gmail.com">oktopusclothing.business@gmail.com</a></li>
+                <li><strong>Phone:</strong> <a href="tel:6291337506">+91 62913 37506</a></li>
+                <li><strong>Operating Address:</strong> Kolkata, West Bengal, India</li>
               </ul>
             </CardContent>
           </Card>

@@ -6,7 +6,7 @@ dotenv.config();
 const uri = process.env.MONGODB_URI || "mongodb+srv://rbaskeyofficial:rbaskeyofficial@cluster0.lnstw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 async function testOfflineSaleOrder() {
-  console.log('🧪 Starting Offline Sale Order Verification Test...');
+  console.log('[START] Starting Offline Sale Order Verification Test...');
   const client = new MongoClient(uri);
 
   try {
@@ -29,12 +29,12 @@ async function testOfflineSaleOrder() {
       sampleProduct = await productsCol.findOne({ _id: res.insertedId });
     }
 
-    console.log(`\n1️⃣ Using product "${sampleProduct.name}" (ID: ${sampleProduct._id})`);
+    console.log(`\n[STEP 1] Using product "${sampleProduct.name}" (ID: ${sampleProduct._id})`);
     const initialStock = Number(sampleProduct.stock) || 50;
     console.log(`   Initial stock: ${initialStock}`);
 
     // 2. Prepare Offline Sale Order Payload
-    console.log('\n2️⃣ Creating offline sale order payload:');
+    console.log('\n[STEP 2] Creating offline sale order payload:');
     const soldQty = 2;
     const unitPrice = Number(sampleProduct.price) || 1499;
     const discountAmount = 100;
@@ -87,19 +87,19 @@ async function testOfflineSaleOrder() {
     // Insert order
     const insertRes = await ordersCol.insertOne(offlineOrderDoc);
     const createdOrderId = insertRes.insertedId;
-    console.log(`   ✅ Order successfully created with ID: ${createdOrderId}`);
+    console.log(`   [SUCCESS] Order successfully created with ID: ${createdOrderId}`);
 
     // 3. Verify stock decrement
     const productAfter = await productsCol.findOne({ _id: sampleProduct._id });
-    console.log(`\n3️⃣ Verifying stock decrement:`);
+    console.log(`\n[STEP 3] Verifying stock decrement:`);
     console.log(`   Stock before: ${initialStock}, Stock after: ${productAfter.stock}`);
     if (productAfter.stock !== initialStock - soldQty) {
       throw new Error(`FAILED: Expected stock to be ${initialStock - soldQty}, found ${productAfter.stock}`);
     }
-    console.log('   ✅ Stock decremented accurately by sold quantity.');
+    console.log('   [SUCCESS] Stock decremented accurately by sold quantity.');
 
     // 4. Verify order document in orders collection
-    console.log(`\n4️⃣ Verifying order details in database:`);
+    console.log(`\n[STEP 4] Verifying order details in database:`);
     const savedOrder = await ordersCol.findOne({ _id: createdOrderId });
     if (!savedOrder) throw new Error('FAILED: Saved order not found in database');
 
@@ -117,10 +117,10 @@ async function testOfflineSaleOrder() {
     if (savedOrder.shippingAddress.name !== 'Amit Verma' || savedOrder.shippingAddress.mobile !== '9876543210') {
       throw new Error('FAILED: Customer details mismatch');
     }
-    console.log('   ✅ All customer details, products, and offline flags verified successfully.');
+    console.log('   [SUCCESS] All customer details, products, and offline flags verified successfully.');
 
     // 5. Clean up test order and restore product stock
-    console.log(`\n5️⃣ Cleaning up test order and restoring product stock...`);
+    console.log(`\n[STEP 5] Cleaning up test order and restoring product stock...`);
     await ordersCol.deleteOne({ _id: createdOrderId });
     await productsCol.updateOne(
       { _id: sampleProduct._id },
@@ -128,11 +128,11 @@ async function testOfflineSaleOrder() {
     );
     const restoredProduct = await productsCol.findOne({ _id: sampleProduct._id });
     console.log(`   Restored stock: ${restoredProduct.stock}`);
-    console.log('   ✅ Clean up completed successfully.');
+    console.log('   [SUCCESS] Clean up completed successfully.');
 
-    console.log('\n🎉 ALL OFFLINE SALE ORDER TESTS PASSED SUCCESSFULLY! 🚀');
+    console.log('\n[DONE] ALL OFFLINE SALE ORDER TESTS PASSED SUCCESSFULLY!');
   } catch (error) {
-    console.error('\n❌ TEST FAILED:', error);
+    console.error('\n[ERROR] TEST FAILED:', error);
     process.exit(1);
   } finally {
     await client.close();

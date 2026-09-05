@@ -251,7 +251,7 @@ export default function MobileCategoriesManager() {
               {/* 1. Square Image (1:1) */}
               <div>
                 <label className="text-xs font-semibold text-amber-400 block mb-1 flex items-center gap-1">
-                  <ImageIcon className="w-3.5 h-3.5" /> 🔳 Square Image URL (`square_image_url` - 1:1 for Small Panels)
+                  <ImageIcon className="w-3.5 h-3.5" /> Square Image URL (`square_image_url` - 1:1 for Small Panels)
                 </label>
                 <input
                   type="url"
@@ -265,7 +265,7 @@ export default function MobileCategoriesManager() {
               {/* 2. Landscape Image (16:9) */}
               <div>
                 <label className="text-xs font-semibold text-amber-400 block mb-1 flex items-center gap-1">
-                  <ImageIcon className="w-3.5 h-3.5" /> 🖼️ Landscape Image URL (`landscape_image_url` - 16:9 for Big Hero Panels)
+                  <ImageIcon className="w-3.5 h-3.5" /> Landscape Image URL (`landscape_image_url` - 16:9 for Big Hero Panels)
                 </label>
                 <input
                   type="url"
@@ -280,7 +280,7 @@ export default function MobileCategoriesManager() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
-                    <Film className="w-3.5 h-3.5" /> 🎬 Splash Animation Video / Cloudinary URL
+                    <Film className="w-3.5 h-3.5" /> Splash Animation Video / Cloudinary URL
                   </label>
                   {animationVideoUrl && (
                     <button
@@ -540,7 +540,7 @@ export default function MobileCategoriesManager() {
                               </span>
                               {cat.animation_video_url ? (
                                 <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                                  <Film className="w-2.5 h-2.5" /> 🎬 Video Attached
+                                  <Film className="w-2.5 h-2.5" /> Video Attached
                                 </span>
                               ) : (
                                 <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-zinc-800/80 text-zinc-500 border border-zinc-700/40">

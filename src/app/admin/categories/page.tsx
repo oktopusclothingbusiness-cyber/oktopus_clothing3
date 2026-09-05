@@ -222,7 +222,7 @@ export default function AdminCategoriesPage() {
                           <TableCell>
                             {cat.animation_video_url ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
-                                <Film className="w-3 h-3" /> 🎬 Video Attached
+                                <Film className="w-3 h-3" /> Video Attached
                               </span>
                             ) : (
                               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">

@@ -103,11 +103,11 @@ async function migrateCategoriesSchema() {
 
       if (result.modifiedCount > 0 || result.matchedCount > 0) {
         updatedCount++;
-        console.log(`✅ Updated dual-image schema in DB: "${name}" (${cat._id})`);
+        console.log(`[UPDATED] Updated dual-image schema in DB: "${name}" (${cat._id})`);
       }
     }
 
-    console.log(`\n🎉 SUCCESS: Successfully updated dual-image schema for ${updatedCount} MongoDB category documents!`);
+    console.log(`\n[SUCCESS] Successfully updated dual-image schema for ${updatedCount} MongoDB category documents!`);
   } catch (err) {
     console.error('Migration Failed:', err);
   } finally {

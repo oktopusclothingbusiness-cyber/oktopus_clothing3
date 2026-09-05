@@ -399,7 +399,7 @@ export default function AdminBatchTasksPage() {
                 {selectedAction === 'DESCRIPTION_UPDATE' ? (
                   <div className="space-y-4">
                     <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-xs text-rose-700 dark:text-rose-300 font-medium">
-                      🎯 <strong>Target Selection Required:</strong> First choose whether to target a specific Category or a specific Product to update its description.
+                      <strong>Target Selection Required:</strong> First choose whether to target a specific Category or a specific Product to update its description.
                     </div>
 
                     <div className="space-y-2">
@@ -725,10 +725,10 @@ export default function AdminBatchTasksPage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="set">📝 Set / Overwrite Description</SelectItem>
-                          <SelectItem value="append">➕ Append / Add Text to Description</SelectItem>
-                          <SelectItem value="replace">🔍 Find & Replace Substring</SelectItem>
-                          <SelectItem value="clear">🗑️ Clear / Delete Description</SelectItem>
+                          <SelectItem value="set">Set / Overwrite Description</SelectItem>
+                          <SelectItem value="append">Append / Add Text to Description</SelectItem>
+                          <SelectItem value="replace">Find & Replace Substring</SelectItem>
+                          <SelectItem value="clear">Clear / Delete Description</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

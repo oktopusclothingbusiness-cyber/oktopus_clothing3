@@ -314,7 +314,7 @@ export function OfflineSaleDialog({
       }
 
       toast({
-        title: 'Offline Sale Recorded! 🛍️',
+        title: 'Offline Sale Recorded',
         description: `Order #${(data.orderId || '').slice(-6)} created for ${customerName} (₹${grandTotal.toFixed(2)}).`,
       });
 
@@ -571,10 +571,10 @@ export function OfflineSaleDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="cash" className="text-xs">💵 Cash Payment</SelectItem>
-                    <SelectItem value="upi" className="text-xs">📲 UPI / QR Code (GPay / PhonePe / Paytm)</SelectItem>
-                    <SelectItem value="card" className="text-xs">💳 Card / POS Machine</SelectItem>
-                    <SelectItem value="other" className="text-xs">🏷️ Other / Store Credit</SelectItem>
+                    <SelectItem value="cash" className="text-xs">Cash Payment</SelectItem>
+                    <SelectItem value="upi" className="text-xs">UPI / QR Code (GPay / PhonePe / Paytm)</SelectItem>
+                    <SelectItem value="card" className="text-xs">Card / POS Machine</SelectItem>
+                    <SelectItem value="other" className="text-xs">Other / Store Credit</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -586,9 +586,9 @@ export function OfflineSaleDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="delivered" className="text-xs">✅ Delivered (Completed in-store)</SelectItem>
-                    <SelectItem value="accepted" className="text-xs">📦 Accepted / Packaging</SelectItem>
-                    <SelectItem value="pending" className="text-xs">⏳ Pending Confirmation</SelectItem>
+                    <SelectItem value="delivered" className="text-xs">Delivered (Completed in-store)</SelectItem>
+                    <SelectItem value="accepted" className="text-xs">Accepted / Packaging</SelectItem>
+                    <SelectItem value="pending" className="text-xs">Pending Confirmation</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

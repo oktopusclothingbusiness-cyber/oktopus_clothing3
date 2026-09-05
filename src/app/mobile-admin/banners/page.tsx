@@ -20,11 +20,11 @@ interface Banner {
 }
 
 const PLACEMENT_OPTIONS = [
-  { id: "products_page", label: "🛍️ Products Page (products_page)" },
-  { id: "home_page", label: "🏠 Home Page (home_page)" },
-  { id: "mobile_banner", label: "📱 Mobile App Hero (mobile_banner)" },
-  { id: "category_page", label: "🏷️ Category Page (category_page)" },
-  { id: "checkout_page", label: "💳 Checkout Page (checkout_page)" },
+  { id: "products_page", label: "Products Page (products_page)" },
+  { id: "home_page", label: "Home Page (home_page)" },
+  { id: "mobile_banner", label: "Mobile App Hero (mobile_banner)" },
+  { id: "category_page", label: "Category Page (category_page)" },
+  { id: "checkout_page", label: "Checkout Page (checkout_page)" },
 ];
 
 export default function MobileBannersManager() {
@@ -239,7 +239,7 @@ export default function MobileBannersManager() {
                     {PLACEMENT_OPTIONS.map((opt) => (
                       <option key={opt.id} value={opt.id}>{opt.label}</option>
                     ))}
-                    <option value="custom">✏️ Custom Placement Slot...</option>
+                    <option value="custom">Custom Placement Slot...</option>
                   </select>
                 </div>
 

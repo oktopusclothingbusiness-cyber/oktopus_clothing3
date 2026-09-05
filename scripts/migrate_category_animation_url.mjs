@@ -36,7 +36,7 @@ async function migrateCategoryAnimationUrl() {
       }
     }
 
-    console.log(`✅ Category animation URL migration complete. Updated ${updatedCount} categories.`);
+    console.log(`[SUCCESS] Category animation URL migration complete. Updated ${updatedCount} categories.`);
   } catch (error) {
     console.error('Migration failed:', error);
   } finally {

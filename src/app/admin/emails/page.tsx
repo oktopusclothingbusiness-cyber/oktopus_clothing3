@@ -90,7 +90,7 @@ export default function AdminEmailsPage() {
                                 id="subject"
                                 value={subject}
                                 onChange={(e) => setSubject(e.target.value)}
-                                placeholder="e.g., ✨ A Special Offer Just For You!"
+                                placeholder="e.g., A Special Offer Just For You!"
                                 required
                                 disabled={isSubmitting}
                             />
