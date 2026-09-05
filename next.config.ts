@@ -62,7 +62,25 @@ const nextConfig: NextConfig = {
         hostname: 'smartpos.amazon.in',
         port: '',
         pathname: '/**',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.cloudinary.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
