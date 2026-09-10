@@ -20,11 +20,16 @@ interface Banner {
 }
 
 const PLACEMENT_OPTIONS = [
+  { id: "store_hero", label: "Store Hero Billboard (store_hero / home_hero)" },
+  { id: "store_page", label: "Store Page Mid Banner (store_page)" },
   { id: "products_page", label: "Products Page (products_page)" },
-  { id: "home_page", label: "Home Page (home_page)" },
-  { id: "mobile_banner", label: "Mobile App Hero (mobile_banner)" },
-  { id: "category_page", label: "Category Page (category_page)" },
+  { id: "collections_page", label: "Collections Page (collections_page)" },
+  { id: "custom_design_page", label: "Custom Studio (custom_design_page)" },
   { id: "checkout_page", label: "Checkout Page (checkout_page)" },
+  { id: "about_page", label: "About Us (about_page)" },
+  { id: "contact_page", label: "Contact Us (contact_page)" },
+  { id: "archive_page", label: "Archive Page (archive_page)" },
+  { id: "mobile_banner", label: "Mobile App Hero (mobile_banner)" },
 ];
 
 export default function MobileBannersManager() {

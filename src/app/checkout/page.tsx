@@ -1,12 +1,12 @@
-
 'use client';
 
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/cart-context';
-import { Header } from '@/components/header';
-import { Footer } from '@/components/footer';
-import { Loader2, MapPin } from 'lucide-react';
+import { StorefrontHeader } from '@/components/storefront/header';
+import { StorefrontFooter } from '@/components/storefront/footer';
+import { PageBanner } from '@/components/storefront/page-banner';
+import { Loader2, MapPin, ShieldCheck, Truck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
@@ -99,25 +99,25 @@ const ShippingForm = ({
   return (
     <form onSubmit={handleProceedToPayment} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor={`mobile${isMobile ? '-mob' : ''}`}>Mobile Number</Label>
-        <Input id={`mobile${isMobile ? '-mob' : ''}`} name="mobile" value={shippingAddress.mobile} onChange={handleAddressChange} required />
+        <Label htmlFor={`mobile${isMobile ? '-mob' : ''}`} className="text-xs font-mono uppercase text-zinc-300">Mobile Number (For Delivery Tracking)</Label>
+        <Input id={`mobile${isMobile ? '-mob' : ''}`} name="mobile" value={shippingAddress.mobile} onChange={handleAddressChange} placeholder="e.g. +91 9876543210" required className="bg-[#0A0A0A] border-white/10 text-white font-mono text-xs h-11" />
       </div>
       <div className="space-y-2">
         <div className="flex justify-between items-center">
-          <Label htmlFor={`address${isMobile ? '-mob' : ''}`}>Full Address</Label>
-          <Button type="button" variant="outline" size="sm" onClick={handleFetchLocation} disabled={isFetchingLocation}>
-            {isFetchingLocation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MapPin className="mr-2 h-4 w-4" />}
-            Fetch Location
+          <Label htmlFor={`address${isMobile ? '-mob' : ''}`} className="text-xs font-mono uppercase text-zinc-300">Delivery Address</Label>
+          <Button type="button" variant="outline" size="sm" onClick={handleFetchLocation} disabled={isFetchingLocation} className="border-white/10 text-xs font-mono text-zinc-300 hover:bg-white hover:text-black">
+            {isFetchingLocation ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <MapPin className="mr-2 h-3.5 w-3.5 text-[#0F824B]" />}
+            Auto-Detect GPS Address
           </Button>
         </div>
-        <Textarea id={`address${isMobile ? '-mob' : ''}`} name="address" value={shippingAddress.address} onChange={handleAddressChange} required />
+        <Textarea id={`address${isMobile ? '-mob' : ''}`} name="address" value={shippingAddress.address} onChange={handleAddressChange} placeholder="Street address, apartment, city, state, pincode..." required className="bg-[#0A0A0A] border-white/10 text-white text-xs min-h-[90px]" />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`instructions${isMobile ? '-mob' : ''}`}>Any Instructions (Optional)</Label>
-        <Textarea id={`instructions${isMobile ? '-mob' : ''}`} name="instructions" value={shippingAddress.instructions} onChange={handleAddressChange} />
+        <Label htmlFor={`instructions${isMobile ? '-mob' : ''}`} className="text-xs font-mono uppercase text-zinc-300">Delivery Notes / Landmark (Optional)</Label>
+        <Textarea id={`instructions${isMobile ? '-mob' : ''}`} name="instructions" value={shippingAddress.instructions} onChange={handleAddressChange} placeholder="Gate codes, delivery time preference..." className="bg-[#0A0A0A] border-white/10 text-white text-xs" />
       </div>
-      <Button type="submit" className="w-full" disabled={isProcessing}>
-        {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : 'Proceed to Payment'}
+      <Button type="submit" className="w-full bg-[#0F824B] hover:bg-[#0b663a] text-black font-bold h-12 text-xs font-mono uppercase tracking-wider rounded-full" disabled={isProcessing}>
+        {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing Payment...</> : 'Proceed to Secure Payment'}
       </Button>
     </form>
   );
@@ -253,7 +253,7 @@ export default function CheckoutPage() {
           address: shippingAddress.address,
         },
         theme: {
-          color: '#FBBF24',
+          color: '#0F824B',
         },
       };
 
@@ -272,18 +272,27 @@ export default function CheckoutPage() {
 
 
   return (
-    <>
+    <div className="bg-[#0A0A0A] text-[#FAF9F6] font-sans min-h-screen">
       {/* Desktop View */}
       <div className="hidden md:flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-grow container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold mb-8">Checkout</h1>
-          <div className="grid md:grid-cols-2 gap-16">
-            <div>
-              <Card>
+        <StorefrontHeader />
+        
+        {/* DYNAMIC DATABASE BANNER FOR CHECKOUT PAGE */}
+        <PageBanner
+          placement="checkout_page"
+          compact={true}
+          fallbackTitle="FAST EXPRESS CHECKOUT"
+          fallbackDescription="Encrypted 256-bit SSL transaction. Free express shipping applied automatically."
+        />
+
+        <main className="flex-grow container mx-auto px-6 lg:px-12 py-10">
+          <h1 className="text-4xl font-black font-bebas uppercase tracking-wider text-white mb-8">SECURE CHECKOUT</h1>
+          <div className="grid md:grid-cols-12 gap-12">
+            <div className="md:col-span-7">
+              <Card className="bg-[#121212] border-white/10 text-white">
                 <CardHeader>
-                  <CardTitle>Shipping Information</CardTitle>
-                  <CardDescription>Please provide your delivery details.</CardDescription>
+                  <CardTitle className="font-bebas text-2xl uppercase tracking-wide">Delivery & Shipping Address</CardTitle>
+                  <CardDescription className="text-zinc-400 font-mono text-xs">Enter your delivery location for order fulfillment.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ShippingForm 
@@ -295,55 +304,66 @@ export default function CheckoutPage() {
                 </CardContent>
               </Card>
             </div>
-            <div className="bg-secondary p-6 rounded-lg space-y-4 h-fit">
-              <h2 className="text-xl font-bold">Order Summary</h2>
-              <div className="space-y-2">
+
+            <div className="md:col-span-5 bg-[#121212] border border-white/10 p-6 rounded-2xl space-y-6 h-fit text-white">
+              <h2 className="text-2xl font-black font-bebas uppercase tracking-wider border-b border-white/10 pb-4">ORDER SUMMARY ({cart.length} ITEMS)</h2>
+              <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
                 {cart.map(item => (
-                  <div key={`${item.id}-${item.size}-${item.color}`} className="flex justify-between items-center text-sm">
-                      <div className="flex items-center gap-2">
-                        <Image src={getProductImage(item.imageUrls, "https://placehold.co/40x40.png")} alt={item.name} width={40} height={40} className="rounded-md" />
+                  <div key={`${item.id}-${item.size}-${item.color}`} className="flex justify-between items-center text-xs font-mono border-b border-white/5 pb-3">
+                      <div className="flex items-center gap-3">
+                        <Image src={getProductImage(item.imageUrls, "https://placehold.co/40x40.png")} alt={item.name} width={48} height={48} className="rounded-lg object-cover bg-zinc-800" unoptimized />
                         <div>
-                            <p className='font-medium'>{item.name} (x{item.quantity})</p>
-                            <p className='text-muted-foreground text-xs'>Size: {item.size}, Color: {item.color}</p>
+                            <p className='font-bold text-white uppercase'>{item.name} (x{item.quantity})</p>
+                            <p className='text-zinc-400 text-[10px]'>SIZE: {item.size} | COLOR: {item.color}</p>
                         </div>
                       </div>
-                      <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                      <span className="font-bold text-[#0F824B]">₹{(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
-              <div className="border-t pt-4 space-y-2">
-                  <div className="flex justify-between">
+              <div className="pt-2 space-y-2 font-mono text-xs">
+                  <div className="flex justify-between text-zinc-400">
                     <span>Subtotal</span>
                     <span>₹{subtotal.toFixed(2)}</span>
                   </div>
                   {discount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount</span>
+                    <div className="flex justify-between text-emerald-400 font-bold">
+                      <span>Promo Discount</span>
                       <span>- ₹{discount.toFixed(2)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between">
-                    <span>Shipping</span>
-                    <span>{shipping > 0 ? `₹${shipping.toFixed(2)}` : 'Free'}</span>
+                  <div className="flex justify-between text-zinc-400">
+                    <span>Express Shipping</span>
+                    <span>{shipping > 0 ? `₹${shipping.toFixed(2)}` : 'FREE'}</span>
                   </div>
-                  <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
-                    <span>Total</span>
-                    <span>₹{total.toFixed(2)}</span>
+                  <div className="flex justify-between font-bold text-base border-t border-white/10 pt-3 text-white">
+                    <span>TOTAL AMOUNT</span>
+                    <span className="text-[#0F824B] font-mono">₹{total.toFixed(2)}</span>
                   </div>
+              </div>
+
+              <div className="pt-4 border-t border-white/10 flex items-center justify-between text-[11px] font-mono text-zinc-400">
+                <span className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-400" /> 100% Guaranteed Authentic</span>
+                <span className="flex items-center gap-1.5"><Truck className="w-4 h-4 text-[#0F824B]" /> Dispatch in 24h</span>
               </div>
             </div>
           </div>
         </main>
-        <Footer />
+        <StorefrontFooter />
       </div>
 
       {/* Mobile View */}
       <div className="md:hidden">
         <MobileHeader title="Checkout" />
-        <main className="bg-secondary min-h-screen pb-24 p-4 space-y-4">
-           <Card className="card-glass">
+        <main className="bg-[#0A0A0A] min-h-screen pb-24 p-4 space-y-4">
+           <PageBanner
+             placement="checkout_page"
+             compact={true}
+             fallbackTitle="SECURE CHECKOUT"
+           />
+           <Card className="bg-[#121212] border-white/10 text-white">
                 <CardHeader>
-                  <CardTitle>Shipping Information</CardTitle>
+                  <CardTitle className="font-bebas text-xl uppercase">Shipping Details</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ShippingForm 
@@ -355,36 +375,36 @@ export default function CheckoutPage() {
                   />
                 </CardContent>
             </Card>
-            <Card className="card-glass">
+            <Card className="bg-[#121212] border-white/10 text-white">
                  <CardHeader>
-                    <CardTitle>Order Summary</CardTitle>
+                    <CardTitle className="font-bebas text-xl uppercase">Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-sm space-y-2 mb-2">
-                        <div className="flex justify-between">
+                    <div className="text-xs font-mono space-y-2 mb-2">
+                        <div className="flex justify-between text-zinc-400">
                             <span>Subtotal</span>
                             <span>₹{subtotal.toFixed(2)}</span>
                         </div>
                         {discount > 0 && (
-                            <div className="flex justify-between text-green-600">
+                            <div className="flex justify-between text-emerald-400">
                                 <span>Discount</span>
                                 <span>- ₹{discount.toFixed(2)}</span>
                             </div>
                         )}
-                        <div className="flex justify-between">
+                        <div className="flex justify-between text-zinc-400">
                             <span>Shipping</span>
-                            <span>{shipping > 0 ? `₹${shipping.toFixed(2)}` : 'Free'}</span>
+                            <span>{shipping > 0 ? `₹${shipping.toFixed(2)}` : 'FREE'}</span>
                         </div>
                     </div>
-                    <div className="flex justify-between items-center border-t pt-2">
-                    <span className="text-muted-foreground">Total</span>
-                    <span className="text-xl font-bold">₹{total.toFixed(2)}</span>
+                    <div className="flex justify-between items-center border-t border-white/10 pt-2">
+                      <span className="text-xs font-mono text-zinc-400">Total</span>
+                      <span className="text-xl font-bold font-mono text-[#0F824B]">₹{total.toFixed(2)}</span>
                     </div>
                 </CardContent>
             </Card>
         </main>
         <MobileFooter />
       </div>
-    </>
+    </div>
   );
 }

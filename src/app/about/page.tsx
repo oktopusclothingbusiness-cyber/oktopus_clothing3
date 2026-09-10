@@ -1,124 +1,82 @@
-
 'use client';
 
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
-import { MobileHeader } from "@/components/mobile-header";
-import { MobileFooter } from "@/components/mobile-footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Quote } from "lucide-react";
-import Image from "next/image";
-import BaskeyAttribution from "@/components/baskey-attribution";
+import React from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { ArrowRight, ShieldCheck, Sparkles, Layers } from 'lucide-react';
+import { AnnouncementBar } from '@/components/storefront/announcement-bar';
+import { StorefrontHeader } from '@/components/storefront/header';
+import { StorefrontFooter } from '@/components/storefront/footer';
+import { PageBanner } from '@/components/storefront/page-banner';
 
 export default function AboutPage() {
   return (
-    <>
-      {/* Desktop View */}
-      <div className="hidden md:flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-grow container mx-auto px-4 py-12">
-          <div className="text-center mb-12 flex flex-col items-center gap-3">
-            <h1 className="text-4xl md:text-5xl font-bold">Welcome to OKTOPUS CLOTHING</h1>
-            <BaskeyAttribution className="px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 font-bold tracking-[0.2em] text-[9.5px] max-w-max hover:bg-blue-500/15" />
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto mt-2">Where creativity meets individuality.</p>
+    <div className="min-h-screen bg-[#0A0A0A] text-[#FAF9F6] font-sans antialiased selection:bg-[#0F824B] selection:text-[#0A0A0A]">
+      <AnnouncementBar />
+      <StorefrontHeader />
+
+      {/* DYNAMIC DATABASE BANNER FOR ABOUT PAGE */}
+      <PageBanner
+        placement="about_page"
+        fallbackTitle="WE DON’T MAKE BASICS. WE MAKE IDENTIFIERS."
+        fallbackDescription="OKTOPUS WAS FOUNDED ON A SINGLE PRINCIPLE: CLOTHING SHOULD NEVER BE AN INVISIBLE AFTERTHOUGHT."
+        fallbackCtaText="EXPLORE OUR PHILOSOPHY"
+        fallbackCtaLink="/about"
+      />
+
+      <main className="max-w-[1440px] mx-auto px-6 lg:px-12 py-16 md:py-24">
+        {/* 3 Pillars */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+          <div className="p-8 border border-[#222222] bg-[#0E0E0E] rounded-2xl space-y-4">
+            <ShieldCheck className="w-6 h-6 text-[#0F824B]" />
+            <h3 className="text-xl font-display font-black uppercase tracking-wider text-white">
+              TEXTILE DISCIPLINE
+            </h3>
+            <p className="text-xs font-mono text-[#8B8B86] uppercase leading-relaxed">
+              We exclusively mill 240+ GSM combed cotton. Every roll is tested for shrinkage control, surface density, and yarn strength before cutting.
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
-            <div>
-                <h2 className="text-3xl font-bold mb-4">Our Story</h2>
-                <p className="text-muted-foreground mb-4">We believe fashion is more than just clothing—it’s an expression of who you are. That’s why we specialize in customized apparel, giving you the freedom to bring your vision to life. Every design we create is unique, just like the people who wear them.</p>
-                <p className="text-muted-foreground">At OKTOPUS CLOTHING, we don’t believe in “one-size-fits-all.” Instead, we craft each piece with attention to detail, premium quality fabrics, and a deep passion for originality. From concept to creation, our goal is to deliver clothing that feels personal, authentic, and unforgettable.</p>
-            </div>
-            <div className="relative h-96 rounded-lg overflow-hidden">
-                 <Image src="https://picsum.photos/600/800" alt="Fashion workshop" layout="fill" objectFit="cover" data-ai-hint="fashion workshop" />
-            </div>
-          </div>
-          
-          <Card className="bg-secondary border-none mb-16">
-            <CardContent className="p-10 flex flex-col items-center text-center">
-                <Quote className="h-12 w-12 text-primary mb-4" />
-                <h3 className="text-2xl font-bold">Our Mission</h3>
-                <p className="text-muted-foreground mt-2 max-w-2xl">To empower individuals to express themselves through personalized fashion, blending creativity, comfort, and quality in every product we make.</p>
-            </CardContent>
-          </Card>
-
-          <div className="grid md:grid-cols-3 gap-8 text-center mb-16">
-              <div>
-                  <h4 className="text-xl font-bold mb-2">Customization First</h4>
-                  <p className="text-muted-foreground">Your design, your style, your way.</p>
-              </div>
-               <div>
-                  <h4 className="text-xl font-bold mb-2">Quality Materials</h4>
-                  <p className="text-muted-foreground">We prioritize durability and comfort in every stitch.</p>
-              </div>
-               <div>
-                  <h4 className="text-xl font-bold mb-2">Made for You</h4>
-                  <p className="text-muted-foreground">Each product is crafted with care, ensuring a truly unique piece.</p>
-              </div>
-          </div>
-          
-          <div className="bg-primary text-primary-foreground rounded-lg p-10 flex flex-col items-center text-center">
-             <h2 className="text-3xl font-bold mb-4">The Story Behind OKTOPUS</h2>
-             <p className="max-w-3xl mb-4">Like the octopus—known for its adaptability and creativity—we embrace versatility and innovation in fashion. Just as each arm of an octopus works independently yet harmoniously, we blend art, style, and individuality to create something truly special for our customers.</p>
-             <p className="max-w-3xl font-semibold">At OKTOPUS CLOTHING, we’re not just selling clothes—we’re building a movement of self-expression, creativity, and identity. Your style tells your story. Let’s make it unforgettable.</p>
+          <div className="p-8 border border-[#222222] bg-[#0E0E0E] rounded-2xl space-y-4">
+            <Layers className="w-6 h-6 text-[#0F824B]" />
+            <h3 className="text-xl font-display font-black uppercase tracking-wider text-white">
+              ENGINEERED SILHOUETTE
+            </h3>
+            <p className="text-xs font-mono text-[#8B8B86] uppercase leading-relaxed">
+              No off-the-shelf blanks. Every tee, hoodie, and cargo is engineered from custom pattern measurements featuring dropped shoulders and structured drape.
+            </p>
           </div>
 
-        </main>
-        <Footer />
-      </div>
+          <div className="p-8 border border-[#222222] bg-[#0E0E0E] rounded-2xl space-y-4">
+            <Sparkles className="w-6 h-6 text-[#0F824B]" />
+            <h3 className="text-xl font-display font-black uppercase tracking-wider text-white">
+              SUSTAINED IDENTITY
+            </h3>
+            <p className="text-xs font-mono text-[#8B8B86] uppercase leading-relaxed">
+              Screen and puff hybrid prints formulated to withstand 50+ wash cycles. Clothing built to become a cherished artifact in your wardrobe.
+            </p>
+          </div>
+        </div>
 
-      {/* Mobile View */}
-      <div className="md:hidden">
-        <MobileHeader title="About Us" />
-        <main className="bg-secondary min-h-screen pb-24 p-4">
-          <Card className="card-glass mb-4">
-             <CardContent className="p-6">
-                <div className="flex flex-col items-center gap-3 mb-4">
-                  <h1 className="text-2xl font-bold text-center">Welcome to OKTOPUS CLOTHING</h1>
-                  <BaskeyAttribution className="px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 font-bold tracking-[0.2em] text-[9.5px] max-w-max hover:bg-blue-500/15" />
-                </div>
-                <p className="text-sm text-center text-muted-foreground">We believe fashion is more than just clothing—it’s an expression of who you are. That’s why we specialize in customized apparel, giving you the freedom to bring your vision to life.</p>
-             </CardContent>
-          </Card>
-           <Card className="card-glass mb-4">
-             <CardHeader>
-                <CardTitle className="text-xl">Our Mission</CardTitle>
-             </CardHeader>
-             <CardContent>
-                <p className="text-sm text-muted-foreground">To empower individuals to express themselves through personalized fashion, blending creativity, comfort, and quality in every product we make.</p>
-             </CardContent>
-          </Card>
-           <Card className="card-glass mb-4">
-             <CardHeader>
-                <CardTitle className="text-xl">Why Choose Us?</CardTitle>
-             </CardHeader>
-             <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-bold">Customization First</h4>
-                  <p className="text-sm text-muted-foreground">Your design, your style, your way.</p>
-                </div>
-                 <div>
-                  <h4 className="font-bold">Quality Materials</h4>
-                  <p className="text-sm text-muted-foreground">We prioritize durability and comfort in every stitch.</p>
-                </div>
-                 <div>
-                  <h4 className="font-bold">Made for You</h4>
-                  <p className="text-sm text-muted-foreground">Each product is crafted with care, ensuring a truly unique piece.</p>
-                </div>
-             </CardContent>
-          </Card>
-          <Card className="card-glass">
-             <CardHeader>
-                <CardTitle className="text-xl">The Story Behind OKTOPUS</CardTitle>
-             </CardHeader>
-             <CardContent>
-                <p className="text-sm text-muted-foreground mb-2">Like the octopus—known for its adaptability and creativity—we embrace versatility and innovation in fashion. Just as each arm of an octopus works independently yet harmoniously, we blend art, style, and individuality to create something truly special for our customers.</p>
-                <p className="text-sm text-muted-foreground font-semibold">Your style tells your story. Let’s make it unforgettable.</p>
-             </CardContent>
-          </Card>
-        </main>
-        <MobileFooter />
-      </div>
-    </>
+        {/* Bottom CTA Box */}
+        <div className="bg-[#111111] border border-[#292929] rounded-2xl p-8 md:p-12 text-center space-y-6">
+          <h2 className="text-3xl sm:text-5xl font-display font-black uppercase text-white">
+            FIND YOUR SIGNAL IN THE LATEST DROP
+          </h2>
+          <p className="text-xs font-mono text-[#8B8B86] uppercase max-w-md mx-auto">
+            EXPLORE THE COMPLETE MERCHANDISE ARCHITECTURE OF OKTOPUS CLOTHING.
+          </p>
+          <Link
+            href="/products"
+            className="inline-flex items-center gap-2 bg-[#0F824B] hover:bg-[#0b663a] text-[#0A0A0A] font-mono font-extrabold text-xs uppercase tracking-widest py-3.5 px-8 rounded-full transition-all group shadow-lg"
+          >
+            <span>SHOP CATALOG</span>
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </Link>
+        </div>
+      </main>
+
+      <StorefrontFooter />
+    </div>
   );
 }

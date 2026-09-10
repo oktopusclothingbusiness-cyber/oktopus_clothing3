@@ -1,155 +1,184 @@
-
 'use client';
 
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
-import { MobileHeader } from "@/components/mobile-header";
-import { MobileFooter } from "@/components/mobile-footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Mail, Phone, MapPin, Send } from "lucide-react";
-import Image from "next/image";
+import React, { useState } from 'react';
+import { Mail, Phone, MapPin, Send, MessageSquare, CheckCircle2 } from 'lucide-react';
+import { AnnouncementBar } from '@/components/storefront/announcement-bar';
+import { StorefrontHeader } from '@/components/storefront/header';
+import { StorefrontFooter } from '@/components/storefront/footer';
+import { PageBanner } from '@/components/storefront/page-banner';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ContactPage() {
+  const [submitted, setSubmitted] = useState(false);
+  const [formData, setFormData] = useState({ name: '', email: '', orderNumber: '', message: '' });
+  const { toast } = useToast();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitted(true);
+    toast({
+      title: 'Message Received',
+      description: 'Our customer experience team will respond within 24 hours.',
+    });
+  };
+
   return (
-    <>
-      {/* Desktop View */}
-      <div className="hidden md:flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-grow container mx-auto px-4 py-12">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Get in Touch</h1>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              We'd love to hear from you! Whether you have a question about our products, a custom design idea, or anything else, our team is ready to answer all your questions.
-            </p>
+    <div className="min-h-screen bg-[#0A0A0A] text-[#FAF9F6] font-sans antialiased selection:bg-[#0F824B] selection:text-[#0A0A0A]">
+      <AnnouncementBar />
+      <StorefrontHeader />
+
+      {/* DYNAMIC DATABASE BANNER FOR CONTACT PAGE */}
+      <PageBanner
+        placement="contact_page"
+        fallbackTitle="CLIENT LIAISON & SUPPORT"
+        fallbackDescription="FOR ORDER DISPATCH ASSISTANCE, WHOLESALE INQUIRIES, OR PRODUCT QUERIES."
+        fallbackCtaText="REACH OUT TO US"
+        fallbackCtaLink="/contact"
+      />
+
+      <main className="max-w-[1440px] mx-auto px-6 lg:px-12 py-16 md:py-24">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+          {/* Form Side (7 cols) */}
+          <div className="lg:col-span-7 bg-[#0E0E0E] border border-[#222222] rounded-2xl p-6 sm:p-10">
+            <h2 className="text-2xl font-display font-black uppercase tracking-wider text-white mb-6">
+              SEND DIRECT TRANSMISSION
+            </h2>
+
+            {!submitted ? (
+              <form onSubmit={handleSubmit} className="space-y-5 font-mono text-xs">
+                <div className="space-y-2">
+                  <label htmlFor="name" className="text-[#8B8B86] uppercase block font-bold">
+                    FULL NAME *
+                  </label>
+                  <input
+                    id="name"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="ENTER YOUR NAME"
+                    className="w-full px-4 py-3 bg-[#141414] border border-[#292929] focus:border-[#0F824B] rounded-xl text-[#FAF9F6] uppercase outline-none"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-[#8B8B86] uppercase block font-bold">
+                    EMAIL ADDRESS *
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="NAME@DOMAIN.COM"
+                    className="w-full px-4 py-3 bg-[#141414] border border-[#292929] focus:border-[#0F824B] rounded-xl text-[#FAF9F6] outline-none"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="order" className="text-[#8B8B86] uppercase block font-bold">
+                    ORDER ID (OPTIONAL)
+                  </label>
+                  <input
+                    id="order"
+                    value={formData.orderNumber}
+                    onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
+                    placeholder="E.G. #OKTO-9821"
+                    className="w-full px-4 py-3 bg-[#141414] border border-[#292929] focus:border-[#0F824B] rounded-xl text-[#FAF9F6] uppercase outline-none"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="message" className="text-[#8B8B86] uppercase block font-bold">
+                    MESSAGE OR INQUIRY *
+                  </label>
+                  <textarea
+                    id="message"
+                    required
+                    rows={5}
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    placeholder="HOW CAN OUR CREATIVE TEAM ASSIST YOU?"
+                    className="w-full px-4 py-3 bg-[#141414] border border-[#292929] focus:border-[#0F824B] rounded-xl text-[#FAF9F6] uppercase outline-none"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-4 bg-[#0F824B] hover:bg-[#0b663a] text-[#0A0A0A] font-display font-black text-xs uppercase tracking-widest rounded-full transition-all duration-200 flex items-center justify-center gap-2 shadow-lg"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>TRANSMIT MESSAGE</span>
+                </button>
+              </form>
+            ) : (
+              <div className="py-16 text-center space-y-4 font-mono">
+                <CheckCircle2 className="w-10 h-10 text-[#0F824B] mx-auto" />
+                <h3 className="text-xl font-display font-bold uppercase text-white">
+                  TRANSMISSION RECEIVED
+                </h3>
+                <p className="text-xs text-[#8B8B86] max-w-sm mx-auto">
+                  Thank you, {formData.name}. Our customer liaison team will review your inquiry and respond within 24 business hours.
+                </p>
+                <button
+                  onClick={() => setSubmitted(false)}
+                  className="text-xs text-[#0F824B] underline uppercase pt-2"
+                >
+                  SEND ANOTHER MESSAGE
+                </button>
+              </div>
+            )}
           </div>
 
-          <div className="grid md:grid-cols-2 gap-16 items-start">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Send className="h-6 w-6" />
-                  Send us a Message
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input id="name" placeholder="John Doe" />
+          {/* Contact Details Side (5 cols) */}
+          <div className="lg:col-span-5 space-y-6">
+            <div className="p-6 sm:p-8 bg-[#111111] border border-[#222222] rounded-2xl space-y-4">
+              <span className="text-[10px] font-mono font-bold tracking-widest text-[#0F824B] uppercase">
+                // DIRECT CHANNELS
+              </span>
+
+              <div className="space-y-4 text-xs font-mono text-[#8B8B86]">
+                <div className="flex items-start gap-3">
+                  <Mail className="w-4 h-4 text-[#0F824B] flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white font-bold block">EMAIL SUPPORT</span>
+                    <a href="mailto:support@oktopusclothing.in" className="hover:text-[#0F824B] transition-colors">
+                      support@oktopusclothing.in
+                    </a>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input id="email" type="email" placeholder="you@example.com" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="message">Message</Label>
-                    <Textarea id="message" placeholder="Your message..." rows={5} />
-                  </div>
-                  <Button type="submit" className="w-full">Send Message</Button>
-                </form>
-              </CardContent>
-            </Card>
-            
-            <div className="space-y-8">
-               <Card>
-                <CardHeader>
-                    <CardTitle>Contact Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="flex items-center gap-4">
-                        <Mail className="h-6 w-6 text-primary" />
-                        <div>
-                            <h3 className="font-semibold">Email</h3>
-                            <a href="mailto:oktopusclothing.business@gmail.com" className="text-muted-foreground hover:text-primary">
-                                oktopusclothing.business@gmail.com
-                            </a>
-                        </div>
-                    </div>
-                     <div className="flex items-center gap-4">
-                        <Phone className="h-6 w-6 text-primary" />
-                        <div>
-                            <h3 className="font-semibold">Phone</h3>
-                            <a href="tel:6291337506" className="text-muted-foreground hover:text-primary">
-                                +91 62913 37506
-                            </a>
-                        </div>
-                    </div>
-                     <div className="flex items-center gap-4">
-                        <MapPin className="h-6 w-6 text-primary" />
-                        <div>
-                            <h3 className="font-semibold">Address</h3>
-                            <p className="text-muted-foreground">Kolkata, West Bengal, India</p>
-                        </div>
-                    </div>
-                </CardContent>
-              </Card>
-              <Card className="overflow-hidden">
-                <div className="relative h-64">
-                   <Image src="https://picsum.photos/800/400" alt="Map placeholder" layout="fill" objectFit="cover" data-ai-hint="city map" />
                 </div>
-              </Card>
+
+                <div className="flex items-start gap-3">
+                  <MessageSquare className="w-4 h-4 text-[#0F824B] flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white font-bold block">WHATSAPP CONCIERGE</span>
+                    <span>Available Mon - Sat (10:00 AM - 7:00 PM IST)</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-4 h-4 text-[#0F824B] flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white font-bold block">HEADQUARTERS & ATELIER</span>
+                    <span>Oktopus Clothing Business Unit, India</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 bg-[#0E0E0E] border border-[#222222] rounded-2xl font-mono text-xs text-[#8B8B86] space-y-2">
+              <span className="text-white font-bold block uppercase">
+                EXCHANGE & ORDER ASSISTANCE
+              </span>
+              <p className="leading-relaxed">
+                If your inquiry concerns transit damage or a missing item, please have your uncut continuous unboxing video ready as required by our policy.
+              </p>
             </div>
           </div>
-        </main>
-        <Footer />
-      </div>
+        </div>
+      </main>
 
-      {/* Mobile View */}
-      <div className="md:hidden">
-        <MobileHeader title="Contact Us" />
-        <main className="bg-secondary min-h-screen pb-24 p-4 space-y-4">
-           <Card className="card-glass">
-             <CardHeader>
-                <CardTitle>Send a Message</CardTitle>
-             </CardHeader>
-             <CardContent>
-               <form className="space-y-4">
-                  <div className="space-y-1">
-                    <Label htmlFor="name-mobile">Full Name</Label>
-                    <Input id="name-mobile" placeholder="John Doe" />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="email-mobile">Email Address</Label>
-                    <Input id="email-mobile" type="email" placeholder="you@example.com" />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="message-mobile">Message</Label>
-                    <Textarea id="message-mobile" placeholder="Your message..." />
-                  </div>
-                  <Button type="submit" className="w-full">Send</Button>
-                </form>
-             </CardContent>
-          </Card>
-           <Card className="card-glass">
-             <CardHeader>
-                <CardTitle>Contact Details</CardTitle>
-             </CardHeader>
-             <CardContent className="space-y-4">
-                <div className="flex items-center gap-4">
-                    <Mail className="h-5 w-5 text-primary" />
-                    <a href="mailto:oktopusclothing.business@gmail.com" className="text-sm text-muted-foreground">
-                        oktopusclothing.business@gmail.com
-                    </a>
-                </div>
-                 <div className="flex items-center gap-4">
-                    <Phone className="h-5 w-5 text-primary" />
-                    <a href="tel:6291337506" className="text-sm text-muted-foreground">
-                        +91 62913 37506
-                    </a>
-                </div>
-                 <div className="flex items-center gap-4">
-                    <MapPin className="h-5 w-5 text-primary" />
-                    <p className="text-sm text-muted-foreground">Kolkata, West Bengal, India</p>
-                </div>
-             </CardContent>
-          </Card>
-        </main>
-        <MobileFooter />
-      </div>
-    </>
+      <StorefrontFooter />
+    </div>
   );
 }

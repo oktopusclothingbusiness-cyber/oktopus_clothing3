@@ -1,10 +1,9 @@
-
 'use client';
 
 import * as React from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { Loader2, Palette, Upload, Minus, Plus, CornerDownRight } from 'lucide-react';
+import { Loader2, Palette, Upload, CornerDownRight } from 'lucide-react';
 import { MobileHeader } from '@/components/mobile-header';
 import { MobileFooter } from '@/components/mobile-footer';
 import { Button } from '@/components/ui/button';
@@ -17,8 +16,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
-import { Header } from '@/components/header';
-import { Footer } from '@/components/footer';
+import { StorefrontHeader } from '@/components/storefront/header';
+import { StorefrontFooter } from '@/components/storefront/footer';
+import { PageBanner } from '@/components/storefront/page-banner';
 
 type ColorOption = {
     _id: string;
@@ -152,7 +152,7 @@ export default function CustomDesignPage() {
             description: 'Please upload a file smaller than 10 MB.',
             variant: 'destructive',
         });
-        e.target.value = ''; // Reset the input
+        e.target.value = '';
         setFile(null);
         setFilePreview(null);
         return;
@@ -164,7 +164,7 @@ export default function CustomDesignPage() {
             description: 'Please upload a .jpg, .png, .webp, or .psd file.',
             variant: 'destructive',
         });
-        e.target.value = ''; // Reset the input
+        e.target.value = '';
         setFile(null);
         setFilePreview(null);
         return;
@@ -181,7 +181,7 @@ export default function CustomDesignPage() {
         img.onload = () => {
             const aspectRatio = img.naturalWidth / img.naturalHeight;
             setDesignAspectRatio(aspectRatio);
-            const initialWidth = 8; // default 8 inches
+            const initialWidth = 8;
             setPrintArea({ width: initialWidth, height: initialWidth / aspectRatio });
         };
     };
@@ -255,8 +255,8 @@ export default function CustomDesignPage() {
 
   if (authLoading || !user) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="flex h-screen items-center justify-center bg-[#0A0A0A] text-white font-mono">
+        <Loader2 className="h-8 w-8 animate-spin text-[#0F824B]" />
       </div>
     );
   }
@@ -264,26 +264,26 @@ export default function CustomDesignPage() {
   const FormControls = ({ isDesktop = false }: { isDesktop?: boolean }) => (
       <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-              <Label htmlFor={`design-file-${isDesktop}`}>Design File</Label>
+              <Label htmlFor={`design-file-${isDesktop}`} className="text-xs font-mono uppercase text-zinc-300">Design Artwork File</Label>
               <div className="relative">
-                  <Input id={`design-file-${isDesktop}`} type="file" onChange={handleFileChange} accept="image/png, image/jpeg, image/vnd.adobe.photoshop, image/webp" className="pr-16"/>
-                   <Upload className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input id={`design-file-${isDesktop}`} type="file" onChange={handleFileChange} accept="image/png, image/jpeg, image/vnd.adobe.photoshop, image/webp" className="pr-16 bg-[#121212] border-white/10 text-xs text-white"/>
+                   <Upload className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
               </div>
-              {file && <p className="text-sm text-muted-foreground">Selected: {file.name}</p>}
-              <p className="text-xs text-muted-foreground">.png, .jpg, .webp, .psd accepted. Max 10MB.</p>
+              {file && <p className="text-xs font-mono text-[#0F824B]">Selected: {file.name}</p>}
+              <p className="text-[10px] font-mono text-zinc-400">.png, .jpg, .webp, .psd accepted. Max 10MB.</p>
           </div>
 
           <div className="space-y-2">
-              <Label>T-Shirt Color</Label>
+              <Label className="text-xs font-mono uppercase text-zinc-300">T-Shirt Canvas Base</Label>
               {colorsLoading ? (
                    <div className="flex flex-wrap gap-2">
-                      {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16 w-16 rounded-md" />)}
+                      {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-14 w-14 rounded-md bg-zinc-800" />)}
                    </div>
               ) : (
                    <div className="flex flex-wrap gap-2">
                       {colors.map(color => (
-                          <button key={color._id} type="button" onClick={() => setTshirtColor(color.imageUrl)} className={cn('h-16 w-16 rounded-md border-2 overflow-hidden', tshirtColor === color.imageUrl ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-transparent')} aria-label={color.name}>
-                              {color.imageUrl && <Image src={color.imageUrl} alt={color.name} width={64} height={64} className="object-cover w-full h-full" />}
+                          <button key={color._id} type="button" onClick={() => setTshirtColor(color.imageUrl)} className={cn('h-14 w-14 rounded-xl border-2 overflow-hidden bg-zinc-900 transition-all', tshirtColor === color.imageUrl ? 'border-[#0F824B] ring-2 ring-[#0F824B]' : 'border-white/10')} aria-label={color.name}>
+                              {color.imageUrl && <Image src={color.imageUrl} alt={color.name} width={56} height={56} className="object-cover w-full h-full" unoptimized />}
                           </button>
                       ))}
                   </div>
@@ -292,12 +292,12 @@ export default function CustomDesignPage() {
           
           <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                 <Label htmlFor={`tshirt-size-${isDesktop}`}>T-Shirt Size</Label>
+                 <Label htmlFor={`tshirt-size-${isDesktop}`} className="text-xs font-mono uppercase text-zinc-300">T-Shirt Size</Label>
                  <Select value={tshirtSize} onValueChange={setTshirtSize}>
-                     <SelectTrigger id={`tshirt-size-${isDesktop}`}>
+                     <SelectTrigger id={`tshirt-size-${isDesktop}`} className="bg-[#121212] border-white/10 text-white font-mono text-xs">
                          <SelectValue placeholder="Select size" />
                      </SelectTrigger>
-                     <SelectContent>
+                     <SelectContent className="bg-[#121212] border-white/10 text-white font-mono">
                          {tshirtSizes.map(size => (
                              <SelectItem key={size} value={size}>{size}</SelectItem>
                          ))}
@@ -305,30 +305,30 @@ export default function CustomDesignPage() {
                  </Select>
               </div>
                <div className="space-y-2">
-                  <Label>Print Area</Label>
-                  <Input value={`${printArea.width.toFixed(1)}" x ${printArea.height.toFixed(1)}"`} readOnly disabled />
+                  <Label className="text-xs font-mono uppercase text-zinc-300">Print Area Dimensions</Label>
+                  <Input value={`${printArea.width.toFixed(1)}" x ${printArea.height.toFixed(1)}"`} readOnly disabled className="bg-[#121212] border-white/10 text-white font-mono text-xs" />
               </div>
           </div>
 
           <div className="space-y-2">
-              <Label htmlFor={`notes-${isDesktop}`}>Notes or Instructions</Label>
-              <Textarea id={`notes-${isDesktop}`} placeholder="Any specific instructions? e.g., 'Place this on the center of a black T-shirt.'" value={notes} onChange={e => setNotes(e.target.value)} />
+              <Label htmlFor={`notes-${isDesktop}`} className="text-xs font-mono uppercase text-zinc-300">Custom Printing Instructions</Label>
+              <Textarea id={`notes-${isDesktop}`} placeholder="Specify placement preferences or custom puff print details..." value={notes} onChange={e => setNotes(e.target.value)} className="bg-[#121212] border-white/10 text-white text-xs" />
           </div>
 
-          <Button type="submit" className="w-full" size="lg" disabled={!file || isSubmitting}>
-              {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Submitting...</> : 'Submit for Approval'}
+          <Button type="submit" className="w-full bg-[#0F824B] text-white font-bold hover:bg-[#0b663a] rounded-full h-12 text-xs font-mono uppercase tracking-wider" disabled={!file || isSubmitting}>
+              {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Submitting Artwork...</> : 'Submit Custom Design'}
           </Button>
       </form>
   );
 
   const PreviewSection = () => (
-      <Card>
+      <Card className="bg-[#121212] border-white/10 text-white">
           <CardHeader>
-              <CardTitle>T-Shirt Preview</CardTitle>
+              <CardTitle className="font-bebas text-2xl uppercase tracking-wider text-white">Canvas Live Preview</CardTitle>
           </CardHeader>
           <CardContent>
-              <div className="relative aspect-[4/5] w-full bg-muted rounded-lg overflow-hidden flex items-center justify-center select-none">
-                  {tshirtColor && <Image src={tshirtColor} alt="T-Shirt Preview" layout="fill" objectFit="cover" />}
+              <div className="relative aspect-[4/5] w-full bg-[#0A0A0A] border border-white/10 rounded-xl overflow-hidden flex items-center justify-center select-none">
+                  {tshirtColor && <Image src={tshirtColor} alt="T-Shirt Preview" layout="fill" objectFit="cover" unoptimized />}
                   {filePreview ? (
                       <div
                         ref={designContainerRef}
@@ -344,19 +344,20 @@ export default function CustomDesignPage() {
                             layout="fill" 
                             objectFit="contain"
                             className="pointer-events-none"
+                            unoptimized
                         />
                         <div
                           onMouseDown={handleResizeStart}
                           onTouchStart={handleResizeStart}
-                          className="absolute -bottom-2 -right-2 w-5 h-5 bg-primary rounded-full cursor-se-resize border-2 border-background flex items-center justify-center text-primary-foreground"
+                          className="absolute -bottom-2 -right-2 w-6 h-6 bg-[#0F824B] text-white rounded-full cursor-se-resize border-2 border-black flex items-center justify-center shadow-lg"
                         >
                           <CornerDownRight className="h-3 w-3 -rotate-90"/>
                         </div>
                       </div>
                   ) : (
-                      <div className="text-center text-muted-foreground p-4">
-                          <Palette className="h-10 w-10 mx-auto mb-2" />
-                          <p>Your design will appear here</p>
+                      <div className="text-center text-zinc-500 p-4 font-mono text-xs">
+                          <Palette className="h-10 w-10 mx-auto mb-2 text-[#0F824B]" />
+                          <p>Upload your design file to preview on canvas</p>
                       </div>
                   )}
               </div>
@@ -366,26 +367,29 @@ export default function CustomDesignPage() {
 
 
   return (
-    <>
+    <div className="bg-[#0A0A0A] text-[#FAF9F6] font-sans min-h-screen">
       {/* Desktop View */}
       <div className="hidden md:flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-grow container mx-auto px-4 py-12">
-            <div className="text-center mb-12">
-                <h1 className="text-4xl md:text-5xl font-bold mb-4">Create Your Custom T-Shirt</h1>
-                <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-                    Bring your vision to life. Upload your design, choose your options, and we'll handle the rest.
-                </p>
-            </div>
+        <StorefrontHeader />
+        
+        {/* DYNAMIC DATABASE BANNER FOR CUSTOM DESIGN PAGE */}
+        <PageBanner
+          placement="custom_design_page"
+          fallbackTitle="OKTOPUS CUSTOM STUDIO"
+          fallbackDescription="Bring your vision to life. Upload your graphic design, select apparel colors and sizing, and our master printmakers will craft your custom piece."
+          fallbackCtaText="START CUSTOMIZING"
+          fallbackCtaLink="/custom-design"
+        />
 
-            <div className="grid md:grid-cols-2 gap-16 items-start">
-                <div className="sticky top-28">
+        <main className="flex-grow container mx-auto px-6 lg:px-12 py-12">
+            <div className="grid md:grid-cols-2 gap-12 items-start">
+                <div className="sticky top-24">
                     <PreviewSection />
                 </div>
-                <Card>
+                <Card className="bg-[#121212] border-white/10 text-white">
                     <CardHeader>
-                        <CardTitle>Design Options</CardTitle>
-                        <CardDescription>Upload your art, pick your options, and submit for approval.</CardDescription>
+                        <CardTitle className="font-bebas text-3xl uppercase tracking-wider text-white">Design Options & Specs</CardTitle>
+                        <CardDescription className="text-zinc-400 font-mono text-xs">Upload artwork files (.png, .psd) and define print specifications.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <FormControls isDesktop={true} />
@@ -393,26 +397,28 @@ export default function CustomDesignPage() {
                 </Card>
             </div>
         </main>
-        <Footer />
+        <StorefrontFooter />
       </div>
-
 
       {/* Mobile View */}
       <div className="md:hidden">
-        <MobileHeader title="Custom Design" />
-        <main className="bg-secondary min-h-screen pb-24 p-4 space-y-4">
-          <div className="card-glass rounded-xl p-4">
+        <MobileHeader title="Custom Studio" />
+        <main className="bg-[#0A0A0A] min-h-screen pb-24 p-4 space-y-4">
+          <PageBanner
+            placement="custom_design_page"
+            compact={true}
+            fallbackTitle="OKTOPUS CUSTOM STUDIO"
+            fallbackDescription="Upload your design file to preview on high-density t-shirt canvas."
+          />
+          <div className="rounded-xl">
             <PreviewSection />
           </div>
-          <Card className="card-glass">
+          <Card className="bg-[#121212] border-white/10 text-white">
               <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                      <Palette />
+                  <CardTitle className="flex items-center gap-2 font-bebas text-2xl uppercase tracking-wide">
+                      <Palette className="text-[#0F824B]" />
                       Design Options
                   </CardTitle>
-                  <CardDescription>
-                      Upload your art and pick your options.
-                  </CardDescription>
               </CardHeader>
               <CardContent>
                   <FormControls />
@@ -421,6 +427,6 @@ export default function CustomDesignPage() {
         </main>
         <MobileFooter />
       </div>
-    </>
+    </div>
   );
 }

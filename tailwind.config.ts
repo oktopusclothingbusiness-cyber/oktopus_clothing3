@@ -23,8 +23,19 @@ const config = {
         sans: ["var(--font-sans)"],
         serif: ["var(--font-serif)"],
         bebas: ["Bebas Neue", "sans-serif"],
+        display: ["var(--font-serif)", "Bebas Neue", "sans-serif"],
       },
       colors: {
+        okto: {
+          black: "#0A0A0A",
+          "black-soft": "#111111",
+          white: "#FFFFFF",
+          paper: "#FAF9F6",
+          bone: "#F3F0E8",
+          grey: "#8B8B86",
+          line: "#292929",
+          accent: "#C8FF00", // Acid / Electric Lime
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

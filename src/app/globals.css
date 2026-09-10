@@ -7,48 +7,82 @@
 
 @layer base {
   :root {
+    /* Oktopus Design Tokens */
+    --color-black: #0A0A0A;
+    --color-black-soft: #111111;
+    --color-white: #FFFFFF;
+    --color-paper: #FAF9F6;
+    --color-bone: #F3F0E8;
+    --color-grey: #8B8B86;
+    --color-line: #292929;
+    --color-accent: #0F824B; /* Emerald Accent */
+
+    /* 8px Spacing System */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-12: 48px;
+    --space-16: 64px;
+    --space-20: 80px;
+    --space-24: 96px;
+    --space-32: 128px;
+    --space-40: 160px;
+
     --background: 240 5% 96%; /* Light Gray */
     --foreground: 240 10% 3.9%; /* Dark Text */
     --card: 240 5% 96%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 240 10% 3.9%; /* Dark for buttons */
-    --primary-foreground: 0 0% 98%; /* White text */
+    --primary: 151 79% 28%; /* #0F824B Emerald Green */
+    --primary-foreground: 0 0% 100%; /* White text */
     --secondary: 240 10% 3.9%; /* Dark for secondary buttons */
     --secondary-foreground: 0 0% 98%; /* White text */
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 10% 3.9%;
+    --accent: 151 79% 28%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 240 10% 3.9%;
-    --radius: 0.5rem;
+    --ring: 151 79% 28%;
+    --radius: 0.25rem; /* Restrained radius */
   }
 
   .dark {
-    --background: 0 0% 0%; /* Black */
+    --color-black: #0A0A0A;
+    --color-black-soft: #111111;
+    --color-white: #FFFFFF;
+    --color-paper: #FAF9F6;
+    --color-bone: #F3F0E8;
+    --color-grey: #8B8B86;
+    --color-line: #292929;
+    --color-accent: #0F824B;
+
+    --background: 0 0% 4%; /* #0A0A0A */
     --foreground: 0 0% 98%; /* White */
-    --card: 240 4% 9%;
+    --card: 0 0% 7%; /* #111111 */
     --card-foreground: 0 0% 98%;
-    --popover: 240 5% 5%;
+    --popover: 0 0% 6%;
     --popover-foreground: 0 0% 98%;
-    --primary: 48 96% 59%; /* Yellow */
-    --primary-foreground: 240 10% 3.9%; /* Dark Text for Yellow Buttons */
-    --secondary: 240 4% 12%;
+    --primary: 151 79% 28%; /* #0F824B Emerald Green */
+    --primary-foreground: 0 0% 100%; /* White text */
+    --secondary: 0 0% 12%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 4% 12%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 48 96% 59%; /* Yellow */
-    --accent-foreground: 240 10% 3.9%; /* Dark Text for Yellow Accents */
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 151 79% 28%; /* #0F824B */
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 4% 15%;
-    --input: 240 4% 15%;
-    --ring: 48 96% 59%;
+    --border: 0 0% 16%; /* #292929 */
+    --input: 0 0% 16%;
+    --ring: 151 79% 28%;
+    --radius: 0.25rem;
   }
   
   [data-theme="pink"].dark {
@@ -98,19 +132,19 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 5% 5%;
     --popover-foreground: 0 0% 98%;
-    --primary: 48 96% 59%; /* Yellow */
-    --primary-foreground: 240 10% 3.9%; /* Dark Text for Yellow Buttons */
+    --primary: 151 79% 28%; /* #0F824B Emerald Green */
+    --primary-foreground: 0 0% 100%;
     --secondary: 240 4% 12%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 4% 12%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 48 96% 59%; /* Yellow */
-    --accent-foreground: 240 10% 3.9%; /* Dark Text for Yellow Accents */
+    --accent: 151 79% 28%; /* #0F824B Emerald Green */
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 4% 15%;
     --input: 240 4% 15%;
-    --ring: 48 96% 59%;
+    --ring: 151 79% 28%;
   }
   [data-theme="slateBlue"].light {
     --background: 240 5% 96%; /* Light Gray */
