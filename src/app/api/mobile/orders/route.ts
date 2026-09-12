@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { authenticateRequest } from '@/lib/auth';
+import { triggerUserEventPushNotification } from '@/lib/pushNotifications';
 
 // GET mobile orders pipeline
 export async function GET(request: NextRequest) {
@@ -54,6 +55,16 @@ export async function POST(request: NextRequest) {
     };
 
     const result = await db.collection('orders').insertOne(orderData);
+    const orderIdStr = result.insertedId.toString();
+
+    // Trigger Order Confirmed push notification
+    triggerUserEventPushNotification({
+      userId,
+      email: shippingAddress?.email,
+      title: 'Order Confirmed! 🛍️',
+      body: `Thank you for your order #${orderIdStr.slice(-6)}. We are preparing your drop!`,
+      deepLink: '/orders',
+    }).catch((err) => console.error('Failed to trigger mobile order push notification:', err));
 
     return NextResponse.json({
       message: 'Mobile order created successfully',

@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { authenticateRequest } from '@/lib/auth';
 
+import { triggerUserEventPushNotification } from '@/lib/pushNotifications';
+
 const MAPBOX_TOKEN = "pk.eyJ1Ijoib2t0b3B1c2MiLCJhIjoiY21keGUyNjU0MXhwYjJsc2FrcGZsd290eCJ9.mEjrHNxJYljQLhjVslo_iw";
 
 // Function to geocode an address using Mapbox
@@ -92,6 +94,16 @@ export async function POST(request: Request) {
     };
 
     const result = await db.collection('orders').insertOne(orderData);
+    const orderIdStr = result.insertedId.toString();
+
+    // Trigger Order Confirmed push notification
+    triggerUserEventPushNotification({
+      userId,
+      email: shippingAddress?.email,
+      title: 'Order Confirmed! 🛍️',
+      body: `Thank you for your order #${orderIdStr.slice(-6)}. We are preparing your drop!`,
+      deepLink: '/orders',
+    }).catch((err) => console.error('Failed to trigger order push notification:', err));
     
     return NextResponse.json({ message: 'Order created successfully', orderId: result.insertedId }, { status: 201 });
 

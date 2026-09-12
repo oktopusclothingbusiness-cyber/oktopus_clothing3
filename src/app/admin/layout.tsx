@@ -29,6 +29,7 @@ import {
   ChevronRight,
   Loader2,
   ShieldAlert,
+  Bell,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -121,6 +122,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { href: '/admin/rewards', label: 'Rewards', icon: Gift },
         { href: '/admin/popups', label: 'Popups', icon: MessageSquare },
         { href: '/admin/emails', label: 'Promotional Emails', icon: Mail },
+        { href: '/admin/notifications', label: 'Push Notifications', icon: Bell },
         { href: '/admin/trends', label: 'Trends', icon: TrendingUp },
       ],
     },

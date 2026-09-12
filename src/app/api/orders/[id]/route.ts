@@ -3,6 +3,7 @@ import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import { sendOrderStatusUpdateEmail } from '@/lib/mail';
 import { authenticateRequest } from '@/lib/auth';
+import { triggerUserEventPushNotification } from '@/lib/pushNotifications';
 
 // This file is for a dynamic route segment. For example: /api/orders/123
 
@@ -76,21 +77,35 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     let responseMessage = 'Order updated successfully.';
     
-    // Optionally trigger an email notification when status changes
+    // Optionally trigger email & push notification when status changes
     if (status) {
       const updatedOrder = await db.collection('orders').findOne({ _id: new ObjectId(id) });
-      if (updatedOrder && updatedOrder.shippingAddress?.email) {
-        try {
-          await sendOrderStatusUpdateEmail({
-            to: updatedOrder.shippingAddress.email,
-            orderId: updatedOrder._id.toString(),
-            orderStatus: status,
-            userName: updatedOrder.userName || 'Customer'
-          });
-          responseMessage += ' Email notification sent to customer.';
-        } catch (emailError) {
-          console.error('Failed to send status update email:', emailError);
-          responseMessage += ' Warning: Failed to send email notification.';
+      if (updatedOrder) {
+        if (updatedOrder.shippingAddress?.email) {
+          try {
+            await sendOrderStatusUpdateEmail({
+              to: updatedOrder.shippingAddress.email,
+              orderId: updatedOrder._id.toString(),
+              orderStatus: status,
+              userName: updatedOrder.userName || 'Customer'
+            });
+            responseMessage += ' Email notification sent to customer.';
+          } catch (emailError) {
+            console.error('Failed to send status update email:', emailError);
+            responseMessage += ' Warning: Failed to send email notification.';
+          }
+        }
+
+        // Trigger Order Shipped / Out for Delivery push notification
+        const statusLower = String(status).toLowerCase();
+        if (['shipped', 'out_for_delivery', 'dispatch', 'dispatched'].includes(statusLower)) {
+          triggerUserEventPushNotification({
+            userId: updatedOrder.userId,
+            email: updatedOrder.shippingAddress?.email,
+            title: `Order #${id.slice(-6)} Shipped 🚚`,
+            body: 'Your OKTOPUS shipment is on the way!',
+            deepLink: '/track-order',
+          }).catch((err) => console.error('Failed to trigger shipping push notification:', err));
         }
       }
     }

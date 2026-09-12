@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import firebaseAdmin from '@/lib/firebaseAdmin';
@@ -6,7 +5,8 @@ import { generateJWT } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
-    const { idToken, email, firstName, lastName, profilePictureUrl } = await request.json();
+    const body = await request.json();
+    const { idToken, email, name, firstName, lastName, googleId, photo, profilePictureUrl, authProvider } = body;
 
     let firebaseUid = '';
     if (idToken) {
@@ -18,36 +18,57 @@ export async function POST(request: Request) {
       }
     }
 
-    const userEmail = email;
-    if (!userEmail || !firstName) {
-      return NextResponse.json({ message: 'Email and first name are required.' }, { status: 400 });
+    const userEmail = email ? email.toLowerCase().trim() : '';
+    if (!userEmail) {
+      return NextResponse.json({ message: 'Email is required for Google authentication.' }, { status: 400 });
     }
+
+    const effectiveFirstName = firstName || (name ? name.split(' ')[0] : 'User');
+    const effectiveLastName = lastName || (name && name.includes(' ') ? name.split(' ').slice(1).join(' ') : '');
+    const effectivePhoto = photo || profilePictureUrl || '';
+    const effectiveGoogleId = googleId || firebaseUid || '';
 
     const client = await clientPromise;
     const db = client.db();
     const usersCollection = db.collection('users');
 
+    // 1. Search for existing user by email, googleId, or firebaseUid
     let user = await usersCollection.findOne({
       $or: [
         { email: userEmail },
+        ...(effectiveGoogleId ? [{ googleId: effectiveGoogleId }] : []),
         ...(firebaseUid ? [{ firebaseUid }] : []),
       ],
     });
 
     if (user) {
-      // User exists, update profile picture & firebaseUid if missing
-      const updateFields: any = {};
-      if (!user.profilePictureUrl && profilePictureUrl) {
-        updateFields.profilePictureUrl = profilePictureUrl;
+      // User exists -> Update profile details if updated info is available
+      const updateFields: any = { updatedAt: new Date() };
+
+      if (effectiveGoogleId && !user.googleId) {
+        updateFields.googleId = effectiveGoogleId;
       }
-      if (!user.firebaseUid && firebaseUid) {
+      if (firebaseUid && !user.firebaseUid) {
         updateFields.firebaseUid = firebaseUid;
       }
+      if (effectivePhoto && user.profilePictureUrl !== effectivePhoto) {
+        updateFields.profilePictureUrl = effectivePhoto;
+      }
+      if (effectiveFirstName && (!user.firstName || user.firstName === 'User')) {
+        updateFields.firstName = effectiveFirstName;
+      }
+      if (effectiveLastName && !user.lastName) {
+        updateFields.lastName = effectiveLastName;
+      }
+      if (authProvider && !user.authProvider) {
+        updateFields.authProvider = authProvider;
+      }
 
-      if (Object.keys(updateFields).length > 0) {
+      if (Object.keys(updateFields).length > 1) {
         await usersCollection.updateOne({ _id: user._id }, { $set: updateFields });
         user = { ...user, ...updateFields };
       }
+
       const { password, ...userWithoutPassword } = (user as any) || {};
 
       const token = generateJWT({
@@ -56,8 +77,15 @@ export async function POST(request: Request) {
         role: (user as any).role || 'user',
       });
 
-
-      const response = NextResponse.json({ message: 'Login successful.', user: userWithoutPassword, token }, { status: 200 });
+      const response = NextResponse.json(
+        {
+          message: 'Login successful.',
+          user: userWithoutPassword,
+          token,
+          isNewUser: false,
+        },
+        { status: 200 }
+      );
 
       response.cookies.set('admin_token', token, {
         httpOnly: true,
@@ -69,14 +97,16 @@ export async function POST(request: Request) {
 
       return response;
     } else {
-      // User does not exist, create a new user
+      // User is new -> Create user record and award 100 welcome Oktocoins
       const newUser = {
-        firstName,
-        lastName: lastName || '',
+        firstName: effectiveFirstName,
+        lastName: effectiveLastName,
         email: userEmail,
+        googleId: effectiveGoogleId,
         firebaseUid: firebaseUid || '',
-        profilePictureUrl: profilePictureUrl || '',
-        oktocoins: 100, // 100 Oktocoins welcome bonus
+        profilePictureUrl: effectivePhoto,
+        authProvider: authProvider || 'google',
+        oktocoins: 100, // 100 Welcome Oktocoins
         role: userEmail === 'rbaskeydomi2018@gmail.com' ? 'admin' : 'user',
         cart: [],
         wishlist: [],
@@ -94,7 +124,15 @@ export async function POST(request: Request) {
         role: insertedUser!.role || 'user',
       });
 
-      const response = NextResponse.json({ message: 'User created and logged in successfully.', user: userWithoutPassword, token }, { status: 201 });
+      const response = NextResponse.json(
+        {
+          message: 'User created and logged in successfully.',
+          user: userWithoutPassword,
+          token,
+          isNewUser: true,
+        },
+        { status: 200 }
+      );
 
       response.cookies.set('admin_token', token, {
         httpOnly: true,
@@ -111,4 +149,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
   }
 }
-
