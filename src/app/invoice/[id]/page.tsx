@@ -4,8 +4,10 @@
 import * as React from 'react';
 import { useParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Printer, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Invoice } from '@/components/invoice';
+import Link from 'next/link';
 
 type OrderProduct = {
   productId: string;
@@ -39,8 +41,8 @@ type Order = {
 };
 
 type Settings = {
-    logoUrl?: string;
-}
+  logoUrl?: string;
+};
 
 export default function InvoicePage() {
   const params = useParams();
@@ -88,14 +90,53 @@ export default function InvoicePage() {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <p className="ml-2">Loading Invoice...</p>
+        <p className="ml-2 font-mono text-sm">Loading Tax Invoice...</p>
       </div>
     );
   }
 
   if (!order) {
-    return <p>Order not found.</p>;
+    return <p className="p-8 text-center text-sm font-mono">Order not found.</p>;
   }
 
-  return <Invoice order={order} settings={settings} />;
+  return (
+    <div className="min-h-screen bg-slate-100/60 print:bg-white">
+      {/* Global Print Override Stylesheet */}
+      <style jsx global>{`
+        @media print {
+          body {
+            background-color: #ffffff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .print\\:hidden, header, nav, footer, button, [class*="FloatingCart"], [class*="floating-cart"] {
+            display: none !important;
+          }
+          @page {
+            margin: 8mm;
+          }
+        }
+      `}</style>
+
+      {/* Top Action Bar (Hidden when printing) */}
+      <div className="bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-50 px-4 py-3 print:hidden">
+        <div className="max-w-3xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-bold font-mono uppercase tracking-widest text-slate-500">Invoice Viewer</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => window.print()}
+              size="sm"
+              className="bg-slate-900 text-white hover:bg-slate-800 rounded-lg text-xs font-semibold shadow-xs"
+            >
+              <Printer className="mr-2 h-3.5 w-3.5" /> Print Invoice
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <Invoice order={order} settings={settings} />
+    </div>
+  );
 }

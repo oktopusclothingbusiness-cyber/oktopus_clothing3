@@ -10,7 +10,7 @@ import type { Product } from '@/context/product-context';
 import * as React from 'react';
 import { Star } from 'lucide-react';
 import { format, addDays, isWithinInterval, subDays } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, getOptimizedImageUrl } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from './ui/button';
 
@@ -33,7 +33,8 @@ const ProductImageSlider = ({ imageUrls, alt, isMobile }: { imageUrls: string[],
         }
     }, [validImageUrls]);
     
-    const imageUrl = validImageUrls.length > 0 ? validImageUrls[currentImageIndex] : "https://placehold.co/600x800.png";
+    const rawImageUrl = validImageUrls.length > 0 ? validImageUrls[currentImageIndex] : "https://placehold.co/600x800.png";
+    const imageUrl = getOptimizedImageUrl(rawImageUrl, 500);
 
     return (
         <Image
@@ -41,7 +42,8 @@ const ProductImageSlider = ({ imageUrls, alt, isMobile }: { imageUrls: string[],
             alt={alt}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className={cn("object-cover transition-all duration-500 ease-in-out", !isMobile && "group-hover:scale-105")}
+            className={cn("object-cover transition-all duration-500 ease-in-out aspect-[3/4]", !isMobile && "group-hover:scale-105")}
+            loading="lazy"
             data-ai-hint="clothing item"
         />
     );

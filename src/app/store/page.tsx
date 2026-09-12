@@ -19,7 +19,7 @@ import Autoplay from "embla-carousel-autoplay";
 import { Shapes, TrendingUp, X, TrainFront, ArrowRight, Sparkles, Truck, ShieldCheck, RefreshCw, Gift, Flame } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { cn, getProductImage } from "@/lib/utils";
+import { cn, getProductImage, getOptimizedImageUrl } from "@/lib/utils";
 import { usePopup } from "@/context/popup-context";
 import { useCoupon } from "@/context/coupon-context";
 import { useRouter } from "next/navigation";
@@ -138,11 +138,12 @@ const categoryIconVariants = {
 const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
   <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg mr-4 flex-shrink-0 bg-red-500 text-white p-6 flex flex-col justify-between">
     <Image
-      src={promotion.imageUrl}
+      src={getOptimizedImageUrl(promotion.imageUrl, 1920)}
       alt={promotion.title}
       layout="fill"
       objectFit="cover"
       className="z-0"
+      priority
     />
     <div className="absolute inset-0 bg-black/40 z-10" />
     <div className="relative z-20">
@@ -361,9 +362,9 @@ export default function StreetifyStorePage() {
                   initial="hidden"
                   animate="visible"
                   whileHover="hover"
-                  className="absolute left-[calc(50%-190px)] rounded-2xl w-[150px] h-[210px] lg:w-[190px] lg:h-[260px] overflow-hidden shadow-2xl origin-bottom cursor-pointer border border-white/10 bg-card"
+                  className="absolute left-[calc(50%-190px)] rounded-2xl w-[150px] h-[210px] lg:w-[190px] lg:h-[260px] overflow-hidden shadow-2xl origin-bottom cursor-pointer border border-white/10 bg-card aspect-[3/4]"
                 >
-                  <Image src="https://i.ibb.co/3yN11ZtH/mrvl-model-1.png" alt="Featured card 1" layout="fill" objectFit="cover" unoptimized />
+                  <Image src={getOptimizedImageUrl("https://i.ibb.co/3yN11ZtH/mrvl-model-1.png", 800)} alt="Featured card 1" layout="fill" objectFit="cover" loading="lazy" />
                 </motion.div>
 
                 {/* Fanned product card 2 (center focus) */}
@@ -372,9 +373,9 @@ export default function StreetifyStorePage() {
                   initial="hidden"
                   animate="visible"
                   whileHover="hover"
-                  className="absolute z-20 rounded-2xl w-[170px] h-[230px] lg:w-[220px] lg:h-[300px] overflow-hidden shadow-2xl origin-bottom cursor-pointer border-2 border-white/20 bg-card"
+                  className="absolute z-20 rounded-2xl w-[170px] h-[230px] lg:w-[220px] lg:h-[300px] overflow-hidden shadow-2xl origin-bottom cursor-pointer border-2 border-white/20 bg-card aspect-[3/4]"
                 >
-                  <Image src="https://i.ibb.co/23vrv2sM/Gemini-Generated-Image-4ytc2a4ytc2a4ytc.png" alt="Featured card 2" layout="fill" objectFit="cover" unoptimized />
+                  <Image src={getOptimizedImageUrl("https://i.ibb.co/23vrv2sM/Gemini-Generated-Image-4ytc2a4ytc2a4ytc.png", 800)} alt="Featured card 2" layout="fill" objectFit="cover" priority />
                 </motion.div>
 
                 {/* Fanned product card 3 */}
@@ -383,9 +384,9 @@ export default function StreetifyStorePage() {
                   initial="hidden"
                   animate="visible"
                   whileHover="hover"
-                  className="absolute right-[calc(50%-190px)] rounded-2xl w-[150px] h-[210px] lg:w-[190px] lg:h-[260px] overflow-hidden shadow-2xl origin-bottom cursor-pointer border border-white/10 bg-card"
+                  className="absolute right-[calc(50%-190px)] rounded-2xl w-[150px] h-[210px] lg:w-[190px] lg:h-[260px] overflow-hidden shadow-2xl origin-bottom cursor-pointer border border-white/10 bg-card aspect-[3/4]"
                 >
-                  <Image src="https://i.ibb.co/LdxSvMMd/mrvl-model-5.png" alt="Featured card 3" layout="fill" objectFit="cover" unoptimized />
+                  <Image src={getOptimizedImageUrl("https://i.ibb.co/LdxSvMMd/mrvl-model-5.png", 800)} alt="Featured card 3" layout="fill" objectFit="cover" loading="lazy" />
                 </motion.div>
               </div>
             </div>
@@ -414,7 +415,7 @@ export default function StreetifyStorePage() {
                       className="relative h-32 rounded-2xl overflow-hidden border border-white/10 bg-card/60 backdrop-blur-md flex items-center p-6 gap-5 transition-all duration-300 shadow-sm"
                     >
                       <div className="w-16 h-16 rounded-full overflow-hidden bg-secondary border border-white/10 flex-shrink-0">
-                        <Image src={category.imageUrl} alt={category.name} width={64} height={64} className="object-cover w-full h-full" unoptimized />
+                        <Image src={getOptimizedImageUrl(category.imageUrl, 500)} alt={category.name} width={64} height={64} className="object-cover w-full h-full" />
                       </div>
                       <div>
                         <p className="text-xl font-bold uppercase font-bebas tracking-wider text-foreground group-hover:text-amber-400 transition-colors">{category.name}</p>
@@ -446,7 +447,7 @@ export default function StreetifyStorePage() {
                   className="lg:col-span-2 relative h-[56vh] min-h-[380px] rounded-2xl overflow-hidden cursor-pointer group border border-white/10"
                 >
                   {collection1Product && (
-                    <Image src={getProductImage(collection1Product.imageUrls)} alt={collection1Product.name} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" unoptimized />
+                    <Image src={getProductImage(collection1Product.imageUrls, "https://placehold.co/600x800.png", 1920)} alt={collection1Product.name} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" />
                   )}
                   <div className="absolute inset-0 flex flex-col justify-between p-8 text-white bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-colors duration-500 group-hover:bg-black/60">
                     <motion.ul
@@ -474,7 +475,7 @@ export default function StreetifyStorePage() {
                     className="relative h-[26vh] min-h-[180px] rounded-2xl overflow-hidden cursor-pointer group border border-white/10"
                   >
                     {collection2Product && (
-                      <Image src={getProductImage(collection2Product.imageUrls)} alt={collection2Product.name} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" unoptimized />
+                      <Image src={getProductImage(collection2Product.imageUrls, "https://placehold.co/600x800.png", 800)} alt={collection2Product.name} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" />
                     )}
                     <div className="absolute inset-0 flex flex-col justify-between p-6 text-white bg-gradient-to-t from-black/90 via-black/30 to-transparent">
                       <div />
@@ -493,7 +494,7 @@ export default function StreetifyStorePage() {
                     className="relative h-[26vh] min-h-[180px] rounded-2xl overflow-hidden cursor-pointer group border border-white/10"
                   >
                     {heroProduct && (
-                      <Image src={getProductImage(heroProduct.imageUrls)} alt={heroProduct.name} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" unoptimized />
+                      <Image src={getProductImage(heroProduct.imageUrls, "https://placehold.co/600x800.png", 800)} alt={heroProduct.name} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" />
                     )}
                     <div className="absolute inset-0 flex flex-col justify-between p-6 text-white bg-gradient-to-t from-black/90 via-black/30 to-transparent">
                       <div />

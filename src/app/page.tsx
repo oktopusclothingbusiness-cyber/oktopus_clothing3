@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import * as React from 'react';
+import { getOptimizedImageUrl } from '@/lib/utils';
 
 // Custom spring transitions for professional feel
 const springTransition = {
@@ -111,7 +112,7 @@ export default function LandingPage() {
         {/* Top Header Logo */}
         <motion.div variants={logoVariants} className="mt-4 md:mt-8 select-none">
           <Image 
-            src="https://i.ibb.co/GfTs981G/okto-new-logo-white.png"
+            src={getOptimizedImageUrl("https://i.ibb.co/GfTs981G/okto-new-logo-white.png", 500)}
             alt="Oktopus Logo"
             width={160}
             height={70}
@@ -127,13 +128,14 @@ export default function LandingPage() {
           <motion.div
             variants={cardVariants(-12)}
             whileHover="hover"
-            className="absolute left-[calc(50%-130px)] md:left-[calc(50%-320px)] rounded-2xl shadow-lg w-[90px] h-[120px] md:w-[180px] md:h-[240px] overflow-hidden cursor-pointer origin-bottom"
+            className="absolute left-[calc(50%-130px)] md:left-[calc(50%-320px)] rounded-2xl shadow-lg w-[90px] h-[120px] md:w-[180px] md:h-[240px] overflow-hidden cursor-pointer origin-bottom aspect-[3/4]"
           >
             <Image
-              src="https://i.imgur.com/h0SjEpg.png"
+              src={getOptimizedImageUrl("https://i.imgur.com/h0SjEpg.png", 800)}
               alt="Fashion Showcase 1"
               layout="fill"
               objectFit="cover"
+              loading="lazy"
               data-ai-hint="eyewear fashion"
             />
           </motion.div>
@@ -142,13 +144,14 @@ export default function LandingPage() {
           <motion.div
             variants={cardVariants(-6)}
             whileHover="hover"
-            className="absolute left-[calc(50%-80px)] md:left-[calc(50%-190px)] rounded-2xl shadow-2xl z-10 w-[105px] h-[140px] md:w-[210px] md:h-[280px] overflow-hidden cursor-pointer origin-bottom"
+            className="absolute left-[calc(50%-80px)] md:left-[calc(50%-190px)] rounded-2xl shadow-2xl z-10 w-[105px] h-[140px] md:w-[210px] md:h-[280px] overflow-hidden cursor-pointer origin-bottom aspect-[3/4]"
           >
             <Image
-              src="https://i.imgur.com/njNbmfx.jpeg"
+              src={getOptimizedImageUrl("https://i.imgur.com/njNbmfx.jpeg", 800)}
               alt="Fashion Showcase 2"
               layout="fill"
               objectFit="cover"
+              loading="lazy"
               data-ai-hint="eyewear fashion"
             />
           </motion.div>
@@ -157,13 +160,14 @@ export default function LandingPage() {
           <motion.div
             variants={cardVariants(0)}
             whileHover="hover"
-            className="absolute left-1/2 -translate-x-1/2 rounded-2xl shadow-2xl z-20 w-[120px] h-[160px] md:w-[240px] md:h-[320px] overflow-hidden cursor-pointer origin-bottom border-2 border-white/10"
+            className="absolute left-1/2 -translate-x-1/2 rounded-2xl shadow-2xl z-20 w-[120px] h-[160px] md:w-[240px] md:h-[320px] overflow-hidden cursor-pointer origin-bottom border-2 border-white/10 aspect-[3/4]"
           >
             <Image
-              src="https://i.ibb.co/k23QM5vt/pic-1.png"
+              src={getOptimizedImageUrl("https://i.ibb.co/k23QM5vt/pic-1.png", 800)}
               alt="Fashion Showcase 3"
               layout="fill"
               objectFit="cover"
+              priority
               data-ai-hint="eyewear fashion"
             />
           </motion.div>
@@ -172,13 +176,14 @@ export default function LandingPage() {
           <motion.div
             variants={cardVariants(6)}
             whileHover="hover"
-            className="absolute right-[calc(50%-80px)] md:right-[calc(50%-190px)] rounded-2xl shadow-2xl z-10 w-[105px] h-[140px] md:w-[210px] md:h-[280px] overflow-hidden cursor-pointer origin-bottom"
+            className="absolute right-[calc(50%-80px)] md:right-[calc(50%-190px)] rounded-2xl shadow-2xl z-10 w-[105px] h-[140px] md:w-[210px] md:h-[280px] overflow-hidden cursor-pointer origin-bottom aspect-[3/4]"
           >
             <Image
-              src="https://i.imgur.com/kDUL51T.jpeg"
+              src={getOptimizedImageUrl("https://i.imgur.com/kDUL51T.jpeg", 800)}
               alt="Fashion Showcase 4"
               layout="fill"
               objectFit="cover"
+              loading="lazy"
               data-ai-hint="eyewear fashion"
             />
           </motion.div>
@@ -187,13 +192,14 @@ export default function LandingPage() {
           <motion.div
             variants={cardVariants(12)}
             whileHover="hover"
-            className="absolute right-[calc(50%-130px)] md:right-[calc(50%-320px)] rounded-2xl shadow-lg w-[90px] h-[120px] md:w-[180px] md:h-[240px] overflow-hidden cursor-pointer origin-bottom"
+            className="absolute right-[calc(50%-130px)] md:right-[calc(50%-320px)] rounded-2xl shadow-lg w-[90px] h-[120px] md:w-[180px] md:h-[240px] overflow-hidden cursor-pointer origin-bottom aspect-[3/4]"
           >
             <Image
-              src="https://i.imgur.com/x9kLhGO.jpeg"
+              src={getOptimizedImageUrl("https://i.imgur.com/x9kLhGO.jpeg", 800)}
               alt="Fashion Showcase 5"
               layout="fill"
               objectFit="cover"
+              loading="lazy"
               data-ai-hint="eyewear fashion"
             />
           </motion.div>

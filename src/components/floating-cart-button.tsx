@@ -20,6 +20,7 @@ export function FloatingCartButton() {
     '/signup',
     '/admin', // also covers /admin/*
     '/profile', // also covers /profile/*
+    '/invoice', // also covers /invoice/*
   ];
 
   if (!pathname) return null;
@@ -31,7 +32,7 @@ export function FloatingCartButton() {
   }
 
   return (
-    <div className={cn("md:hidden fixed bottom-20 right-4 z-50", isAnimating && "animate-jiggle")}>
+    <div className={cn("md:hidden fixed bottom-20 right-4 z-50 print:hidden", isAnimating && "animate-jiggle")}>
       <Button asChild size="icon" className="relative h-14 w-14 rounded-full shadow-lg">
         <Link href="/cart">
           <ShoppingCart className="h-6 w-6" />

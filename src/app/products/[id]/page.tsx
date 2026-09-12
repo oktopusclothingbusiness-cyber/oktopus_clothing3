@@ -17,7 +17,7 @@ import { useCart } from "@/context/cart-context";
 import { Star, ShoppingCart, Heart, Ruler, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
-import { cn } from "@/lib/utils";
+import { cn, getOptimizedImageUrl } from "@/lib/utils";
 import { useSizeChart, SizeChart } from "@/context/size-chart-context";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -121,12 +121,13 @@ export default function ProductDetailPage() {
                   <CarouselContent>
                     {productImages.map((url, index) => (
                       <CarouselItem key={index}>
-                        <div className="relative aspect-square">
+                        <div className="relative aspect-[3/4]">
                           <Image
-                            src={url}
+                            src={getOptimizedImageUrl(url, 800)}
                             alt={`${product.name} image ${index + 1}`}
                             fill
-                            className="object-cover rounded-lg"
+                            priority={index === 0}
+                            className="object-cover rounded-lg aspect-[3/4]"
                             data-ai-hint="product image"
                           />
                         </div>
@@ -247,12 +248,13 @@ export default function ProductDetailPage() {
                   <CarouselContent>
                     {productImages.map((url, index) => (
                       <CarouselItem key={index}>
-                        <div className="relative aspect-square">
+                        <div className="relative aspect-[3/4]">
                           <Image
-                            src={url}
+                            src={getOptimizedImageUrl(url, 800)}
                             alt={`${product.name} image ${index + 1}`}
                             fill
-                            className="object-cover"
+                            priority={index === 0}
+                            className="object-cover aspect-[3/4]"
                             data-ai-hint="product image"
                           />
                         </div>
@@ -364,7 +366,7 @@ function ProductDetailSkeleton() {
           <Header />
           <main className="flex-grow container mx-auto px-4 py-8">
             <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-              <Skeleton className="relative aspect-square rounded-lg" />
+              <Skeleton className="relative aspect-[3/4] rounded-lg" />
               <div className="space-y-6">
                 <Skeleton className="h-10 w-3/4" />
                 <Skeleton className="h-20 w-full" />
@@ -382,7 +384,7 @@ function ProductDetailSkeleton() {
         {/* Mobile Skeleton */}
         <div className="md:hidden">
             <main className="pb-24">
-                <Skeleton className="w-full aspect-square" />
+                <Skeleton className="w-full aspect-[3/4]" />
                 <div className="p-4 space-y-4">
                     <Skeleton className="h-8 w-3/4" />
                     <Skeleton className="h-8 w-1/4" />

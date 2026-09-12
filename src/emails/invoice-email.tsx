@@ -14,6 +14,8 @@ import {
 } from "@react-email/components";
 import { format } from "date-fns";
 
+import { getShortOrderId } from "@/lib/utils";
+
 type Product = {
   name: string;
   quantity: number;
@@ -51,7 +53,8 @@ type InvoiceEmailProps = {
 };
 
 export const InvoiceEmail = ({ order, settings }: InvoiceEmailProps) => {
-  const previewText = `Invoice for your Order #${order._id.slice(-6)}`;
+  const shortCode = getShortOrderId(order._id);
+  const previewText = `Invoice for your Order #OKT-${shortCode}`;
   
   // These values may not exist on old orders, so we calculate them
   const subtotal = order.subtotal || order.products.reduce((acc, p) => acc + (p.price * p.quantity), 0);
@@ -69,11 +72,12 @@ export const InvoiceEmail = ({ order, settings }: InvoiceEmailProps) => {
               {settings?.logoUrl && (
                 <Img src={settings.logoUrl} alt="Oktopus Logo" width="150" style={logo} />
               )}
+              <Text style={baskeyLabel}>A UNIT OF BASKEY STUDIO</Text>
               <Text style={address}>Kolkata, West Bengal, India</Text>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <Heading as="h1" style={h1}>INVOICE</Heading>
-              <Text style={invoiceId}>#{order._id.slice(-6).toUpperCase()}</Text>
+              <Heading as="h1" style={h1}>TAX INVOICE</Heading>
+              <Text style={invoiceId}>#OKT-{shortCode}</Text>
             </div>
           </Section>
 
@@ -144,8 +148,15 @@ export const InvoiceEmail = ({ order, settings }: InvoiceEmailProps) => {
           </Section>
 
           <Text style={footer}>
-            Thank you for your business! If you have any questions, please contact us at oktopusclothing.business@gmail.com
+            Thank you for shopping with OKTOPUS CLOTHING!<br />
+            For questions, please contact us at oktopusclothing.business@gmail.com<br />
+            <strong>OKTOPUS CLOTHING • A Unit of BASKEY Studio (Government of India Registered MSME)</strong>
           </Text>
+
+          {/* Colorful Graphic Element at Bottom */}
+          <Section style={{ marginTop: '24px' }}>
+            <div style={colorfulBar} />
+          </Section>
         </Container>
       </Body>
     </Html>
@@ -303,6 +314,14 @@ const grandTotalValue = {
 }
 
 
+const baskeyLabel = {
+  fontSize: "10px",
+  fontWeight: "bold" as const,
+  color: "#d97706",
+  letterSpacing: "1.5px",
+  margin: "6px 0 2px"
+};
+
 const footer = {
   color: "#8898aa",
   fontSize: "12px",
@@ -310,3 +329,11 @@ const footer = {
   textAlign: "center" as const,
   marginTop: "40px"
 };
+
+const colorfulBar = {
+  height: "8px",
+  width: "100%",
+  borderRadius: "4px",
+  background: "linear-gradient(to right, #f59e0b, #f43f5e, #8b5cf6, #6366f1)"
+};
+

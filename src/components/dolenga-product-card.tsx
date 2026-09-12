@@ -18,10 +18,11 @@ export function DolengaProductCard({ product }: { product: Product }) {
             <Link href={productHref}>
                 <div className="relative aspect-[3/4] bg-gray-100 overflow-hidden">
                     <Image
-                        src={getProductImage(product?.imageUrls)}
+                        src={getProductImage(product?.imageUrls, "https://placehold.co/600x800.png", 500)}
                         alt={product?.name || 'Product'}
                         fill
-                        className={cn("object-cover transition-transform duration-500 ease-in-out group-hover:scale-105")}
+                        className={cn("object-cover aspect-[3/4] transition-transform duration-500 ease-in-out group-hover:scale-105")}
+                        loading="lazy"
                     />
                 </div>
                 <div className="mt-4">
