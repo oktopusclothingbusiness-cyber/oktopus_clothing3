@@ -17,6 +17,9 @@ import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
+import { getShortOrderId } from '@/lib/utils';
+import { FileText } from 'lucide-react';
+
 type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'packed' | 'shipped' | 'delivered' | 'paid';
 
 type Order = {
@@ -103,7 +106,7 @@ export default function OrdersPage() {
               <Card>
                   <CardHeader>
                       <CardTitle>Your Order History</CardTitle>
-                      <CardDescription>View the status and details of all your past orders.</CardDescription>
+                      <CardDescription>View the status, details, and tax invoices of all your past orders.</CardDescription>
                   </CardHeader>
                   <CardContent>
                       <Table>
@@ -120,16 +123,23 @@ export default function OrdersPage() {
                               {orders.length > 0 ? (
                                   orders.map((order) => (
                                       <TableRow key={order._id}>
-                                          <TableCell className="font-mono">#{order._id.slice(-6)}</TableCell>
+                                          <TableCell className="font-mono">#OKT-{getShortOrderId(order._id)}</TableCell>
                                           <TableCell>{format(new Date(order.createdAt), 'PP')}</TableCell>
                                           <TableCell>
                                               <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
                                           </TableCell>
                                           <TableCell>₹{order.total.toFixed(2)}</TableCell>
                                           <TableCell className="text-right">
-                                              <Button variant="outline" size="sm" asChild>
-                                                  <Link href={order?._id ? `/track-order/${order._id}` : '/orders'}>View Details</Link>
-                                              </Button>
+                                              <div className="flex items-center justify-end gap-2">
+                                                <Button variant="outline" size="sm" asChild>
+                                                    <Link href={order?._id ? `/invoice/${order._id}` : '/orders'} target="_blank">
+                                                      <FileText className="mr-1 h-3.5 w-3.5" /> Invoice
+                                                    </Link>
+                                                </Button>
+                                                <Button variant="default" size="sm" asChild>
+                                                    <Link href={order?._id ? `/track-order/${order._id}` : '/orders'}>Details</Link>
+                                                </Button>
+                                              </div>
                                           </TableCell>
                                       </TableRow>
                                   ))
@@ -163,8 +173,8 @@ export default function OrdersPage() {
               {orders.map((order) => (
                 <Card key={order._id} className="card-glass">
                   <CardHeader>
-                    <CardTitle className="text-base flex justify-between items-center">
-                      <span>Order #{order._id.slice(-6)}</span>
+                    <CardTitle className="text-base flex justify-between items-center font-mono">
+                      <span>Order #OKT-{getShortOrderId(order._id)}</span>
                       <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
                     </CardTitle>
                     <p className="text-xs text-muted-foreground">{format(new Date(order.createdAt), 'PP')}</p>
@@ -184,8 +194,13 @@ export default function OrdersPage() {
                       <span>₹{order.total.toFixed(2)}</span>
                     </div>
                   </CardContent>
-                  <CardFooter>
-                      <Button variant="outline" size="sm" className="w-full" asChild>
+                  <CardFooter className="flex gap-2">
+                      <Button variant="outline" size="sm" className="flex-1" asChild>
+                        <Link href={order?._id ? `/invoice/${order._id}` : '/orders'} target="_blank">
+                          <FileText className="mr-1.5 h-3.5 w-3.5" /> Invoice
+                        </Link>
+                      </Button>
+                      <Button variant="default" size="sm" className="flex-1" asChild>
                         <Link href={order?._id ? `/track-order/${order._id}` : '/orders'}>Track Order</Link>
                       </Button>
                   </CardFooter>
