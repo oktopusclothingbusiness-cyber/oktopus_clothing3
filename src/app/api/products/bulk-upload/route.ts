@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
@@ -10,64 +9,120 @@ type Category = {
     imageUrl: string;
 }
 
-// Helper function to find a key in an object case-insensitively
-const findCaseInsensitiveKey = (obj: any, key: string) => {
-    return Object.keys(obj).find(k => k.toLowerCase() === key.toLowerCase());
+// Helper function to find a key in an object case-insensitively with alias support
+const findFlexibleKey = (item: any, ...possibleKeys: string[]) => {
+    if (!item || typeof item !== 'object') return undefined;
+    for (const pk of possibleKeys) {
+        const found = Object.keys(item).find(k => k.toLowerCase().trim() === pk.toLowerCase().trim());
+        if (found && item[found] !== undefined && item[found] !== null && item[found] !== '') {
+            return found;
+        }
+    }
+    return undefined;
 };
-
 
 // Helper function to convert string values to the correct type
 const parseProduct = (item: any, categoryMap: Map<string, Category>, rowIndex: number) => {
     const errors: string[] = [];
 
-    const categoriesKey = findCaseInsensitiveKey(item, 'categories');
+    const nameKey = findFlexibleKey(item, 'name', 'product_name', 'product name', 'title');
+    const productName = nameKey ? item[nameKey]?.toString().trim() : '';
+
+    const priceKey = findFlexibleKey(item, 'price', 'unit_price', 'amount', 'mrp', 'price_inr');
+    const rawPriceStr = priceKey ? item[priceKey]?.toString().replace(/[^0-9.]/g, '') : '';
+    const parsedPrice = parseFloat(rawPriceStr);
+
+    if (!productName) errors.push('Missing product name');
+    if (isNaN(parsedPrice)) errors.push('Invalid price');
+
+    const categoriesKey = findFlexibleKey(item, 'categories', 'category', 'category_name', 'category_ids');
     const categoryNamesStr = categoriesKey ? item[categoriesKey]?.toString().trim() : '';
     const categoryNames = categoryNamesStr.split(',').map((name: string) => name.trim().toLowerCase()).filter(Boolean);
-    const categoryIds = categoryNames.map((name: string) => categoryMap.get(name)?.id).filter(Boolean);
-    
-    if (!item.name) errors.push('Missing name');
-    if (isNaN(parseFloat(item.price))) errors.push('Invalid price');
-    if (categoryIds.length === 0 && categoryNames.length > 0) errors.push(`Categories '${categoryNames.join(', ')}' not found`);
-    if (categoryIds.length === 0 && categoryNames.length === 0) errors.push('At least one category is required');
+    const categoryIds = categoryNames.map((name: string) => categoryMap.get(name)?.id).filter((id: string | undefined): id is string => Boolean(id));
 
+    if (categoryIds.length === 0 && categoryNames.length > 0) {
+        errors.push(`Categories '${categoryNames.join(', ')}' not found`);
+    } else if (categoryIds.length === 0 && categoryNames.length === 0) {
+        // Fall back to default general category if none specified
+        const defaultCat = Array.from(categoryMap.values())[0];
+        if (defaultCat) {
+            categoryIds.push(defaultCat.id);
+        } else {
+            errors.push('At least one category is required');
+        }
+    }
 
-    const imageUrlsKey = findCaseInsensitiveKey(item, 'imageUrls');
+    const imageUrlsKey = findFlexibleKey(item, 'imageUrls', 'image_urls', 'images', 'image', 'image_url');
     const imageUrlsValue = imageUrlsKey ? item[imageUrlsKey] : '';
-    const imageUrls = typeof imageUrlsValue === 'string' ? imageUrlsValue.split(',').map((url: string) => url.trim()).filter((url: string) => url) : [];
+    const imageUrls = typeof imageUrlsValue === 'string'
+        ? imageUrlsValue.split(',').map((url: string) => url.trim()).filter(Boolean)
+        : Array.isArray(imageUrlsValue) ? imageUrlsValue : [];
+    
     if (imageUrls.length === 0) errors.push('Missing imageUrls');
 
-    const sizesKey = findCaseInsensitiveKey(item, 'sizes');
-    const colorsKey = findCaseInsensitiveKey(item, 'colors');
-    const featuredKey = findCaseInsensitiveKey(item, 'featured');
-    const isHeroKey = findCaseInsensitiveKey(item, 'isHero');
-    const originalPriceKey = findCaseInsensitiveKey(item, 'originalPrice');
-    const costKey = findCaseInsensitiveKey(item, 'cost');
-    const discountPercentageKey = findCaseInsensitiveKey(item, 'discountPercentage');
-    const ratingKey = findCaseInsensitiveKey(item, 'rating');
-    const stockKey = findCaseInsensitiveKey(item, 'stock');
+    const sizesKey = findFlexibleKey(item, 'sizes', 'size');
+    const colorsKey = findFlexibleKey(item, 'colors', 'color');
+    const featuredKey = findFlexibleKey(item, 'featured', 'is_featured');
+    const isHeroKey = findFlexibleKey(item, 'isHero', 'is_hero', 'hero');
+    const originalPriceKey = findFlexibleKey(item, 'originalPrice', 'original_price', 'list_price');
+    const costKey = findFlexibleKey(item, 'cost', 'cost_price', 'item_cost');
+    const discountPercentageKey = findFlexibleKey(item, 'discountPercentage', 'discount_percentage', 'discount');
+    const ratingKey = findFlexibleKey(item, 'rating');
+    const stockKey = findFlexibleKey(item, 'stock', 'inventory', 'quantity', 'qty');
+    const descriptionKey = findFlexibleKey(item, 'description', 'desc', 'details');
 
+    let colorImages: Record<string, string[]> | undefined = undefined;
+    const colorImagesKey = findFlexibleKey(item, 'colorImages', 'color_images', 'images_by_color');
+    if (colorImagesKey && item[colorImagesKey]) {
+        const val = item[colorImagesKey];
+        if (typeof val === 'object' && !Array.isArray(val)) {
+            colorImages = val;
+        } else if (typeof val === 'string') {
+            try {
+                const parsed = JSON.parse(val);
+                if (typeof parsed === 'object' && !Array.isArray(parsed)) {
+                    colorImages = parsed;
+                }
+            } catch {
+                const mapObj: Record<string, string[]> = {};
+                val.split(';').forEach(part => {
+                    const [cName, urlsStr] = part.split(':');
+                    if (cName && urlsStr) {
+                        const urls = urlsStr.split(',').map(u => u.trim()).filter(Boolean);
+                        if (urls.length > 0) {
+                            mapObj[cName.trim()] = urls;
+                        }
+                    }
+                });
+                if (Object.keys(mapObj).length > 0) {
+                    colorImages = mapObj;
+                }
+            }
+        }
+    }
 
     return {
         product: {
-            name: item.name,
-            description: item.description || '',
-            price: parseFloat(item.price),
-            cost: costKey && item[costKey] ? parseFloat(item[costKey]) : 0,
-            originalPrice: originalPriceKey && item[originalPriceKey] ? parseFloat(item[originalPriceKey]) : undefined,
-            discountPercentage: discountPercentageKey && item[discountPercentageKey] ? parseInt(item[discountPercentageKey], 10) : 0,
-            rating: ratingKey && item[ratingKey] ? parseFloat(item[ratingKey]) : 4.5,
-            stock: stockKey && item[stockKey] ? parseInt(item[stockKey], 10) : 100,
+            name: productName,
+            description: descriptionKey ? item[descriptionKey]?.toString() || '' : '',
+            price: isNaN(parsedPrice) ? 0 : parsedPrice,
+            cost: costKey && item[costKey] ? parseFloat(item[costKey].toString().replace(/[^0-9.]/g, '')) || 0 : 0,
+            originalPrice: originalPriceKey && item[originalPriceKey] ? parseFloat(item[originalPriceKey].toString().replace(/[^0-9.]/g, '')) || undefined : undefined,
+            discountPercentage: discountPercentageKey && item[discountPercentageKey] ? parseInt(item[discountPercentageKey].toString(), 10) || 0 : 0,
+            rating: ratingKey && item[ratingKey] ? parseFloat(item[ratingKey].toString()) || 4.5 : 4.5,
+            stock: stockKey && item[stockKey] ? parseInt(item[stockKey].toString(), 10) || 100 : 100,
             imageUrls: imageUrls,
-            category: categoryIds, // Use array of category IDs
-            sizes: sizesKey && typeof item[sizesKey] === 'string' ? (item[sizesKey] || '').split(',').map((s: string) => s.trim()).filter((s: string) => s) : [],
-            colors: colorsKey && typeof item[colorsKey] === 'string' ? (item[colorsKey] || '').split(',').map((c: string) => c.trim()).filter((c: string) => c) : [],
+            colorImages: colorImages,
+            category: categoryIds,
+            sizes: sizesKey && item[sizesKey] ? item[sizesKey].toString().split(',').map((s: string) => s.trim()).filter(Boolean) : [],
+            colors: colorsKey && item[colorsKey] ? item[colorsKey].toString().split(',').map((c: string) => c.trim()).filter(Boolean) : [],
             featured: (featuredKey && item[featuredKey]?.toString().toUpperCase()) === 'TRUE',
             isHero: (isHeroKey && item[isHeroKey]?.toString().toUpperCase()) === 'TRUE',
             createdAt: new Date(),
         },
         errors,
         rowIndex,
-        name: item.name || `Row ${rowIndex + 2}`
+        name: productName || `Row ${rowIndex + 2}`
     };
 };
 
@@ -76,7 +131,7 @@ export async function POST(request: Request) {
         const productsData = await request.json();
         
         if (!Array.isArray(productsData) || productsData.length === 0) {
-            return NextResponse.json({ message: 'No product data provided.' }, { status: 400 });
+            return NextResponse.json({ message: 'No product data provided in file.' }, { status: 400 });
         }
 
         const client = await clientPromise;
@@ -93,7 +148,7 @@ export async function POST(request: Request) {
         // Identify and create new categories
         const newCategoryNames = new Set<string>();
         productsData.forEach(item => {
-            const categoriesKey = findCaseInsensitiveKey(item, 'categories');
+            const categoriesKey = findFlexibleKey(item, 'categories', 'category', 'category_name');
             const categoryNamesStr = categoriesKey ? item[categoriesKey]?.toString().trim() : '';
             const categoryNames = categoryNamesStr.split(',').map((name: string) => name.trim()).filter(Boolean);
             
@@ -108,15 +163,14 @@ export async function POST(request: Request) {
             const newCategories = Array.from(newCategoryNames).map(name => ({
                 _id: new ObjectId(),
                 name: name,
-                imageUrl: 'https://placehold.co/400x400.png', // Default placeholder
+                imageUrl: 'https://placehold.co/400x400.png',
                 createdAt: new Date()
             }));
             
             if (newCategories.length > 0) {
                 await categoriesCollection.insertMany(newCategories);
-                 // Add the newly created categories to our map
                 newCategories.forEach(c => {
-                     categoryMap.set(c.name.toLowerCase(), { ...c, id: c._id.toString() } as Category);
+                    categoryMap.set(c.name.toLowerCase(), { ...c, id: c._id.toString() } as Category);
                 });
             }
         }

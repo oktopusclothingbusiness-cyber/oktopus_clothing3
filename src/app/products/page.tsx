@@ -15,6 +15,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ProductCard } from '@/components/product-card';
 import { useProduct } from '@/context/product-context';
 import { useCategory } from '@/context/category-context';
+import { usePromotion } from '@/context/promotion-context';
+import { getOptimizedImageUrl } from '@/lib/utils';
 import {
   Search,
   SlidersHorizontal,
@@ -33,6 +35,7 @@ import { cn } from '@/lib/utils';
 function ProductListComponent() {
   const { products, loading: productsLoading } = useProduct();
   const { categories, loading: categoriesLoading } = useCategory();
+  const { promotions } = usePromotion();
   const searchParams = useSearchParams();
 
   const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
@@ -106,6 +109,14 @@ function ProductListComponent() {
     return 'Premium Collections';
   };
 
+  const productsPagePromotion = React.useMemo(() => {
+    return (promotions || []).find((p) => {
+      if (!p || !p.isActive) return false;
+      if (selectedCategory && p.placement === 'category_page') return true;
+      return p.placement === 'products_page';
+    });
+  }, [promotions, selectedCategory]);
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <Header />
@@ -114,7 +125,7 @@ function ProductListComponent() {
       <section className="relative overflow-hidden border-b bg-muted/40 py-6 md:py-8">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent pointer-events-none" />
 
-        <div className="container mx-auto px-4 relative z-10">
+        <div className="container mx-auto px-4 relative z-10 space-y-4">
           <div className="flex flex-col gap-2">
             {/* BREADCRUMB */}
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
@@ -138,6 +149,21 @@ function ProductListComponent() {
               Discover premium streetwear, heavyweight essentials, and custom designer apparel.
             </p>
           </div>
+
+          {productsPagePromotion && (
+            <Link
+              href={productsPagePromotion.ctaLink || '/products'}
+              className="relative block w-full aspect-[2/1] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-border"
+            >
+              <Image
+                src={getOptimizedImageUrl(productsPagePromotion.imageUrl, 1920)}
+                alt={productsPagePromotion.title || 'Products Promotion Banner'}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                priority
+              />
+            </Link>
+          )}
         </div>
       </section>
 

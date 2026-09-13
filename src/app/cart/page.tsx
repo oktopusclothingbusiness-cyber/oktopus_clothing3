@@ -72,7 +72,7 @@ export default function CartPage() {
                 {cart.map((item) => (
                   <div key={`${item.id}-${item.size}-${item.color}`} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-4">
-                      <Image src={getProductImage(item.imageUrls, "https://placehold.co/80x80.png")} alt={item.name} width={80} height={80} className="rounded-md" />
+                      <Image src={getProductImage(item.imageUrls, "https://placehold.co/80x80.png")} alt={item.name || 'Cart Item'} width={80} height={80} className="rounded-md" />
                       <div>
                         <h2 className="font-semibold">{item.name}</h2>
                         <p className="text-sm text-muted-foreground">Size: {item.size}, Color: {item.color}</p>
@@ -162,7 +162,7 @@ export default function CartPage() {
             <div className="p-4 space-y-4">
               {cart.map((item) => (
                 <div key={`${item.id}-${item.size}-${item.color}`} className="flex items-start gap-4 p-4 card-glass rounded-lg shadow-sm">
-                  <Image src={getProductImage(item.imageUrls, "https://placehold.co/80x80.png")} alt={item.name} width={80} height={80} className="rounded-md" />
+                  <Image src={getProductImage(item.imageUrls, "https://placehold.co/80x80.png")} alt={item.name || 'Cart Item'} width={80} height={80} className="rounded-md" />
                   <div className="flex-grow">
                     <h2 className="font-semibold text-sm">{item.name}</h2>
                     <p className="text-xs text-muted-foreground">Size: {item.size}, Color: {item.color}</p>

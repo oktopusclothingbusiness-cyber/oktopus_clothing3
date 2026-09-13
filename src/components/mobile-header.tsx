@@ -25,9 +25,10 @@ import { useCategory } from "@/context/category-context";
 type MobileHeaderProps = {
     showCart?: boolean;
     title?: string;
+    rightAction?: React.ReactNode;
 }
 
-export const MobileHeader = ({ showCart = true, title }: MobileHeaderProps) => {
+export const MobileHeader = ({ showCart = true, title, rightAction }: MobileHeaderProps) => {
     const { user } = useAuth();
     const router = useRouter();
     const { categories, loading: categoriesLoading } = useCategory();
@@ -43,22 +44,35 @@ export const MobileHeader = ({ showCart = true, title }: MobileHeaderProps) => {
 
     if (title) {
         return (
-            <header className={cn(headerClasses)}>
-                <div className="flex justify-between items-center">
-                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                        <ArrowLeft className="h-6 w-6" />
+            <header className="md:hidden sticky top-0 z-50 py-2.5 px-3 bg-background/90 backdrop-blur-xl border-b border-border/50 shadow-xs">
+                <div className="flex justify-between items-center gap-2">
+                     <Button 
+                       variant="ghost" 
+                       size="icon" 
+                       onClick={() => router.back()}
+                       className="h-9 w-9 rounded-full hover:bg-muted/80 shrink-0 transition-colors"
+                     >
+                        <ArrowLeft className="h-5 w-5 text-foreground" />
                     </Button>
-                    <div className="text-center flex flex-col items-center max-w-[60%]">
-                        <h1 className="font-bold text-lg truncate leading-none">{title}</h1>
-                        <BaskeyAttribution className="text-[6.5px] tracking-[0.25em] opacity-75 mt-1 block" />
+
+                    <div className="text-center flex flex-col items-center max-w-[68%] min-w-0 px-1">
+                        <h1 className="font-extrabold text-sm text-foreground truncate w-full leading-tight">
+                            {title}
+                        </h1>
+                        <BaskeyAttribution className="text-[6.5px] tracking-[0.2em] opacity-70 mt-0.5 block" />
                     </div>
-                    <div className="w-10">
-                        {showCart && (
-                             <Button variant="ghost" size="icon" asChild>
+
+                    <div className="w-9 shrink-0 flex items-center justify-end">
+                        {rightAction ? (
+                            rightAction
+                        ) : showCart ? (
+                            <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-full">
                                 <Link href="/cart">
-                                    <ShoppingCart className="h-6 w-6" />
+                                    <ShoppingCart className="h-4 w-4" />
                                 </Link>
                             </Button>
+                        ) : (
+                            <div className="w-9 h-9" />
                         )}
                     </div>
                 </div>

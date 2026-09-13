@@ -16,7 +16,7 @@ import * as React from "react";
 import { ProductCard } from "@/components/product-card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
-import { Shapes, TrendingUp, X, TrainFront, ArrowRight, Sparkles, Truck, ShieldCheck, RefreshCw, Gift, Flame } from "lucide-react";
+import { Shapes, TrendingUp, X, TrainFront, ArrowRight, Sparkles, Truck, ShieldCheck, RefreshCw, Gift, Flame, Star, Clock, HelpCircle, ChevronDown, CheckCircle2, Zap, Tag, Copy, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn, getProductImage, getOptimizedImageUrl } from "@/lib/utils";
@@ -25,6 +25,7 @@ import { useCoupon } from "@/context/coupon-context";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 // Doodle SVG components
 const Doodle1 = () => (
@@ -135,29 +136,19 @@ const categoryIconVariants = {
   }
 };
 
-const SpecialOfferCard = ({ promotion }: { promotion: any }) => (
-  <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg mr-4 flex-shrink-0 bg-red-500 text-white p-6 flex flex-col justify-between">
+const SpecialOfferCard = ({ promotion, className }: { promotion: any; className?: string }) => (
+  <Link
+    href={promotion?.ctaLink || '/products'}
+    className={cn("relative block w-full aspect-[2/1] rounded-2xl overflow-hidden shadow-lg group cursor-pointer", className)}
+  >
     <Image
       src={getOptimizedImageUrl(promotion.imageUrl, 1920)}
-      alt={promotion.title}
-      layout="fill"
-      objectFit="cover"
-      className="z-0"
+      alt={promotion?.title || 'Promotion Banner'}
+      fill
+      className="object-cover z-0 transition-transform duration-500 group-hover:scale-105"
       priority
     />
-    <div className="absolute inset-0 bg-black/40 z-10" />
-    <div className="relative z-20">
-      <h3 className="text-2xl font-bold">{promotion.title}</h3>
-      <p className="text-4xl font-light leading-tight">{promotion.description}</p>
-    </div>
-    <div className="relative z-20">
-      <Button asChild className="bg-white text-black rounded-lg h-8 px-4 mt-2 font-semibold">
-        <Link href={promotion?.ctaLink || '/products'}>
-          {promotion?.ctaText || 'Shop Now'}
-        </Link>
-      </Button>
-    </div>
-  </div>
+  </Link>
 );
 
 const PromoPopup = () => {
@@ -264,9 +255,21 @@ export default function StreetifyStorePage() {
   const { trends, loading: trendsLoading } = useTrend();
   const heroRef = React.useRef<HTMLDivElement>(null);
 
-  const loading = productsLoading || promotionsLoading || categoriesLoading || trendsLoading;
-  const activePromotions = (promotions || []).filter(p => p && p.isActive);
+  const { coupons, loading: couponsLoading } = useCoupon();
+  const { toast } = useToast();
+  const [copiedCoupon, setCopiedCoupon] = React.useState<string | null>(null);
+
+  const loading = productsLoading || promotionsLoading || categoriesLoading || trendsLoading || couponsLoading;
+  const activePromotions = (promotions || []).filter(p => p && p.isActive && (!p.placement || p.placement === 'home_page' || p.placement === 'mobile_banner'));
   const activeTrends = (trends || []).filter(t => t && t.isActive);
+
+  const publicCoupons = React.useMemo(() =>
+    (coupons || []).filter(c => c && c.isActive && c.offerType === 'public'),
+    [coupons]);
+
+  const saleProducts = React.useMemo(() =>
+    (products || []).filter(p => p && p.originalPrice && p.originalPrice > p.price),
+    [products]);
 
   const featuredProducts = React.useMemo(() =>
     (products || []).filter(p => p && p.featured),
@@ -279,6 +282,25 @@ export default function StreetifyStorePage() {
   const autoplayPlugin = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: true })
   );
+
+  const [mobileApi, setMobileApi] = React.useState<any>();
+  const [mobileCurrentIndex, setMobileCurrentIndex] = React.useState(0);
+  const [openFaq, setOpenFaq] = React.useState<number | null>(null);
+  const mobileAutoplayPlugin = React.useRef(
+    Autoplay({ delay: 4000, stopOnInteraction: false })
+  );
+
+  React.useEffect(() => {
+    if (!mobileApi) return;
+    setMobileCurrentIndex(mobileApi.selectedScrollSnap());
+    const onSelect = () => {
+      setMobileCurrentIndex(mobileApi.selectedScrollSnap());
+    };
+    mobileApi.on("select", onSelect);
+    return () => {
+      mobileApi.off("select", onSelect);
+    };
+  }, [mobileApi]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const { clientX, clientY, currentTarget } = e;
@@ -606,85 +628,135 @@ export default function StreetifyStorePage() {
         <Footer />
       </div>
 
-      {/* MOBILE VIEW (UNTOUCHED & FULLY PRESERVED) */}
-      <div className="md:hidden bg-background font-sans overflow-hidden">
+      {/* MOBILE VIEW (LUXURY STREETWEAR STOREFRONT) */}
+      <div className="md:hidden bg-background font-sans overflow-hidden min-h-screen">
         <MobileHeader />
         <PromoPopup />
-        <main className="p-4 space-y-6 pb-24">
-          {/* Promo Slider Section */}
-          <section>
-            <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -ml-4 pl-4 gap-2">
-              {loading ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="w-[90vw] snap-center">
-                    <Skeleton className="w-full aspect-video rounded-2xl" />
+        
+        <main className="px-4 py-4 space-y-7 pb-28">
+          {/* PROMO SLIDER SECTION */}
+          <section className="w-full">
+            {loading ? (
+              <Skeleton className="w-full aspect-[2/1] rounded-2xl" />
+            ) : activePromotions.length > 0 ? (
+              <>
+                <Carousel
+                  opts={{ loop: true }}
+                  plugins={[mobileAutoplayPlugin.current]}
+                  setApi={setMobileApi}
+                  className="w-full"
+                >
+                  <CarouselContent className="-ml-0">
+                    {activePromotions.map((promo) => (
+                      <CarouselItem key={promo.id} className="pl-0 basis-full">
+                        <SpecialOfferCard promotion={promo} />
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                </Carousel>
+                {activePromotions.length > 1 && (
+                  <div className="flex justify-center items-center gap-1.5 mt-3">
+                    {activePromotions.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => mobileApi?.scrollTo(i)}
+                        className={`h-2 transition-all duration-300 rounded-full ${
+                          i === mobileCurrentIndex ? 'bg-red-500 w-5' : 'bg-gray-300 dark:bg-gray-700 w-2'
+                        }`}
+                        aria-label={`Go to promo slide ${i + 1}`}
+                      />
+                    ))}
                   </div>
-                ))
-              ) : activePromotions.length > 0 ? (
-                activePromotions.map((promo) => (
-                  <div key={promo.id} className="w-[90vw] snap-center">
-                    <SpecialOfferCard promotion={promo} />
-                  </div>
-                ))
-              ) : (
-                <div className="w-[90vw] snap-center">
-                  <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg mr-4 flex-shrink-0 bg-gray-200 text-gray-600 p-6 flex flex-col justify-center items-center">
-                    <h3 className="text-lg font-bold">No Promotions Available</h3>
-                    <p className="text-sm">Check back later for exciting offers!</p>
-                  </div>
+                )}
+              </>
+            ) : (
+              <div className="w-full">
+                <div className="relative w-full aspect-[2/1] rounded-2xl overflow-hidden shadow-lg bg-gray-200 text-gray-600 dark:bg-zinc-800 dark:text-gray-300 p-6 flex flex-col justify-center items-center text-center">
+                  <h3 className="text-lg font-bold">No Promotions Available</h3>
+                  <p className="text-sm opacity-80">Check back later for exciting offers!</p>
                 </div>
-              )}
-            </div>
-            <div className="flex justify-center items-center gap-2 mt-4">
-              {activePromotions.map((_, i) => (
-                <span key={i} className={`h-2 w-2 rounded-full ${i === 0 ? 'bg-red-500 w-4' : 'bg-gray-300'}`}></span>
-              ))}
-            </div>
+              </div>
+            )}
           </section>
 
-          {/* Categories Section */}
-          <section>
-            <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -ml-4 pl-4 space-x-4">
-              {categoriesLoading ? Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="snap-center flex-shrink-0 w-16 text-center">
+          {/* BRAND VALUE HIGHLIGHTS */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-card border border-border/50 shadow-sm">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+                <Truck className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-[11px] font-bold leading-none">Free Express Shipping</p>
+                <p className="text-[9px] text-muted-foreground mt-0.5">On orders above ₹999</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-card border border-border/50 shadow-sm">
+              <div className="p-2 rounded-lg bg-yellow-500/10 text-yellow-500 shrink-0">
+                <ShieldCheck className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-[11px] font-bold leading-none">Verified MSME Brand</p>
+                <p className="text-[9px] text-muted-foreground mt-0.5">100% Authentic Quality</p>
+              </div>
+            </div>
+          </div>
+
+          {/* CATEGORIES SECTION */}
+          <section className="space-y-3">
+            <div className="flex justify-between items-center">
+              <h2 className="font-black text-2xl font-bebas tracking-tight flex items-center gap-1.5">
+                <Shapes className="h-5 w-5 text-red-500" />
+                Categories
+              </h2>
+              <Link href="/products" className="text-xs text-primary font-bold tracking-wide flex items-center gap-0.5 uppercase">
+                See All <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
+
+            <div className="flex overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 space-x-4">
+              {categoriesLoading ? Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex-shrink-0 w-16 text-center">
                   <Skeleton className="w-16 h-16 rounded-full" />
-                  <Skeleton className="h-4 w-12 mt-2 mx-auto" />
+                  <Skeleton className="h-3 w-12 mt-2 mx-auto" />
                 </div>
               )) : categories.length > 0 ? (
                 categories.map(category => (
-                  <Link href={category?.id ? `/products?category=${category.id}` : '/products'} key={category?.id || category?._id} className="snap-center flex-shrink-0 w-16 text-center block">
+                  <Link href={category?.id ? `/products?category=${category.id}` : '/products'} key={category?.id || category?._id} className="flex-shrink-0 w-16 text-center block group">
                     <motion.div
-                      initial="initial"
-                      whileHover="hover"
-                      variants={categoryIconVariants}
-                      className="w-16 h-16 rounded-full overflow-hidden bg-secondary border border-white/5"
+                      whileTap={{ scale: 0.92 }}
+                      className="w-16 h-16 rounded-full overflow-hidden bg-secondary border border-border group-hover:border-primary transition-colors p-0.5"
                     >
-                      <Image src={category.imageUrl} alt={category.name} width={64} height={64} className="object-cover w-full h-full" unoptimized />
+                      <div className="w-full h-full rounded-full overflow-hidden relative">
+                        <Image src={category.imageUrl} alt={category.name} fill className="object-cover w-full h-full" unoptimized />
+                      </div>
                     </motion.div>
-                    <p className="text-xs font-semibold mt-2 truncate">{category.name}</p>
+                    <p className="text-[11px] font-semibold mt-1.5 truncate text-foreground">{category.name}</p>
                   </Link>
                 ))
               ) : (
-                <div className="w-full text-center py-8">
-                  <Shapes className="h-8 w-8 text-muted-foreground mx-auto" />
-                  <p className="text-sm text-muted-foreground mt-2">No categories found.</p>
+                <div className="w-full text-center py-6">
+                  <Shapes className="h-6 w-6 text-muted-foreground mx-auto" />
+                  <p className="text-xs text-muted-foreground mt-1">No categories found.</p>
                 </div>
               )}
             </div>
           </section>
 
-          {/* New Arrivals Section */}
-          <section>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="font-black text-2xl font-bebas tracking-tight">New Arrivals</h2>
-              <Link href="/products" className="text-xs text-primary font-bold tracking-wide flex items-center gap-1 uppercase">
-                See All
+          {/* NEW ARRIVALS SECTION */}
+          <section className="space-y-3">
+            <div className="flex justify-between items-center">
+              <h2 className="font-black text-2xl font-bebas tracking-tight flex items-center gap-1.5">
+                <Sparkles className="h-5 w-5 text-amber-400" />
+                New Arrivals
+              </h2>
+              <Link href="/products" className="text-xs text-primary font-bold tracking-wide flex items-center gap-0.5 uppercase">
+                See All <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
-            <div className="flex overflow-x-auto snap-x snap-mandatory -ml-4 pl-4 space-x-4">
+            <div className="flex overflow-x-auto no-scrollbar -mx-4 px-4 space-x-3.5 pb-2">
               {productsLoading ? (
                 Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="snap-center flex-shrink-0 w-40">
+                  <div key={i} className="flex-shrink-0 w-40">
                     <Card className="overflow-hidden group rounded-lg card-glass">
                       <div className="relative aspect-[3/4]">
                         <Skeleton className="w-full h-full" />
@@ -692,14 +764,13 @@ export default function StreetifyStorePage() {
                       <div className="p-2 space-y-1">
                         <Skeleton className="h-4 w-3/4" />
                         <Skeleton className="h-4 w-1/2" />
-                        <Skeleton className="h-3 w-1/3" />
                       </div>
                     </Card>
                   </div>
                 ))
               ) : (
                 newArrivals.map(product => (
-                  <div key={product.id} className="snap-center flex-shrink-0 w-40">
+                  <div key={product.id} className="flex-shrink-0 w-40">
                     <ProductCard product={product} isMobile={true} />
                   </div>
                 ))
@@ -707,15 +778,18 @@ export default function StreetifyStorePage() {
             </div>
           </section>
 
-          {/* Featured Section */}
-          <section>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="font-black text-2xl font-bebas tracking-tight">Featured Products</h2>
-              <Link href="/products?featured=true" className="text-xs text-primary font-bold tracking-wide flex items-center gap-1 uppercase">
-                See All
+          {/* FEATURED DROPS SECTION */}
+          <section className="space-y-3">
+            <div className="flex justify-between items-center">
+              <h2 className="font-black text-2xl font-bebas tracking-tight flex items-center gap-1.5">
+                <Flame className="h-5 w-5 text-red-500" />
+                Featured Drops
+              </h2>
+              <Link href="/products?featured=true" className="text-xs text-primary font-bold tracking-wide flex items-center gap-0.5 uppercase">
+                See All <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               {productsLoading ? Array.from({ length: 4 }).map((_, i) => (
                 <div key={i}>
                   <Card className="overflow-hidden group rounded-lg card-glass">
@@ -725,41 +799,185 @@ export default function StreetifyStorePage() {
                     <div className="p-2 space-y-1">
                       <Skeleton className="h-4 w-3/4" />
                       <Skeleton className="h-4 w-1/2" />
-                      <Skeleton className="h-3 w-1/3" />
                     </div>
                   </Card>
                 </div>
               )) : featuredProducts.map(product => (
-                <ProductCard key={product.id} product={product} isMobile={true} />
+                <motion.div key={product.id} whileTap={{ scale: 0.98 }}>
+                  <ProductCard product={product} isMobile={true} />
+                </motion.div>
               ))}
             </div>
           </section>
 
-          {/* Trending Section */}
-          <section>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="font-black text-2xl font-bebas tracking-tight flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-yellow-500" />
-                #Trending
+          {/* ACTIVE PUBLIC COUPONS & OFFERS (100% DATABASE BACKED) */}
+          {publicCoupons.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="space-y-3 pt-1"
+            >
+              <div className="flex justify-between items-center">
+                <h2 className="font-black text-2xl font-bebas tracking-tight flex items-center gap-1.5">
+                  <Tag className="h-5 w-5 text-red-500" />
+                  Active Offer Codes
+                </h2>
+                <span className="text-[10px] text-muted-foreground font-medium">Tap code to copy</span>
+              </div>
+              <div className="flex overflow-x-auto no-scrollbar -mx-4 px-4 space-x-3 pb-2">
+                {publicCoupons.map((coupon) => (
+                  <motion.div
+                    key={coupon.id}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(coupon.code);
+                      setCopiedCoupon(coupon.code);
+                      toast({ title: "Coupon Copied!", description: `Code ${coupon.code} copied to clipboard.` });
+                      setTimeout(() => setCopiedCoupon(null), 3000);
+                    }}
+                    className="flex-shrink-0 w-64 p-3.5 rounded-xl bg-gradient-to-r from-red-950/40 via-card to-zinc-900 border border-red-500/30 shadow-md cursor-pointer space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
+                        {coupon.discountType === 'percentage' ? `${coupon.discountValue}% OFF` : `₹${coupon.discountValue} OFF`}
+                      </span>
+                      <div className="flex items-center gap-1 text-[11px] font-bold text-primary">
+                        {copiedCoupon === coupon.code ? (
+                          <span className="flex items-center gap-1 text-emerald-400"><Check className="h-3.5 w-3.5" /> Copied!</span>
+                        ) : (
+                          <span className="flex items-center gap-1"><Copy className="h-3 w-3" /> {coupon.code}</span>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-[11px] font-semibold text-foreground truncate">
+                      Use code <span className="font-mono text-red-400 font-bold">{coupon.code}</span> at checkout
+                    </p>
+                    {coupon.minimumAmount > 0 && (
+                      <p className="text-[9px] text-muted-foreground pt-1 border-t border-border/40">
+                        Valid on orders above ₹{coupon.minimumAmount}
+                      </p>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            </motion.section>
+          )}
+
+          {/* ON-SALE PRODUCTS SECTION (100% DATABASE BACKED) */}
+          {saleProducts.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="space-y-3 pt-1"
+            >
+              <div className="flex justify-between items-center">
+                <h2 className="font-black text-2xl font-bebas tracking-tight flex items-center gap-1.5">
+                  <Flame className="h-5 w-5 text-amber-500" />
+                  Special Sale Prices
+                </h2>
+                <Link href="/products" className="text-xs text-primary font-bold tracking-wide flex items-center gap-0.5 uppercase">
+                  See All <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+              <div className="flex overflow-x-auto no-scrollbar -mx-4 px-4 space-x-3.5 pb-2">
+                {saleProducts.slice(0, 6).map((product) => (
+                  <div key={product.id} className="flex-shrink-0 w-40">
+                    <ProductCard product={product} isMobile={true} />
+                  </div>
+                ))}
+              </div>
+            </motion.section>
+          )}
+
+          {/* SHOP BY PRICE / BUDGET STORE */}
+          <section className="space-y-3 pt-1">
+            <div className="flex justify-between items-center">
+              <h2 className="font-black text-2xl font-bebas tracking-tight flex items-center gap-1.5">
+                <Gift className="h-5 w-5 text-emerald-500" />
+                Shop By Price
               </h2>
             </div>
-            <div className="flex overflow-x-auto snap-x snap-mandatory -ml-4 pl-4 space-x-4">
+            <div className="grid grid-cols-3 gap-2">
+              <motion.div whileTap={{ scale: 0.95 }}>
+                <Link href="/products?maxPrice=499" className="p-3 rounded-xl bg-gradient-to-br from-emerald-950/40 via-card to-card border border-emerald-500/20 text-center hover:border-emerald-500/50 transition-all block">
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Budget</p>
+                  <p className="text-sm font-black text-emerald-400 mt-0.5">UNDER ₹499</p>
+                </Link>
+              </motion.div>
+              <motion.div whileTap={{ scale: 0.95 }}>
+                <Link href="/products?maxPrice=999" className="p-3 rounded-xl bg-gradient-to-br from-amber-950/40 via-card to-card border border-amber-500/20 text-center hover:border-amber-500/50 transition-all block">
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Popular</p>
+                  <p className="text-sm font-black text-amber-400 mt-0.5">UNDER ₹999</p>
+                </Link>
+              </motion.div>
+              <motion.div whileTap={{ scale: 0.95 }}>
+                <Link href="/products?maxPrice=1499" className="p-3 rounded-xl bg-gradient-to-br from-purple-950/40 via-card to-card border border-purple-500/20 text-center hover:border-purple-500/50 transition-all block">
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Premium</p>
+                  <p className="text-sm font-black text-purple-400 mt-0.5">UNDER ₹1499</p>
+                </Link>
+              </motion.div>
+            </div>
+          </section>
+
+          {/* BEST SELLERS SECTION */}
+          <section className="space-y-3 pt-1">
+            <div className="flex justify-between items-center">
+              <h2 className="font-black text-2xl font-bebas tracking-tight flex items-center gap-1.5">
+                <Sparkles className="h-5 w-5 text-yellow-500" />
+                Best Sellers
+              </h2>
+              <Link href="/products" className="text-xs text-primary font-bold tracking-wide flex items-center gap-0.5 uppercase">
+                See All <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {productsLoading ? Array.from({ length: 4 }).map((_, i) => (
+                <div key={i}>
+                  <Card className="overflow-hidden group rounded-lg card-glass">
+                    <div className="relative aspect-[3/4]">
+                      <Skeleton className="w-full h-full" />
+                    </div>
+                    <div className="p-2 space-y-1">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </div>
+                  </Card>
+                </div>
+              )) : bestSellers.slice(0, 4).map(product => (
+                <motion.div key={product.id} whileTap={{ scale: 0.98 }}>
+                  <ProductCard product={product} isMobile={true} />
+                </motion.div>
+              ))}
+            </div>
+          </section>
+
+          {/* TRENDING SECTION */}
+          <section className="space-y-3">
+            <div className="flex justify-between items-center">
+              <h2 className="font-black text-2xl font-bebas tracking-tight flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-yellow-500" />
+                #Trending Collections
+              </h2>
+            </div>
+            <div className="flex overflow-x-auto no-scrollbar -mx-4 px-4 space-x-3.5 pb-2">
               {trendsLoading ? (
                 Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="snap-center flex-shrink-0 w-48">
-                    <Skeleton className="w-full aspect-square rounded-lg" />
+                  <div key={i} className="flex-shrink-0 w-44">
+                    <Skeleton className="w-full aspect-square rounded-xl" />
                   </div>
                 ))
               ) : (
                 activeTrends.map(trend => (
-                  <Link href={trend?.ctaLink || '/products'} key={trend?.id || trend?._id} className="snap-center flex-shrink-0 w-48 block">
+                  <Link href={trend?.ctaLink || '/products'} key={trend?.id || trend?._id} className="flex-shrink-0 w-44 block">
                     <motion.div
                       whileTap={{ scale: 0.95 }}
-                      className="relative aspect-square rounded-lg overflow-hidden group border border-white/5"
+                      className="relative aspect-square rounded-xl overflow-hidden group border border-border/60 shadow-md"
                     >
                       <Image src={trend.imageUrl} alt={trend.title} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" unoptimized />
-                      <div className="absolute inset-0 bg-black/40 flex items-end p-2 transition-colors group-hover:bg-black/50">
-                        <h3 className="text-white font-bold text-md tracking-wide">{trend.title}</h3>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end p-3">
+                        <h3 className="text-white font-bold text-sm tracking-wide">{trend.title}</h3>
                       </div>
                     </motion.div>
                   </Link>
@@ -767,6 +985,26 @@ export default function StreetifyStorePage() {
               )}
             </div>
           </section>
+
+          {/* STREETWEAR BRAND COMMITMENT BANNER */}
+          <div className="rounded-2xl bg-gradient-to-br from-zinc-900 via-black to-zinc-900 border border-white/10 p-5 text-white space-y-3 text-center shadow-xl">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-[10px] font-bold uppercase tracking-wider text-red-400">
+              <Sparkles className="h-3 w-3" /> BASKEY STUDIO CREATIVE VENTURE
+            </div>
+            <h3 className="text-2xl font-black font-bebas tracking-wide uppercase">
+              CRAFTED FOR EXPRESSION
+            </h3>
+            <p className="text-xs text-zinc-400 leading-relaxed max-w-xs mx-auto">
+              Heavyweight cotton fabrics, precision stitching, and functional streetwear aesthetics built to last.
+            </p>
+            <div className="pt-1">
+              <Button asChild size="sm" variant="outline" className="rounded-full h-8 px-5 text-xs font-bold border-white/20 text-white hover:bg-white hover:text-black">
+                <Link href="/about">
+                  LEARN OUR STORY
+                </Link>
+              </Button>
+            </div>
+          </div>
         </main>
         <MobileFooter />
       </div>

@@ -16,6 +16,7 @@ export type Product = {
   rating?: number;
   stock?: number;
   imageUrls: string[];
+  colorImages?: Record<string, string[]>;
   category: string[];
   sizes: string[];
   colors: string[];

@@ -4,8 +4,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { AddToCartButton } from '@/components/add-to-cart-button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Product } from '@/context/product-context';
 import * as React from 'react';
 import { Star } from 'lucide-react';
@@ -22,35 +21,33 @@ const ProductImageSlider = ({ imageUrls, alt, isMobile }: { imageUrls: string[],
         );
     }, [imageUrls]);
 
-    const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
+    const [isHovered, setIsHovered] = React.useState(false);
 
-    React.useEffect(() => {
-        if (validImageUrls && validImageUrls.length > 1) {
-            const interval = setInterval(() => {
-                setCurrentImageIndex(prevIndex => (prevIndex + 1) % validImageUrls.length);
-            }, 3000); // Change image every 3 seconds
-            return () => clearInterval(interval);
-        }
-    }, [validImageUrls]);
-    
-    const rawImageUrl = validImageUrls.length > 0 ? validImageUrls[currentImageIndex] : "https://placehold.co/600x800.png";
+    const activeIndex = (!isMobile && isHovered && validImageUrls.length > 1) ? 1 : 0;
+    const rawImageUrl = validImageUrls.length > 0 ? validImageUrls[activeIndex] : "https://placehold.co/600x800.png";
     const imageUrl = getOptimizedImageUrl(rawImageUrl, 500);
 
     return (
-        <Image
-            src={imageUrl}
-            alt={alt}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className={cn("object-cover transition-all duration-500 ease-in-out aspect-[3/4]", !isMobile && "group-hover:scale-105")}
-            loading="lazy"
-            data-ai-hint="clothing item"
-        />
+        <div 
+            className="relative w-full h-full"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            <Image
+                src={imageUrl}
+                alt={alt}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className={cn("object-cover transition-all duration-500 ease-in-out aspect-[3/4]", !isMobile && "group-hover:scale-105")}
+                loading="lazy"
+                data-ai-hint="clothing item"
+            />
+        </div>
     );
 };
 
 export function ProductCard({ product, isMobile = false }: { product: Product, isMobile?: boolean }) {
-    const [deliveryDate] = React.useState(format(addDays(new Date(), 5), 'MMM dd'));
+    const [deliveryDate] = React.useState(format(addDays(new Date(), 10), 'MMM dd'));
 
     if (!product) return null;
 
@@ -73,7 +70,7 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
                 <div className="relative aspect-[3/4]">
                     <ProductImageSlider imageUrls={product.imageUrls} alt={product.name || 'Product'} isMobile={isMobile} />
                      {isNew && <Badge variant="destructive" className="absolute top-2 left-2">Fresh</Badge>}
-                      {product.discountPercentage && product.discountPercentage > 0 && (
+                      {Boolean(product.discountPercentage && product.discountPercentage > 0) && (
                         <Badge variant="destructive" className="absolute top-2 right-2">
                             {product.discountPercentage}% OFF
                         </Badge>
@@ -100,7 +97,7 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
                 <div className="relative aspect-[3/4] bg-gray-100">
                     <ProductImageSlider imageUrls={product.imageUrls} alt={product.name || 'Product'} isMobile={isMobile} />
                      {isNew && <Badge variant="default" className="absolute top-3 left-3 bg-stone-900 text-white">New</Badge>}
-                      {product.discountPercentage && product.discountPercentage > 0 && (
+                      {Boolean(product.discountPercentage && product.discountPercentage > 0) && (
                         <Badge variant="destructive" className="absolute top-3 right-3">
                             {product.discountPercentage}% OFF
                         </Badge>
@@ -117,9 +114,6 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
                     </div>
                 </CardContent>
             </Link>
-            <CardFooter className="p-4 pt-0">
-                <AddToCartButton product={product} className="bg-stone-900 text-white hover:bg-stone-700 rounded-full" />
-            </CardFooter>
         </Card>
     );
 }

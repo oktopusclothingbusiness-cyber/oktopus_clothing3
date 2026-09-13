@@ -443,14 +443,6 @@ export default function MobileBannersManager() {
                       alt={activeBanners[0].title}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-3 flex flex-col justify-end">
-                      <span className="text-[9px] font-bold text-white uppercase tracking-wider">
-                        Featured Banner
-                      </span>
-                      <h5 className="text-xs font-black text-white leading-tight">
-                        {activeBanners[0].title}
-                      </h5>
-                    </div>
                   </>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-zinc-600 space-y-2">

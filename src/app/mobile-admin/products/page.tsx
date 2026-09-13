@@ -18,6 +18,7 @@ interface Product {
   sizes?: string[];
   colors?: string[];
   imageUrls?: string[];
+  colorImages?: Record<string, string[]>;
   category?: string[];
   description?: string;
 }

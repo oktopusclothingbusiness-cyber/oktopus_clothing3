@@ -13,7 +13,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { useAuth } from "@/context/auth-context";
 import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
@@ -25,11 +26,13 @@ const formSchema = z.object({
   password: z.string().min(1, { message: "Password is required." }),
 });
 
-export default function LoginPage() {
+function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectPath = searchParams.get('redirect');
   const { login, signInWithGoogle } = useAuth();
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -39,6 +42,13 @@ export default function LoginPage() {
       password: "",
     },
   });
+
+  const handleGoogleSignIn = async () => {
+    await signInWithGoogle();
+    if (redirectPath) {
+      router.push(redirectPath);
+    }
+  };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -60,6 +70,8 @@ export default function LoginPage() {
         });
         if (data.user.role === 'admin') {
           router.push('/admin');
+        } else if (redirectPath) {
+          router.push(redirectPath);
         } else {
           router.push('/store');
         }
@@ -97,7 +109,7 @@ export default function LoginPage() {
             <CardContent className="grid gap-5 px-8">
               <Button 
                 variant="outline" 
-                onClick={signInWithGoogle} 
+                onClick={handleGoogleSignIn} 
                 className="w-full h-11 rounded-xl font-medium border-border/80 hover:bg-accent/60 transition-all flex items-center justify-center gap-2.5 shadow-sm group"
               >
                 <AnimatedGoogleIcon className="h-4 w-4" />
@@ -227,7 +239,7 @@ export default function LoginPage() {
                 <motion.div whileTap={{ scale: 0.98 }}>
                   <Button 
                     variant="outline" 
-                    onClick={signInWithGoogle} 
+                    onClick={handleGoogleSignIn} 
                     className="w-full h-11 rounded-xl font-medium border-border/80 flex items-center justify-center gap-2 text-sm"
                   >
                     <AnimatedGoogleIcon className="h-4 w-4" />
@@ -339,5 +351,13 @@ export default function LoginPage() {
         <MobileFooter />
       </div>
     </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

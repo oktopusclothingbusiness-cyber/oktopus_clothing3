@@ -17,7 +17,9 @@ import { MobileHeader } from '@/components/mobile-header';
 import { MobileFooter } from '@/components/mobile-footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
-import { getProductImage } from '@/lib/utils';
+import Link from 'next/link';
+import { getProductImage, getOptimizedImageUrl } from '@/lib/utils';
+import { usePromotion } from '@/context/promotion-context';
 
 declare global {
   interface Window {
@@ -126,10 +128,15 @@ const ShippingForm = ({
 
 export default function CheckoutPage() {
   const { cart, subtotal, discount, shipping, total, clearCart } = useCart();
+  const { promotions } = usePromotion();
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [isProcessing, setIsProcessing] = React.useState(false);
+
+  const checkoutPromotion = React.useMemo(() => {
+    return (promotions || []).find(p => p && p.isActive && p.placement === 'checkout_page');
+  }, [promotions]);
 
   const [shippingAddress, setShippingAddress] = React.useState({
     mobile: '',
@@ -301,9 +308,9 @@ export default function CheckoutPage() {
                 {cart.map(item => (
                   <div key={`${item.id}-${item.size}-${item.color}`} className="flex justify-between items-center text-sm">
                       <div className="flex items-center gap-2">
-                        <Image src={getProductImage(item.imageUrls, "https://placehold.co/40x40.png")} alt={item.name} width={40} height={40} className="rounded-md" />
+                        <Image src={getProductImage(item.imageUrls, "https://placehold.co/40x40.png")} alt={item.name || 'Order Item'} width={40} height={40} className="rounded-md" />
                         <div>
-                            <p className='font-medium'>{item.name} (x{item.quantity})</p>
+                            <p className='font-medium'>{item.name || 'Product'} (x{item.quantity})</p>
                             <p className='text-muted-foreground text-xs'>Size: {item.size}, Color: {item.color}</p>
                         </div>
                       </div>
@@ -331,6 +338,19 @@ export default function CheckoutPage() {
                     <span>₹{total.toFixed(2)}</span>
                   </div>
               </div>
+              {checkoutPromotion && (
+                <Link
+                  href={checkoutPromotion.ctaLink || '/products'}
+                  className="relative block w-full aspect-[2/1] rounded-xl overflow-hidden shadow-md group cursor-pointer border border-border mt-4"
+                >
+                  <Image
+                    src={getOptimizedImageUrl(checkoutPromotion.imageUrl, 1000)}
+                    alt={checkoutPromotion.title || 'Checkout Promotion Banner'}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </Link>
+              )}
             </div>
           </div>
         </main>

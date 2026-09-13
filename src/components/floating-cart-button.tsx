@@ -21,6 +21,8 @@ export function FloatingCartButton() {
     '/admin', // also covers /admin/*
     '/profile', // also covers /profile/*
     '/invoice', // also covers /invoice/*
+    '/products', // PDP & Catalog
+    '/checkout',
   ];
 
   if (!pathname) return null;

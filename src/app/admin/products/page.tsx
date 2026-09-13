@@ -55,6 +55,7 @@ type ProductFormData = {
   imageUrls: string;
   sizes: string;
   colors: string;
+  colorImages?: Record<string, string>;
   category: string[];
   featured: boolean;
   isHero: boolean;
@@ -73,6 +74,7 @@ const emptyProduct: ProductFormData = {
   imageUrls: '',
   sizes: '',
   colors: '',
+  colorImages: {},
   category: [],
   featured: false,
   isHero: false,
@@ -187,6 +189,16 @@ export default function AdminProductsPage() {
   const handleEditClick = (product: Product) => {
     setIsEditing(true);
     setShowForm(true);
+
+    const initialColorImages: Record<string, string> = {};
+    if (product.colorImages) {
+      Object.entries(product.colorImages).forEach(([colorName, urlsArr]) => {
+        if (Array.isArray(urlsArr)) {
+          initialColorImages[colorName] = urlsArr.join(', ');
+        }
+      });
+    }
+
     setFormData({
       id: product.id,
       name: product.name,
@@ -200,6 +212,7 @@ export default function AdminProductsPage() {
       imageUrls: product.imageUrls.join(', '),
       sizes: product.sizes.join(', '),
       colors: product.colors.join(', '),
+      colorImages: initialColorImages,
       category: product.category || [],
       featured: product.featured || false,
       isHero: product.isHero || false,
@@ -215,6 +228,18 @@ export default function AdminProductsPage() {
     if (formData.name && formData.price && formData.imageUrls && formData.category.length > 0) {
       setIsSubmitting(true);
 
+      const colorImagesObj: Record<string, string[]> = {};
+      if (formData.colorImages) {
+        Object.entries(formData.colorImages).forEach(([colorName, urlsStr]) => {
+          if (urlsStr && typeof urlsStr === 'string') {
+            const urlsArr = urlsStr.split(',').map((u: string) => u.trim()).filter((u: string) => u);
+            if (urlsArr.length > 0) {
+              colorImagesObj[colorName] = urlsArr;
+            }
+          }
+        });
+      }
+
       const productData = {
         name: formData.name,
         description: formData.description,
@@ -225,6 +250,7 @@ export default function AdminProductsPage() {
         rating: formData.rating,
         stock: formData.stock,
         imageUrls: formData.imageUrls.split(',').map((url: string) => url.trim()).filter((url: string) => url),
+        colorImages: Object.keys(colorImagesObj).length > 0 ? colorImagesObj : undefined,
         category: formData.category,
         sizes: formData.sizes.split(',').map((s: string) => s.trim()).filter((s: string) => s),
         colors: formData.colors.split(',').map((c: string) => c.trim()).filter((c: string) => c),
@@ -283,31 +309,36 @@ export default function AdminProductsPage() {
     try {
       const reader = new FileReader();
       reader.onload = async (e) => {
-        const data = e.target?.result;
-        const workbook = XLSX.read(data, { type: 'binary' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const json = XLSX.utils.sheet_to_json(worksheet);
+        try {
+          const data = e.target?.result;
+          const workbook = XLSX.read(data, { type: 'binary' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const json = XLSX.utils.sheet_to_json(worksheet);
 
-        const response = await fetch('/api/products/bulk-upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(json),
-        });
+          const response = await fetch('/api/products/bulk-upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(json),
+          });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message + (errorData.details ? ` Details: ${errorData.details}` : ''));
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message + (errorData.details ? ` Details: ${errorData.details}` : ''));
+          }
+
+          toast({ title: 'Success', description: 'Products uploaded successfully.' });
+          await fetchProducts();
+          setBulkFile(null);
+        } catch (err: any) {
+          toast({ title: 'Upload Error', description: err.message || 'Failed to upload bulk products.', variant: 'destructive', duration: 10000 });
+        } finally {
+          setIsUploading(false);
         }
-
-        toast({ title: 'Success', description: 'Products uploaded successfully.' });
-        await fetchProducts();
-        setBulkFile(null);
       };
       reader.readAsBinaryString(bulkFile);
     } catch (error: any) {
       toast({ title: 'Upload Error', description: error.message, variant: 'destructive', duration: 10000 });
-    } finally {
       setIsUploading(false);
     }
   };
@@ -645,6 +676,50 @@ export default function AdminProductsPage() {
                         />
                       </div>
                     </div>
+
+                    {/* COLOR-SPECIFIC IMAGES (OPTIONAL MAPPING) */}
+                    {formData.colors.split(',').map((c) => c.trim()).filter(Boolean).length > 0 && (
+                      <div className="space-y-3 pt-3 border-t border-border mt-3">
+                        <Label className="text-xs font-bold flex items-center gap-1.5 text-primary">
+                          <Sparkles className="h-3.5 w-3.5" />
+                          Color-Specific Images (Optional)
+                        </Label>
+                        <p className="text-[11px] text-muted-foreground leading-normal">
+                          Provide comma-separated image URLs for each color variant. When a user selects a color in store or mobile app, only these images will be shown.
+                        </p>
+                        <div className="space-y-2.5">
+                          {formData.colors
+                            .split(',')
+                            .map((c) => c.trim())
+                            .filter(Boolean)
+                            .map((colorName) => (
+                              <div key={colorName} className="space-y-1 bg-muted/30 p-2.5 rounded-lg border border-border/50">
+                                <Label className="text-[11px] font-bold flex items-center justify-between text-foreground">
+                                  <span>{colorName} Variant Images</span>
+                                  <span className="text-[10px] text-muted-foreground font-normal">Comma-separated URLs</span>
+                                </Label>
+                                <Textarea
+                                  value={formData.colorImages?.[colorName] || ''}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      colorImages: {
+                                        ...(prev.colorImages || {}),
+                                        [colorName]: val,
+                                      },
+                                    }));
+                                  }}
+                                  placeholder={`https://.../photo1.jpg, https://.../photo2.jpg`}
+                                  className="text-xs min-h-[50px]"
+                                  rows={2}
+                                  disabled={isSubmitting}
+                                />
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="flex items-center gap-6 pt-2">
                       <div className="flex items-center space-x-2">
