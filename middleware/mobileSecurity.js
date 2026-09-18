@@ -2,8 +2,25 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
 import crypto from 'crypto';
+import { isIpBlocked } from '../lib/ipBlocker.js';
 
 const MOBILE_HMAC_SECRET = process.env.MOBILE_HMAC_SECRET || 'okto_mobile_sec_2026_prod';
+
+// 0. IP Blocker & Bot Attack Defense Middleware
+export function expressIpBlockerMiddleware(req, res, next) {
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = (forwarded ? forwarded.toString().split(',')[0].trim() : req.socket?.remoteAddress || '127.0.0.1').trim();
+
+  const status = isIpBlocked(ip);
+  if (status.blocked) {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied: Your IP address has been temporarily blocked due to suspicious activity.',
+      reason: status.reason || 'Automated security lockout',
+    });
+  }
+  next();
+}
 
 // 1. Helmet HTTP Security Headers Configuration
 export const helmetMiddleware = helmet({
@@ -28,11 +45,19 @@ export const globalMobileRateLimiter = rateLimit({
 
 // 3. Auth Routes Rate Limiter
 export const authMobileRateLimiter = rateLimit({
-  windowMs: 300000, // 5 minutes
+  windowMs: 5 * 60 * 1000, // 5 minutes
   max: 5,
-  message: { message: 'Too many authentication attempts. Please wait 5 minutes before trying again.' },
   standardHeaders: true,
   legacyHeaders: false,
+  handler: (req, res, /* next */, options) => {
+    const retryAfter = Math.ceil(options.windowMs / 1000);
+    res.set('Retry-After', String(retryAfter));
+    res.status(429).json({
+      success: false,
+      message: 'Too many authentication attempts. Please wait 5 minutes before trying again.',
+      retryAfter,
+    });
+  },
 });
 
 // 4. Safe NoSQL Injection Sanitization Middleware

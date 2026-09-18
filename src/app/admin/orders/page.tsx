@@ -9,8 +9,10 @@ import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Eye, PlusCircle, Store } from 'lucide-react';
+import { Trash2, Eye, PlusCircle, Store, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { getShortOrderId } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -84,6 +86,8 @@ export default function OrdersPage() {
 
   const [sortField, setSortField] = React.useState<OrderSortField>('createdAt');
   const [sortOrder, setSortOrder] = React.useState<OrderSortOrder>('desc');
+  const [searchQuery, setSearchQuery] = React.useState<string>('');
+  const [statusFilter, setStatusFilter] = React.useState<string>('all');
 
   const handleSort = (field: OrderSortField) => {
     if (sortField === field) {
@@ -94,8 +98,41 @@ export default function OrdersPage() {
     }
   };
 
+  const filteredOrders = React.useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    return orders.filter((order) => {
+      // Status filter
+      if (statusFilter !== 'all' && order.status !== statusFilter) {
+        return false;
+      }
+
+      // Search query filter
+      if (!q) return true;
+
+      const orderId = (order._id || '').toLowerCase();
+      const shortId = getShortOrderId(order._id).toLowerCase();
+      const suffixId = orderId.slice(-6);
+      const userName = (order.userName || '').toLowerCase();
+      const mobile = (order.shippingAddress?.mobile || '').toLowerCase();
+      const address = (order.shippingAddress?.address || '').toLowerCase();
+      const paymentId = (order.paymentDetails?.razorpay_payment_id || '').toLowerCase();
+      const productNames = (order.products || []).map((p) => (p.name || '').toLowerCase()).join(' ');
+
+      return (
+        orderId.includes(q) ||
+        shortId.includes(q) ||
+        suffixId.includes(q) ||
+        userName.includes(q) ||
+        mobile.includes(q) ||
+        address.includes(q) ||
+        paymentId.includes(q) ||
+        productNames.includes(q)
+      );
+    });
+  }, [orders, searchQuery, statusFilter]);
+
   const sortedOrders = React.useMemo(() => {
-    return [...orders].sort((a, b) => {
+    return [...filteredOrders].sort((a, b) => {
       let valA: any = a[sortField];
       let valB: any = b[sortField];
 
@@ -114,7 +151,7 @@ export default function OrdersPage() {
       if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [orders, sortField, sortOrder]);
+  }, [filteredOrders, sortField, sortOrder]);
 
   React.useEffect(() => {
     fetchOrders();
@@ -244,9 +281,69 @@ export default function OrdersPage() {
         </Button>
       </div>
       <Card>
-        <CardHeader>
-          <CardTitle>All Orders</CardTitle>
-          <CardDescription>View and manage all customer orders.</CardDescription>
+        <CardHeader className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <CardTitle>All Orders</CardTitle>
+              <CardDescription>
+                {searchQuery || statusFilter !== 'all'
+                  ? `Showing ${sortedOrders.length} of ${orders.length} orders matching your filters.`
+                  : `View and manage all ${orders.length} customer orders.`}
+              </CardDescription>
+            </div>
+          </div>
+
+          {/* Search & Filter Toolbar */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 pt-1">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input
+                placeholder="Search by Order ID (#short code or ID), customer name, phone, product, address, payment ref..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 pr-9 h-10 w-full rounded-xl"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            <div className="w-full sm:w-48 shrink-0">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-10 rounded-xl">
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  {statusOptions.map((status) => (
+                    <SelectItem key={status} value={status} className="capitalize">
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {(searchQuery || statusFilter !== 'all') && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setSearchQuery('');
+                  setStatusFilter('all');
+                }}
+                className="h-10 text-xs text-muted-foreground hover:text-foreground shrink-0 rounded-xl"
+              >
+                Reset
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="border rounded-lg overflow-hidden">
@@ -372,8 +469,29 @@ export default function OrdersPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center h-24">
-                      No orders found.
+                    <TableCell colSpan={7} className="h-36 text-center text-muted-foreground">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Search className="w-8 h-8 text-muted-foreground/40" />
+                        <p className="font-semibold text-foreground text-sm">No matching orders found</p>
+                        <p className="text-xs text-muted-foreground">
+                          {searchQuery
+                            ? `No results found for "${searchQuery}". Try a different keyword or order ID.`
+                            : 'No orders match the selected filters.'}
+                        </p>
+                        {(searchQuery || statusFilter !== 'all') && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSearchQuery('');
+                              setStatusFilter('all');
+                            }}
+                            className="mt-2 text-xs rounded-lg"
+                          >
+                            Clear Filters
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}

@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import {
+  expressIpBlockerMiddleware,
   helmetMiddleware,
   globalMobileRateLimiter,
   mongoSanitizeMiddleware,
@@ -9,6 +10,9 @@ import {
 import mobileRoutes from './routes/mobile.js';
 
 const app = express();
+
+// IP Blocker & Bot Attack Defense (first line of defense)
+app.use(expressIpBlockerMiddleware);
 
 // Enable CORS for mobile client headers
 app.use(

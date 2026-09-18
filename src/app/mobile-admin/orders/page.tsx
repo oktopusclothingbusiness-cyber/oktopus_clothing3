@@ -8,8 +8,11 @@ import {
   ShieldCheck,
   Plus,
   Store,
+  Search,
+  X,
 } from "lucide-react";
 import { OfflineSaleDialog } from "@/components/admin/offline-sale-dialog";
+import { getShortOrderId } from "@/lib/utils";
 
 interface OrderItem {
   name: string;
@@ -58,6 +61,7 @@ export default function MobileOrdersManager() {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
 
   const fetchOrders = async () => {
@@ -112,9 +116,33 @@ export default function MobileOrdersManager() {
     }
   };
 
-  const filteredOrders = orders.filter((o) =>
-    filterStatus === "all" ? true : o.status === filterStatus
-  );
+  const filteredOrders = orders.filter((o) => {
+    if (filterStatus !== "all" && o.status !== filterStatus) {
+      return false;
+    }
+    if (!searchQuery.trim()) return true;
+
+    const q = searchQuery.toLowerCase().trim();
+    const id = (o._id || "").toLowerCase();
+    const shortId = getShortOrderId(o._id).toLowerCase();
+    const suffixId = id.slice(-6);
+    const name = (o.userName || "").toLowerCase();
+    const mobile = (o.shippingAddress?.mobile || "").toLowerCase();
+    const address = (o.shippingAddress?.address || "").toLowerCase();
+    const paymentId = (o.paymentDetails?.razorpay_payment_id || "").toLowerCase();
+    const productNames = (o.products || []).map((p) => (p.name || "").toLowerCase()).join(" ");
+
+    return (
+      id.includes(q) ||
+      shortId.includes(q) ||
+      suffixId.includes(q) ||
+      name.includes(q) ||
+      mobile.includes(q) ||
+      address.includes(q) ||
+      paymentId.includes(q) ||
+      productNames.includes(q)
+    );
+  });
 
   return (
     <div className="space-y-6">
@@ -169,10 +197,46 @@ export default function MobileOrdersManager() {
               </select>
             </div>
 
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search order ID, customer, phone, item..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-zinc-900/90 border border-zinc-800 text-xs text-white placeholder:text-zinc-500 rounded-xl pl-9 pr-8 py-2 focus:outline-none focus:border-zinc-500 transition"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+                  aria-label="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
             {loading ? (
               <div className="py-8 text-center text-xs text-zinc-500">Loading orders from database...</div>
             ) : filteredOrders.length === 0 ? (
-              <div className="py-8 text-center text-xs text-zinc-500">No orders found in database.</div>
+              <div className="py-8 text-center text-xs text-zinc-500 flex flex-col items-center gap-1.5">
+                <Search className="w-5 h-5 text-zinc-600" />
+                <span>No orders match your search.</span>
+                {(searchQuery || filterStatus !== "all") && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setFilterStatus("all");
+                    }}
+                    className="text-[11px] text-zinc-400 hover:text-white underline mt-1"
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </div>
             ) : (
               <div className="space-y-2.5">
                 {filteredOrders.map((order) => {

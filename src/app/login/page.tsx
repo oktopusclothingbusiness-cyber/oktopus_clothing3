@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,11 +29,26 @@ const formSchema = z.object({
 function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [cooldownSeconds, setCooldownSeconds] = useState<number>(0);
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectPath = searchParams.get('redirect');
   const { login, signInWithGoogle } = useAuth();
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+    const interval = setInterval(() => {
+      setCooldownSeconds((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [cooldownSeconds]);
+
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -76,11 +91,21 @@ function LoginForm() {
           router.push('/store');
         }
       } else {
-        toast({
-          title: "Error",
-          description: data.message || "An error occurred during login.",
-          variant: "destructive",
-        });
+        if (response.status === 429) {
+          const waitTime = data.retryAfter || 60;
+          setCooldownSeconds(waitTime);
+          toast({
+            title: "Too Many Attempts",
+            description: data.message || "Please wait before attempting to log in again.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: data.message || "An error occurred during login.",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       console.error(error);
@@ -186,12 +211,20 @@ function LoginForm() {
                     )}
                   />
 
+                  {cooldownSeconds > 0 && (
+                    <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive text-xs rounded-xl flex items-center gap-2">
+                      <span>⚠️ Rate limit active. Please wait <strong>{formatTime(cooldownSeconds)}</strong> before retrying.</span>
+                    </div>
+                  )}
+
                   <Button 
                     className="w-full h-11 rounded-xl font-semibold text-sm shadow-md transition-all mt-2 flex items-center justify-center gap-2 group" 
                     type="submit" 
-                    disabled={form.formState.isSubmitting}
+                    disabled={form.formState.isSubmitting || cooldownSeconds > 0}
                   >
-                    {form.formState.isSubmitting ? (
+                    {cooldownSeconds > 0 ? (
+                      `Try again in ${formatTime(cooldownSeconds)}`
+                    ) : form.formState.isSubmitting ? (
                       'Signing In...'
                     ) : (
                       <>
@@ -317,13 +350,21 @@ function LoginForm() {
                       )}
                     />
 
+                    {cooldownSeconds > 0 && (
+                      <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive text-xs rounded-xl flex items-center gap-2">
+                        <span>⚠️ Rate limit active. Please wait <strong>{formatTime(cooldownSeconds)}</strong> before retrying.</span>
+                      </div>
+                    )}
+
                     <motion.div whileTap={{ scale: 0.98 }}>
                       <Button 
                         className="w-full h-11 rounded-xl font-semibold text-sm shadow-sm mt-1 flex items-center justify-center gap-2" 
                         type="submit" 
-                        disabled={form.formState.isSubmitting}
+                        disabled={form.formState.isSubmitting || cooldownSeconds > 0}
                       >
-                        {form.formState.isSubmitting ? (
+                        {cooldownSeconds > 0 ? (
+                          `Try again in ${formatTime(cooldownSeconds)}`
+                        ) : form.formState.isSubmitting ? (
                           'Signing In...'
                         ) : (
                           <>

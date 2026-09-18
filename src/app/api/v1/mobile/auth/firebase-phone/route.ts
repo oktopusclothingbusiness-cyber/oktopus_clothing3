@@ -3,11 +3,34 @@ import jwt from 'jsonwebtoken';
 import clientPromise from '@/lib/mongodb';
 import firebaseAdmin from '@/lib/firebaseAdmin';
 import { validateNextMobileHeaders } from '@/lib/mobileSecurityNext';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { recordViolation } from '@/lib/ipBlocker';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'okto_jwt_secret_2026_production_key_baskey';
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIp(request);
+    const rateLimitResult = checkRateLimit(`mobile:auth:${ip}`, {
+      max: 5,
+      windowMs: 5 * 60 * 1000, // 5 minutes
+    });
+
+    if (!rateLimitResult.success) {
+      const violation = recordViolation(ip, 'Excessive mobile auth token exchange attempts');
+      const minutes = Math.ceil(rateLimitResult.retryAfter / 60);
+      return NextResponse.json(
+        {
+          success: false,
+          message: violation.banned
+            ? 'Access denied: Your IP address has been temporarily blocked due to repeated excessive auth requests.'
+            : `Too many authentication attempts. Please wait ${minutes} minute${minutes > 1 ? 's' : ''} before trying again.`,
+          retryAfter: rateLimitResult.retryAfter,
+        },
+        { status: violation.banned ? 403 : 429, headers: rateLimitResult.headers }
+      );
+    }
+
     const body = await request.json().catch(() => ({}));
     const headerCheck = await validateNextMobileHeaders(request, body);
     if (!headerCheck.valid) return headerCheck.response!;
