@@ -13,6 +13,7 @@ export interface ExpoPushMessage {
   badge?: number;
   channelId?: string;
   categoryId?: string;
+  attachments?: Array<{ url: string }>;
 }
 
 export interface PushDispatchResult {
@@ -141,11 +142,14 @@ export async function triggerUserEventPushNotification(params: {
     const message: ExpoPushMessage = {
       to: token,
       sound: 'default',
+      priority: 'high',
+      channelId: 'high_importance',
       title,
       body,
+      ...(imageUrl ? { attachments: [{ url: imageUrl }] } : {}),
       data: {
-        ...(deepLink ? { deepLink } : {}),
-        ...(imageUrl ? { imageUrl } : {}),
+        ...(deepLink ? { url: deepLink, deepLink } : {}),
+        ...(imageUrl ? { image: imageUrl, imageUrl } : {}),
         ...(extraData || {}),
       },
     };

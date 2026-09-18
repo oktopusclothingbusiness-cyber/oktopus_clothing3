@@ -102,11 +102,14 @@ export async function POST(request: NextRequest) {
     const messages: ExpoPushMessage[] = targetUsers.map((user) => ({
       to: user.pushToken,
       sound: 'default',
+      priority: 'high',
+      channelId: 'high_importance',
       title: title.trim(),
       body: messageBody.trim(),
+      ...(imageUrl ? { attachments: [{ url: imageUrl.trim() }] } : {}),
       data: {
-        ...(deepLink ? { deepLink } : {}),
-        ...(imageUrl ? { imageUrl } : {}),
+        ...(deepLink ? { url: deepLink.trim(), deepLink: deepLink.trim() } : {}),
+        ...(imageUrl ? { image: imageUrl.trim(), imageUrl: imageUrl.trim() } : {}),
       },
     }));
 
