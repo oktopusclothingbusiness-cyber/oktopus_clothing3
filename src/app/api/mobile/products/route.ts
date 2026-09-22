@@ -13,9 +13,27 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const searchQuery = searchParams.get('q');
     const categoryId = searchParams.get('category');
+    const productId = searchParams.get('id') || searchParams.get('productId');
 
     const client = await clientPromise;
     const db = client.db();
+
+    if (productId) {
+      const { ObjectId } = await import('mongodb');
+      let query: any = {};
+      if (ObjectId.isValid(productId)) {
+        query = { $or: [{ _id: new ObjectId(productId) }, { id: productId }] };
+      } else {
+        query = { id: productId };
+      }
+      const product = await db.collection('products').findOne(query, {
+        projection: { cost: 0, supplierInfo: 0 }
+      });
+      if (!product) {
+        return NextResponse.json({ message: 'Product not found.' }, { status: 404 });
+      }
+      return NextResponse.json(product, { status: 200 });
+    }
 
     let query: any = {};
     if (searchQuery) {

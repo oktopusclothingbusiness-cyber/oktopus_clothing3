@@ -110,7 +110,7 @@ const parseProduct = (item: any, categoryMap: Map<string, Category>, rowIndex: n
             originalPrice: originalPriceKey && item[originalPriceKey] ? parseFloat(item[originalPriceKey].toString().replace(/[^0-9.]/g, '')) || undefined : undefined,
             discountPercentage: discountPercentageKey && item[discountPercentageKey] ? parseInt(item[discountPercentageKey].toString(), 10) || 0 : 0,
             rating: ratingKey && item[ratingKey] ? parseFloat(item[ratingKey].toString()) || 4.5 : 4.5,
-            stock: stockKey && item[stockKey] ? parseInt(item[stockKey].toString(), 10) || 100 : 100,
+            stock: stockKey && item[stockKey] ? parseInt(item[stockKey].toString(), 10) || 10 : 10,
             imageUrls: imageUrls,
             colorImages: colorImages,
             category: categoryIds,

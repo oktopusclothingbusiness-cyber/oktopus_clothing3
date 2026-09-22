@@ -4,6 +4,25 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
+export type FabricCategoryVariant = {
+  id: string;
+  name: string; // "Regular", "Oversized", "French Terry", "Sweatshirt", etc.
+  price: number;
+  originalPrice?: number;
+  stock?: number;
+  sizes: string[];
+  gsm?: string;
+  description?: string;
+};
+
+export type ProductColorVariant = {
+  id: string;
+  color: string;
+  colorHex?: string;
+  images: string[];
+  categories: FabricCategoryVariant[];
+};
+
 export type Product = {
   _id: string;
   id: string;
@@ -17,6 +36,7 @@ export type Product = {
   stock?: number;
   imageUrls: string[];
   colorImages?: Record<string, string[]>;
+  colorVariants?: ProductColorVariant[];
   category: string[];
   sizes: string[];
   colors: string[];

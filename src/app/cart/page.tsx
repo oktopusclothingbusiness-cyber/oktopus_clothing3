@@ -70,26 +70,29 @@ export default function CartPage() {
             <div className="grid md:grid-cols-3 gap-8">
               <div className="md:col-span-2 space-y-4">
                 {cart.map((item) => (
-                  <div key={`${item.id}-${item.size}-${item.color}`} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={`${item.id}-${item.size}-${item.color}-${item.fabricQuality || ''}`} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-4">
                       <Image src={getProductImage(item.imageUrls, "https://placehold.co/80x80.png")} alt={item.name || 'Cart Item'} width={80} height={80} className="rounded-md" />
                       <div>
                         <h2 className="font-semibold">{item.name}</h2>
-                        <p className="text-sm text-muted-foreground">Size: {item.size}, Color: {item.color}</p>
-                        <p className="text-muted-foreground">₹{item.price.toFixed(2)}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {item.fabricQuality ? <span className="font-medium text-foreground mr-1.5">[{item.fabricQuality}]</span> : null}
+                          Size: {item.size}, Color: {item.color}
+                        </p>
+                        <p className="text-muted-foreground font-semibold">₹{item.price.toFixed(2)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity - 1)} disabled={item.quantity <= 1}>
+                        <Button variant="outline" size="icon" onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity - 1, item.fabricQuality)} disabled={item.quantity <= 1}>
                           <Minus className="h-4 w-4" />
                         </Button>
                         <span>{item.quantity}</span>
-                        <Button variant="outline" size="icon" onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity + 1)}>
+                        <Button variant="outline" size="icon" onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity + 1, item.fabricQuality)}>
                           <Plus className="h-4 w-4" />
                         </Button>
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id, item.size, item.color)}>
+                      <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id, item.size, item.color, item.fabricQuality)}>
                         <Trash2 className="h-5 w-5 text-destructive" />
                       </Button>
                     </div>
@@ -161,23 +164,26 @@ export default function CartPage() {
           ) : (
             <div className="p-4 space-y-4">
               {cart.map((item) => (
-                <div key={`${item.id}-${item.size}-${item.color}`} className="flex items-start gap-4 p-4 card-glass rounded-lg shadow-sm">
+                <div key={`${item.id}-${item.size}-${item.color}-${item.fabricQuality || ''}`} className="flex items-start gap-4 p-4 card-glass rounded-lg shadow-sm">
                   <Image src={getProductImage(item.imageUrls, "https://placehold.co/80x80.png")} alt={item.name || 'Cart Item'} width={80} height={80} className="rounded-md" />
                   <div className="flex-grow">
                     <h2 className="font-semibold text-sm">{item.name}</h2>
-                    <p className="text-xs text-muted-foreground">Size: {item.size}, Color: {item.color}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {item.fabricQuality ? <span className="font-semibold text-primary mr-1">[{item.fabricQuality}]</span> : null}
+                      Size: {item.size}, Color: {item.color}
+                    </p>
                     <p className="text-primary font-bold text-md">₹{item.price.toFixed(2)}</p>
                     <div className="flex items-center gap-2 mt-2">
-                      <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity - 1)} disabled={item.quantity <= 1}>
+                      <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity - 1, item.fabricQuality)} disabled={item.quantity <= 1}>
                         <Minus className="h-3 w-3" />
                       </Button>
                       <span className="text-sm">{item.quantity}</span>
-                      <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity + 1)}>
+                      <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity + 1, item.fabricQuality)}>
                         <Plus className="h-3 w-3" />
                       </Button>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeFromCart(item.id, item.size, item.color)}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeFromCart(item.id, item.size, item.color, item.fabricQuality)}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>

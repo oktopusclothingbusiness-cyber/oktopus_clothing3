@@ -56,6 +56,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
 
+  React.useEffect(() => {
+    document.documentElement.classList.add('admin-theme');
+    document.documentElement.style.setProperty('--primary', '73 100% 81%');
+    document.documentElement.style.setProperty('--primary-foreground', '240 10% 4%');
+    document.documentElement.style.setProperty('--accent', '73 100% 81%');
+    document.documentElement.style.setProperty('--accent-foreground', '240 10% 4%');
+    document.documentElement.style.setProperty('--ring', '73 100% 81%');
+
+    return () => {
+      document.documentElement.classList.remove('admin-theme');
+      document.documentElement.style.removeProperty('--primary');
+      document.documentElement.style.removeProperty('--primary-foreground');
+      document.documentElement.style.removeProperty('--accent');
+      document.documentElement.style.removeProperty('--accent-foreground');
+      document.documentElement.style.removeProperty('--ring');
+    };
+  }, []);
+
   if (authLoading) {
     return (
       <div className="flex flex-col min-h-screen items-center justify-center bg-background">
@@ -141,7 +159,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const currentPageTitle = activeNavItem ? activeNavItem.label : 'Admin';
 
   return (
-    <div className="flex min-h-screen bg-muted/20 text-foreground">
+    <div className="admin-workspace flex min-h-screen bg-muted/20 text-foreground">
       {/* SIDEBAR NAVIGATION */}
       <aside
         className={cn(

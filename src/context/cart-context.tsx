@@ -19,13 +19,14 @@ type CartItem = Product & {
   quantity: number;
   size: string;
   color: string;
+  fabricQuality?: string;
 };
 
 type CartContextType = {
   cart: CartItem[];
-  addToCart: (product: Product, size: string, color: string) => void;
-  removeFromCart: (productId: string, size: string, color: string) => void;
-  updateQuantity: (productId: string, size: string, color: string, quantity: number) => void;
+  addToCart: (product: Product, size: string, color: string, fabricQuality?: string) => void;
+  removeFromCart: (productId: string, size: string, color: string, fabricQuality?: string) => void;
+  updateQuantity: (productId: string, size: string, color: string, quantity: number, fabricQuality?: string) => void;
   clearCart: () => void;
   isAnimating: boolean;
   subtotal: number;
@@ -133,32 +134,47 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
 
-  const addToCart = (product: Product, size: string, color: string) => {
+  const addToCart = (product: Product, size: string, color: string, fabricQuality?: string) => {
     let updatedCart: CartItem[] = [];
     setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === product.id && item.size === size && item.color === color);
+      const existingItem = prevCart.find((item) => 
+        item.id === product.id && 
+        item.size === size && 
+        item.color === color && 
+        (item.fabricQuality || '') === (fabricQuality || '')
+      );
       if (existingItem) {
         updatedCart = prevCart.map((item) =>
-          item.id === product.id && item.size === size && item.color === color ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id && 
+          item.size === size && 
+          item.color === color && 
+          (item.fabricQuality || '') === (fabricQuality || '')
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
         );
       } else {
-        updatedCart = [...prevCart, { ...product, quantity: 1, size, color, cost: product.cost || 0 }];
+        updatedCart = [...prevCart, { ...product, quantity: 1, size, color, fabricQuality, cost: product.cost || 0 }];
       }
       saveCartToDb(updatedCart);
       return updatedCart;
     });
     toast({
       title: "Added to cart",
-      description: `${product.name} has been added to your cart.`,
+      description: `${product.name} ${fabricQuality ? `(${fabricQuality})` : ''} has been added to your cart.`,
     });
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 700);
   };
 
-  const removeFromCart = (productId: string, size: string, color: string) => {
+  const removeFromCart = (productId: string, size: string, color: string, fabricQuality?: string) => {
     let updatedCart: CartItem[] = [];
     setCart((prevCart) => {
-      updatedCart = prevCart.filter((item) => !(item.id === productId && item.size === size && item.color === color));
+      updatedCart = prevCart.filter((item) => !(
+        item.id === productId && 
+        item.size === size && 
+        item.color === color && 
+        (item.fabricQuality || '') === (fabricQuality || '')
+      ));
       saveCartToDb(updatedCart);
       return updatedCart;
     });
@@ -169,11 +185,18 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     });
   };
 
-  const updateQuantity = (productId: string, size: string, color: string, quantity: number) => {
+  const updateQuantity = (productId: string, size: string, color: string, quantity: number, fabricQuality?: string) => {
     if (quantity > 0) {
       let updatedCart: CartItem[] = [];
       setCart((prevCart) => {
-        updatedCart = prevCart.map((item) => (item.id === productId && item.size === size && item.color === color ? { ...item, quantity } : item));
+        updatedCart = prevCart.map((item) => (
+          item.id === productId && 
+          item.size === size && 
+          item.color === color && 
+          (item.fabricQuality || '') === (fabricQuality || '')
+            ? { ...item, quantity } 
+            : item
+        ));
         saveCartToDb(updatedCart);
         return updatedCart;
       });

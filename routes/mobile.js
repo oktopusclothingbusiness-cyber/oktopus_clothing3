@@ -271,10 +271,11 @@ router.post('/cart/quick-sync', async (req, res) => {
           productId: item.productId,
           size: item.size || 'M',
           color: item.color || 'Black',
+          fabricQuality: item.fabricQuality || item.fabricCategory || '',
           quantity: adjustedQuantity,
-          price: product.price || 0,
+          price: item.price || product.price || 0,
           name: product.name || '',
-          imageUrl: product.imageUrl || '',
+          imageUrl: product.imageUrl || (product.imageUrls && product.imageUrls[0]) || '',
         });
       }
     }
@@ -363,6 +364,35 @@ router.get('/rewards/balance', mobileAuth, async (req, res) => {
   } catch (error) {
     console.error('Rewards Balance Error:', error);
     return res.status(500).json({ message: 'Failed to retrieve rewards balance.' });
+/**
+ * 6. GET /api/v1/mobile/palette
+ * Returns customization colors with multiple images for mobile app personalization screen
+ */
+router.get('/palette', async (req, res) => {
+  try {
+    const client = await clientPromise;
+    const db = client.db();
+    const colors = await db.collection('colors').find({}).sort({ createdAt: 1 }).toArray();
+
+    const formattedColors = colors.map((c) => {
+      const images = Array.isArray(c.images) && c.images.length > 0
+        ? c.images.filter(Boolean)
+        : (c.imageUrl ? [c.imageUrl] : []);
+
+      return {
+        _id: c._id ? c._id.toString() : '',
+        id: c._id ? c._id.toString() : (c.id || ''),
+        name: c.name || '',
+        imageUrl: c.imageUrl || images[0] || '',
+        images,
+        createdAt: c.createdAt,
+      };
+    });
+
+    return res.status(200).json(formattedColors);
+  } catch (error) {
+    console.error('Mobile Palette Error:', error);
+    return res.status(500).json({ message: 'Failed to retrieve customization palette.' });
   }
 });
 

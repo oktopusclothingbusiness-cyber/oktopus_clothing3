@@ -50,6 +50,24 @@
     --input: 240 4% 15%;
     --ring: 48 96% 59%;
   }
+
+  /* SOPHISTICATED LUXURY ACCENT SYSTEM FOR MAIN ADMIN PANEL (#EAFF9F) */
+  .admin-theme,
+  .admin-workspace,
+  html.admin-theme,
+  html.admin-theme body,
+  html.admin-theme [data-theme],
+  html[data-theme].admin-theme,
+  .dark .admin-theme,
+  .dark .admin-workspace,
+  .admin-theme.dark,
+  .admin-workspace.dark {
+    --primary: 73 100% 81% !important; /* #EAFF9F Electric Pale Chartreuse */
+    --primary-foreground: 240 10% 4% !important; /* Deep Obsidian */
+    --accent: 73 100% 81% !important;
+    --accent-foreground: 240 10% 4% !important;
+    --ring: 73 100% 81% !important;
+  }
   
   [data-theme="pink"].dark {
     --background: 345 35% 12%;
@@ -132,6 +150,26 @@
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
     --ring: 240 10% 3.9%;
+  }
+
+  /* ENSURE MAIN ADMIN ACCENT #EAFF9F OVERRIDES ALL THEMES */
+  .admin-theme,
+  .admin-workspace,
+  html.admin-theme,
+  html.admin-theme body,
+  html.admin-theme :root,
+  html[data-theme].admin-theme,
+  html[data-theme="slateBlue"].admin-theme,
+  html[data-theme="pink"].admin-theme,
+  .dark .admin-theme,
+  .dark .admin-workspace,
+  .admin-theme.dark,
+  .admin-workspace.dark {
+    --primary: 73 100% 81% !important; /* #EAFF9F Electric Pale Chartreuse */
+    --primary-foreground: 240 10% 4% !important; /* Deep Obsidian */
+    --accent: 73 100% 81% !important;
+    --accent-foreground: 240 10% 4% !important;
+    --ring: 73 100% 81% !important;
   }
 }
 

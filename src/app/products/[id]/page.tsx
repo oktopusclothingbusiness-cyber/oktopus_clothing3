@@ -7,7 +7,7 @@ import { notFound, useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { useProduct, Product } from "@/context/product-context";
+import { useProduct, Product, FabricCategoryVariant } from "@/context/product-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { MobileHeader } from "@/components/mobile-header";
@@ -53,22 +53,81 @@ export default function ProductDetailPage() {
 
   const [selectedSize, setSelectedSize] = React.useState<string>('');
   const [selectedColor, setSelectedColor] = React.useState<string>('');
+  const [selectedFabric, setSelectedFabric] = React.useState<FabricCategoryVariant | null>(null);
   const [sizeChart, setSizeChart] = React.useState<SizeChart | null>(null);
   const [activeImageIndex, setActiveImageIndex] = React.useState<number>(0);
 
-  // Set product and default size/color when products load
+  // Set product and default size/color/fabric when products load
   React.useEffect(() => {
     if (!loading) {
       const foundProduct = products.find((p) => p.id === params.id || (p as any)._id === params.id);
       setProduct(foundProduct);
-      if (foundProduct && foundProduct.sizes && foundProduct.sizes.length > 0) {
-        setSelectedSize(foundProduct.sizes[0]);
-      }
-      if (foundProduct && foundProduct.colors && foundProduct.colors.length > 0) {
-        setSelectedColor(foundProduct.colors[0]);
+
+      if (foundProduct) {
+        // If product has structured color variants
+        if (foundProduct.colorVariants && foundProduct.colorVariants.length > 0) {
+          const firstVariant = foundProduct.colorVariants[0];
+          setSelectedColor(firstVariant.color);
+
+          if (firstVariant.categories && firstVariant.categories.length > 0) {
+            const firstCategory = firstVariant.categories[0];
+            setSelectedFabric(firstCategory);
+            if (firstCategory.sizes && firstCategory.sizes.length > 0) {
+              setSelectedSize(firstCategory.sizes[0]);
+            } else if (foundProduct.sizes && foundProduct.sizes.length > 0) {
+              setSelectedSize(foundProduct.sizes[0]);
+            }
+          }
+        } else {
+          // Legacy product fallback
+          if (foundProduct.colors && foundProduct.colors.length > 0) {
+            setSelectedColor(foundProduct.colors[0]);
+          }
+          if (foundProduct.sizes && foundProduct.sizes.length > 0) {
+            setSelectedSize(foundProduct.sizes[0]);
+          }
+        }
       }
     }
   }, [params.id, products, loading]);
+
+  // When selected color changes, update available fabric categories and images
+  const currentColorVariant = React.useMemo(() => {
+    if (!product?.colorVariants || product.colorVariants.length === 0) return null;
+    return product.colorVariants.find(cv => cv.color === selectedColor) || product.colorVariants[0];
+  }, [product, selectedColor]);
+
+  // Available fabric categories for currently selected color
+  const availableFabrics = React.useMemo(() => {
+    if (currentColorVariant && currentColorVariant.categories && currentColorVariant.categories.length > 0) {
+      return currentColorVariant.categories;
+    }
+    return [];
+  }, [currentColorVariant]);
+
+  // Sync selectedFabric when availableFabrics change
+  React.useEffect(() => {
+    if (availableFabrics.length > 0) {
+      // Check if current selectedFabric is in availableFabrics
+      const exists = availableFabrics.find(f => f.name === selectedFabric?.name || f.id === selectedFabric?.id);
+      if (!exists) {
+        setSelectedFabric(availableFabrics[0]);
+        if (availableFabrics[0].sizes && availableFabrics[0].sizes.length > 0) {
+          setSelectedSize(availableFabrics[0].sizes[0]);
+        }
+      }
+    } else {
+      setSelectedFabric(null);
+    }
+  }, [availableFabrics, selectedFabric]);
+
+  // Available sizes for currently selected fabric
+  const availableSizes = React.useMemo(() => {
+    if (selectedFabric?.sizes && selectedFabric.sizes.length > 0) {
+      return selectedFabric.sizes;
+    }
+    return product?.sizes || [];
+  }, [selectedFabric, product]);
 
   // Find linked size chart
   React.useEffect(() => {
@@ -92,16 +151,23 @@ export default function ProductDetailPage() {
   const productImages = React.useMemo(() => {
     if (!product) return ["https://placehold.co/600x800"];
     
+    // 1. Check colorVariants images
+    if (currentColorVariant && currentColorVariant.images && currentColorVariant.images.length > 0) {
+      return currentColorVariant.images;
+    }
+
+    // 2. Check legacy colorImages map
     if (selectedColor && product.colorImages && product.colorImages[selectedColor] && product.colorImages[selectedColor].length > 0) {
       return product.colorImages[selectedColor];
     }
 
+    // 3. Fallback to product imageUrls
     if (product.imageUrls && product.imageUrls.length > 0) {
       return product.imageUrls;
     }
 
     return ["https://placehold.co/600x800"];
-  }, [product, selectedColor]);
+  }, [product, selectedColor, currentColorVariant]);
 
   // 10 days ahead delivery estimate hook
   const deliveryDate = React.useMemo(() => format(addDays(new Date(), 10), 'EEEE, MMM dd'), []);
@@ -120,12 +186,27 @@ export default function ProductDetailPage() {
     }).slice(0, 4);
   }, [products, product]);
 
+  // Dynamic pricing based on selected fabric quality / variant
+  const currentPrice = React.useMemo(() => {
+    if (selectedFabric && typeof selectedFabric.price === 'number') {
+      return selectedFabric.price;
+    }
+    return product?.price || 0;
+  }, [selectedFabric, product]);
+
+  const currentOriginalPrice = React.useMemo(() => {
+    if (selectedFabric && typeof selectedFabric.originalPrice === 'number') {
+      return selectedFabric.originalPrice;
+    }
+    return product?.originalPrice;
+  }, [selectedFabric, product]);
+
   const discountPercent = React.useMemo(() => {
-    if (product?.originalPrice && product.originalPrice > product.price) {
-      return Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
+    if (currentOriginalPrice && currentOriginalPrice > currentPrice) {
+      return Math.round(((currentOriginalPrice - currentPrice) / currentOriginalPrice) * 100);
     }
     return 0;
-  }, [product]);
+  }, [currentPrice, currentOriginalPrice]);
 
   const categoryName = React.useMemo(() => {
     if (!product || !product.category) return null;
@@ -137,29 +218,51 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (product) {
-      if (!selectedSize && product.sizes && product.sizes.length > 0) {
-        toast({ title: 'Please select a size.', variant: 'destructive' });
-        return;
-      }
-      if (!selectedColor && product.colors && product.colors.length > 0) {
+      if (!selectedColor && ((product.colorVariants && product.colorVariants.length > 0) || (product.colors && product.colors.length > 0))) {
         toast({ title: 'Please select a color.', variant: 'destructive' });
         return;
       }
-      addToCart(product, selectedSize, selectedColor);
+      if (availableFabrics.length > 0 && !selectedFabric) {
+        toast({ title: 'Please select a garment quality / category.', variant: 'destructive' });
+        return;
+      }
+      if (!selectedSize && availableSizes.length > 0) {
+        toast({ title: 'Please select a size.', variant: 'destructive' });
+        return;
+      }
+
+      const itemProduct = {
+        ...product,
+        price: currentPrice,
+        imageUrls: productImages,
+      };
+
+      addToCart(itemProduct, selectedSize || 'Free Size', selectedColor || 'Standard', selectedFabric?.name);
     }
   };
 
   const handleBuyNow = () => {
     if (product) {
-      if (!selectedSize && product.sizes && product.sizes.length > 0) {
-        toast({ title: 'Please select a size.', variant: 'destructive' });
-        return;
-      }
-      if (!selectedColor && product.colors && product.colors.length > 0) {
+      if (!selectedColor && ((product.colorVariants && product.colorVariants.length > 0) || (product.colors && product.colors.length > 0))) {
         toast({ title: 'Please select a color.', variant: 'destructive' });
         return;
       }
-      addToCart(product, selectedSize, selectedColor);
+      if (availableFabrics.length > 0 && !selectedFabric) {
+        toast({ title: 'Please select a garment quality / category.', variant: 'destructive' });
+        return;
+      }
+      if (!selectedSize && availableSizes.length > 0) {
+        toast({ title: 'Please select a size.', variant: 'destructive' });
+        return;
+      }
+
+      const itemProduct = {
+        ...product,
+        price: currentPrice,
+        imageUrls: productImages,
+      };
+
+      addToCart(itemProduct, selectedSize || 'Free Size', selectedColor || 'Standard', selectedFabric?.name);
       if (!user) {
         toast({ title: "Redirecting to Login", description: "Please log in to complete your checkout." });
         router.push(`/login?redirect=${encodeURIComponent('/checkout')}`);
@@ -374,16 +477,22 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Price & Savings Box */}
+              {/* Price & Savings Box */}
               <div className="p-4 rounded-2xl bg-card border border-border/80 space-y-2 shadow-xs">
-                <div className="flex items-baseline gap-3">
-                  <span className="text-3xl lg:text-4xl font-black tracking-tight text-foreground">₹{product.price.toFixed(2)}</span>
-                  {product.originalPrice && product.originalPrice > product.price && (
-                    <span className="text-lg text-muted-foreground line-through font-medium">₹{product.originalPrice.toFixed(2)}</span>
+                <div className="flex items-baseline gap-3 flex-wrap">
+                  <span className="text-3xl lg:text-4xl font-black tracking-tight text-foreground">₹{currentPrice.toFixed(2)}</span>
+                  {currentOriginalPrice && currentOriginalPrice > currentPrice && (
+                    <span className="text-lg text-muted-foreground line-through font-medium">₹{currentOriginalPrice.toFixed(2)}</span>
                   )}
                   {discountPercent > 0 && (
                     <span className="text-xs font-bold text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full">
-                      Save ₹{(product.originalPrice! - product.price).toFixed(0)}
+                      Save ₹{(currentOriginalPrice! - currentPrice).toFixed(0)} ({discountPercent}% OFF)
                     </span>
+                  )}
+                  {selectedFabric && (
+                    <Badge variant="outline" className="text-xs font-bold bg-primary/10 text-primary border-primary/20 px-2.5 py-0.5 ml-auto">
+                      {selectedFabric.name}
+                    </Badge>
                   )}
                 </div>
 
@@ -394,37 +503,109 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
-              {/* Color Variant Selector (Pills) */}
-              {product.colors && product.colors.length > 0 && (
+              {/* Step 1: Color Variant Selector (Pills/Swatches) */}
+              {((product.colorVariants && product.colorVariants.length > 0) || (product.colors && product.colors.length > 0)) && (
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-xs font-medium">
-                    <span className="font-bold text-foreground">Select Color: <span className="text-muted-foreground font-normal">{selectedColor || 'Default'}</span></span>
+                    <span className="font-bold text-foreground">
+                      1. Select Color: <span className="text-primary font-bold">{selectedColor || 'Default'}</span>
+                    </span>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {product.colors.map(color => (
-                      <button
-                        key={color}
-                        onClick={() => setSelectedColor(color)}
-                        className={cn(
-                          "px-4 py-2 rounded-xl text-xs font-bold transition-all border flex items-center gap-2",
-                          selectedColor === color
-                            ? "bg-foreground text-background border-foreground shadow-sm scale-105"
-                            : "bg-card text-foreground hover:bg-muted border-border"
-                        )}
-                      >
-                        {selectedColor === color && <Check className="h-3.5 w-3.5" />}
-                        {color}
-                      </button>
-                    ))}
+                    {(product.colorVariants && product.colorVariants.length > 0
+                      ? product.colorVariants.map(cv => cv.color)
+                      : product.colors || []
+                    ).map(color => {
+                      const cv = product.colorVariants?.find(c => c.color === color);
+                      return (
+                        <button
+                          key={color}
+                          onClick={() => setSelectedColor(color)}
+                          className={cn(
+                            "px-4 py-2 rounded-xl text-xs font-bold transition-all border flex items-center gap-2",
+                            selectedColor === color
+                              ? "bg-foreground text-background border-foreground shadow-sm scale-105"
+                              : "bg-card text-foreground hover:bg-muted border-border"
+                          )}
+                        >
+                          {cv?.colorHex && (
+                            <span 
+                              className="h-3 w-3 rounded-full border border-border/50 shrink-0" 
+                              style={{ backgroundColor: cv.colorHex }}
+                            />
+                          )}
+                          {selectedColor === color && <Check className="h-3.5 w-3.5" />}
+                          {color}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
 
-              {/* Size Variant Selector (Pills) & Size Chart Link */}
-              {product.sizes && product.sizes.length > 0 && (
-                <div className="space-y-3">
+              {/* Step 2: Fabric Quality / Garment Category Selector (NEW) */}
+              {availableFabrics.length > 0 && (
+                <div className="space-y-3 pt-1">
                   <div className="flex justify-between items-center text-xs font-medium">
-                    <span className="font-bold text-foreground">Select Size: <span className="text-muted-foreground font-normal">{selectedSize || 'Select'}</span></span>
+                    <span className="font-bold text-foreground">
+                      2. Select Fabric Quality / Fit:{" "}
+                      <span className="text-primary font-bold">{selectedFabric?.name || 'Select'}</span>
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">Price varies by fabric</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-2 gap-2.5">
+                    {availableFabrics.map((fabric) => {
+                      const isSelected = selectedFabric?.id === fabric.id || selectedFabric?.name === fabric.name;
+                      const gsmBadge = fabric.gsm || (
+                        fabric.name.toLowerCase().includes('terry') ? '320 GSM French Terry' :
+                        fabric.name.toLowerCase().includes('oversized') ? '240 GSM Boxy Cotton' :
+                        fabric.name.toLowerCase().includes('sweat') ? '320 GSM Fleece' :
+                        '180 GSM Bio-Washed'
+                      );
+
+                      return (
+                        <button
+                          key={fabric.id || fabric.name}
+                          type="button"
+                          onClick={() => {
+                            setSelectedFabric(fabric);
+                            if (fabric.sizes && fabric.sizes.length > 0 && !fabric.sizes.includes(selectedSize)) {
+                              setSelectedSize(fabric.sizes[0]);
+                            }
+                          }}
+                          className={cn(
+                            "p-3 rounded-xl border text-left transition-all duration-200 relative flex flex-col justify-between gap-1",
+                            isSelected
+                              ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-sm"
+                              : "border-border bg-card hover:bg-muted/50"
+                          )}
+                        >
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="font-bold text-xs text-foreground truncate">{fabric.name}</span>
+                            <span className="text-xs font-black text-foreground">₹{fabric.price}</span>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground line-clamp-1">{gsmBadge}</span>
+                          {isSelected && (
+                            <span className="absolute top-2 right-2 flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Size Variant Selector (Pills) & Size Chart Link */}
+              {availableSizes.length > 0 && (
+                <div className="space-y-3 pt-1">
+                  <div className="flex justify-between items-center text-xs font-medium">
+                    <span className="font-bold text-foreground">
+                      3. Select Size: <span className="text-primary font-bold">{selectedSize || 'Select'}</span>
+                    </span>
                     
                     {sizeChart && (
                       <Dialog>
@@ -464,7 +645,7 @@ export default function ProductDetailPage() {
                   </div>
 
                   <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                    {product.sizes.map(size => (
+                    {availableSizes.map(size => (
                       <button
                         key={size}
                         onClick={() => setSelectedSize(size)}

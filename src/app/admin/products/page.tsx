@@ -29,7 +29,23 @@ import {
   List,
   SlidersHorizontal,
   X,
+  Copy,
+  Plus,
+  Tag,
+  Package,
+  Palette,
+  RefreshCw,
+  Info,
+  ExternalLink,
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useProduct, Product } from '@/context/product-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
@@ -42,42 +58,124 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+export type AdminFabricVariant = {
+  id: string;
+  name: string;
+  enabled: boolean;
+  price: string;
+  originalPrice: string;
+  stock: string;
+  sizes: string;
+  gsm?: string;
+};
+
+export type AdminColorVariant = {
+  id: string;
+  color: string;
+  colorHex?: string;
+  images: string;
+  categories: AdminFabricVariant[];
+};
+
+export const STANDARD_SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+
+export const QUICK_COLOR_PRESETS = [
+  { name: 'Black', hex: '#111111' },
+  { name: 'White', hex: '#F8F9FA' },
+];
+
+export const createDefaultFabricCategories = (
+  baseSizes = 'S, M, L, XL, 2XL'
+): AdminFabricVariant[] => [
+  {
+    id: 'regular',
+    name: 'Regular',
+    enabled: true,
+    price: '499',
+    originalPrice: '799',
+    stock: '10',
+    sizes: baseSizes || 'S, M, L, XL, 2XL',
+    gsm: '180 GSM Bio-Washed',
+  },
+  {
+    id: 'oversized',
+    name: 'Oversized',
+    enabled: true,
+    price: '599',
+    originalPrice: '999',
+    stock: '10',
+    sizes: baseSizes || 'S, M, L, XL, 2XL',
+    gsm: '240 GSM Boxy Cotton',
+  },
+  {
+    id: 'french-terry',
+    name: 'French Terry',
+    enabled: true,
+    price: '749',
+    originalPrice: '1199',
+    stock: '10',
+    sizes: baseSizes || 'S, M, L, XL, 2XL',
+    gsm: '320 GSM French Terry',
+  },
+  {
+    id: 'sweatshirt',
+    name: 'Sweatshirt',
+    enabled: false,
+    price: '799',
+    originalPrice: '1299',
+    stock: '10',
+    sizes: 'M, L, XL, 2XL',
+    gsm: '320 GSM Fleece',
+  },
+];
+
 type ProductFormData = {
   id: string;
   name: string;
   description: string;
-  price: string;
-  cost: string;
-  originalPrice: string;
-  discountPercentage: number;
-  rating: number;
-  stock: number;
-  imageUrls: string;
-  sizes: string;
-  colors: string;
-  colorImages?: Record<string, string>;
   category: string[];
+  cost: string;
   featured: boolean;
   isHero: boolean;
+  colorVariants: AdminColorVariant[];
+  // Legacy / derived compatibility fields
+  price?: string;
+  originalPrice?: string;
+  discountPercentage?: number;
+  rating?: number;
+  stock?: number;
+  imageUrls?: string;
+  sizes?: string;
+  colors?: string;
+  colorImages?: Record<string, string>;
 };
 
 const emptyProduct: ProductFormData = {
   id: '',
   name: '',
   description: '',
-  price: '',
-  cost: '',
-  originalPrice: '',
-  discountPercentage: 0,
-  rating: 4.5,
-  stock: 100,
-  imageUrls: '',
-  sizes: '',
-  colors: '',
-  colorImages: {},
   category: [],
+  cost: '',
   featured: false,
   isHero: false,
+  colorVariants: [
+    {
+      id: 'color-black',
+      color: 'Black',
+      colorHex: '#111111',
+      images: '',
+      categories: createDefaultFabricCategories('S, M, L, XL, 2XL'),
+    },
+  ],
+  price: '499',
+  originalPrice: '799',
+  discountPercentage: 0,
+  rating: 4.5,
+  stock: 10,
+  imageUrls: '',
+  sizes: 'S, M, L, XL, 2XL',
+  colors: 'Black',
+  colorImages: {},
 };
 
 export default function AdminProductsPage() {
@@ -167,13 +265,54 @@ export default function AdminProductsPage() {
     });
   }, [products, searchTerm, filterTab, sortField, sortOrder]);
 
+  const [newImageUrlByColor, setNewImageUrlByColor] = React.useState<Record<number, string>>({});
+
+  // LIVE AUTO-COMPUTED STATS FROM COLOR & FABRIC MATRIX
+  const variantStats = React.useMemo(() => {
+    const prices: number[] = [];
+    const originalPrices: number[] = [];
+    let totalStock = 0;
+    const activeFabrics = new Set<string>();
+    const allSizes = new Set<string>();
+    let totalImages = 0;
+
+    formData.colorVariants.forEach((cv) => {
+      const imgCount = cv.images.split(/[\n,]+/).map((u) => u.trim()).filter(Boolean).length;
+      totalImages += imgCount;
+
+      cv.categories.forEach((cat) => {
+        if (cat.enabled) {
+          activeFabrics.add(cat.name);
+          const p = parseFloat(cat.price);
+          if (p > 0) prices.push(p);
+          const op = parseFloat(cat.originalPrice);
+          if (op > 0) originalPrices.push(op);
+          const s = parseInt(cat.stock, 10);
+          if (!isNaN(s)) totalStock += s;
+          cat.sizes.split(',').forEach((sz) => sz.trim() && allSizes.add(sz.trim()));
+        }
+      });
+    });
+
+    const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+    const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+
+    return {
+      minPrice,
+      maxPrice,
+      priceLabel: prices.length > 0 ? (minPrice === maxPrice ? `₹${minPrice}` : `₹${minPrice} – ₹${maxPrice}`) : '₹0',
+      totalStock,
+      totalColors: formData.colorVariants.length,
+      activeFabricsCount: activeFabrics.size,
+      activeFabricsList: Array.from(activeFabrics),
+      totalImages,
+      allSizesList: Array.from(allSizes),
+    };
+  }, [formData.colorVariants]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    const numValue =
-      name === 'price' || name === 'cost' || name === 'originalPrice' || name === 'discountPercentage' || name === 'rating' || name === 'stock'
-        ? parseFloat(value)
-        : value;
-    setFormData((prev) => ({ ...prev, [name]: numValue }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleCategorySelect = (categoryId: string) => {
@@ -184,6 +323,167 @@ export default function AdminProductsPage() {
         : [...currentCategories, categoryId];
       return { ...prev, category: newCategories };
     });
+  };
+
+  const handleAddColorVariant = (preset?: { name: string; hex: string }) => {
+    const colorName = preset?.name || `Color ${formData.colorVariants.length + 1}`;
+    const colorHex = preset?.hex || '#111111';
+    setFormData((prev) => ({
+      ...prev,
+      colorVariants: [
+        ...prev.colorVariants,
+        {
+          id: `color-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          color: colorName,
+          colorHex,
+          images: '',
+          categories: createDefaultFabricCategories('S, M, L, XL, 2XL'),
+        },
+      ],
+    }));
+  };
+
+  const handleDuplicateColorVariant = (sourceIndex: number) => {
+    const source = formData.colorVariants[sourceIndex];
+    if (!source) return;
+    const duplicated: AdminColorVariant = {
+      id: `color-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      color: `${source.color} (Copy)`,
+      colorHex: source.colorHex || '#111111',
+      images: source.images,
+      categories: source.categories.map((c) => ({ ...c })),
+    };
+    setFormData((prev) => ({
+      ...prev,
+      colorVariants: [...prev.colorVariants, duplicated],
+    }));
+    toast({
+      title: 'Color Variant Cloned',
+      description: `Duplicated "${source.color}" with all fabric pricing & stock settings.`,
+    });
+  };
+
+  const handleRemoveColorVariant = (index: number) => {
+    if (formData.colorVariants.length <= 1) {
+      toast({ title: 'At least one color variant is required.', variant: 'destructive' });
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      colorVariants: prev.colorVariants.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleColorVariantChange = (index: number, field: string, value: any) => {
+    setFormData((prev) => {
+      const updated = [...prev.colorVariants];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, colorVariants: updated };
+    });
+  };
+
+  const handleFabricCategoryChange = (
+    colorIndex: number,
+    catId: string,
+    field: string,
+    value: any
+  ) => {
+    setFormData((prev) => {
+      const updatedVariants = [...prev.colorVariants];
+      const variant = { ...updatedVariants[colorIndex] };
+      variant.categories = variant.categories.map((c) =>
+        c.id === catId ? { ...c, [field]: value } : c
+      );
+      updatedVariants[colorIndex] = variant;
+      return { ...prev, colorVariants: updatedVariants };
+    });
+  };
+
+  const handleToggleFabricSize = (colorIdx: number, catId: string, size: string) => {
+    setFormData((prev) => {
+      const updatedVariants = [...prev.colorVariants];
+      const variant = { ...updatedVariants[colorIdx] };
+      variant.categories = variant.categories.map((c) => {
+        if (c.id !== catId) return c;
+        const currentSizes = c.sizes.split(',').map((s) => s.trim()).filter(Boolean);
+        const nextSizes = currentSizes.includes(size)
+          ? currentSizes.filter((s) => s !== size)
+          : [...currentSizes, size];
+        return { ...c, sizes: nextSizes.join(', ') };
+      });
+      updatedVariants[colorIdx] = variant;
+      return { ...prev, colorVariants: updatedVariants };
+    });
+  };
+
+  const handleCopyFabricToAllColors = (sourceIndex: number) => {
+    const sourceColor = formData.colorVariants[sourceIndex];
+    if (!sourceColor) return;
+
+    setFormData((prev) => {
+      const sourceCategories = prev.colorVariants[sourceIndex]?.categories;
+      if (!sourceCategories) return prev;
+
+      const updatedVariants = prev.colorVariants.map((v, i) => {
+        if (i === sourceIndex) return v;
+        return {
+          ...v,
+          categories: sourceCategories.map((c) => ({ ...c })),
+        };
+      });
+
+      return { ...prev, colorVariants: updatedVariants };
+    });
+    toast({
+      title: 'Fabric Settings Copied',
+      description: `Fabric qualities and prices from "${sourceColor.color}" applied to all colors.`,
+    });
+  };
+
+  const handleApplyPresetMatrixToAll = () => {
+    setFormData((prev) => {
+      const updatedVariants = prev.colorVariants.map((v) => ({
+        ...v,
+        categories: [
+          { id: 'regular', name: 'Regular', enabled: true, price: '499', originalPrice: '799', stock: '10', sizes: 'S, M, L, XL, 2XL', gsm: '180 GSM Bio-Washed' },
+          { id: 'oversized', name: 'Oversized', enabled: true, price: '599', originalPrice: '999', stock: '10', sizes: 'S, M, L, XL, 2XL', gsm: '240 GSM Boxy Cotton' },
+          { id: 'french-terry', name: 'French Terry', enabled: true, price: '749', originalPrice: '1199', stock: '10', sizes: 'S, M, L, XL, 2XL', gsm: '320 GSM French Terry' },
+          { id: 'sweatshirt', name: 'Sweatshirt', enabled: false, price: '799', originalPrice: '1299', stock: '10', sizes: 'M, L, XL, 2XL', gsm: '320 GSM Fleece' },
+        ],
+      }));
+      return { ...prev, colorVariants: updatedVariants };
+    });
+    toast({
+      title: 'Standard Matrix Applied',
+      description: 'Applied standard pricing (Regular ₹499, Oversized ₹599, French Terry 320 GSM ₹749, Sweatshirt ₹799) to all colors.',
+    });
+  };
+
+  const handleRemoveColorImage = (colorIdx: number, imageIdxToRemove: number) => {
+    setFormData((prev) => {
+      const updatedVariants = [...prev.colorVariants];
+      const variant = { ...updatedVariants[colorIdx] };
+      const imagesArr = variant.images.split(/[\n,]+/).map((u) => u.trim()).filter(Boolean);
+      const nextImages = imagesArr.filter((_, i) => i !== imageIdxToRemove).join(', ');
+      variant.images = nextImages;
+      updatedVariants[colorIdx] = variant;
+      return { ...prev, colorVariants: updatedVariants };
+    });
+  };
+
+  const handleAddSingleImage = (colorIdx: number) => {
+    const url = (newImageUrlByColor[colorIdx] || '').trim();
+    if (!url) return;
+    setFormData((prev) => {
+      const updatedVariants = [...prev.colorVariants];
+      const variant = { ...updatedVariants[colorIdx] };
+      const imagesArr = variant.images.split(/[\n,]+/).map((u) => u.trim()).filter(Boolean);
+      imagesArr.push(url);
+      variant.images = imagesArr.join(', ');
+      updatedVariants[colorIdx] = variant;
+      return { ...prev, colorVariants: updatedVariants };
+    });
+    setNewImageUrlByColor((prev) => ({ ...prev, [colorIdx]: '' }));
   };
 
   const handleEditClick = (product: Product) => {
@@ -199,12 +499,83 @@ export default function AdminProductsPage() {
       });
     }
 
+    let initialColorVariants: AdminColorVariant[] = [];
+    if (product.colorVariants && product.colorVariants.length > 0) {
+      initialColorVariants = product.colorVariants.map((cv) => {
+        const standardPresets = createDefaultFabricCategories(
+          product.sizes && product.sizes.length > 0 ? product.sizes.join(', ') : 'S, M, L, XL, 2XL'
+        );
+        const categories: AdminFabricVariant[] = standardPresets.map((preset) => {
+          const match = cv.categories.find(
+            (c) => c.name.toLowerCase() === preset.name.toLowerCase() || c.id === preset.id
+          );
+          if (match) {
+            return {
+              id: match.id || preset.id,
+              name: match.name || preset.name,
+              enabled: true,
+              price: match.price.toString(),
+              originalPrice: match.originalPrice?.toString() || '',
+              stock: match.stock !== undefined ? match.stock.toString() : '10',
+              sizes: match.sizes?.join(', ') || preset.sizes,
+              gsm: match.gsm || preset.gsm,
+            };
+          }
+          return {
+            ...preset,
+            enabled: false,
+          };
+        });
+
+        // Preserve any custom fabric categories
+        cv.categories.forEach((customCat) => {
+          if (!categories.some((c) => c.name.toLowerCase() === customCat.name.toLowerCase())) {
+            categories.push({
+              id: customCat.id || customCat.name.toLowerCase().replace(/\s+/g, '-'),
+              name: customCat.name,
+              enabled: true,
+              price: customCat.price.toString(),
+              originalPrice: customCat.originalPrice?.toString() || '',
+              stock: customCat.stock !== undefined ? customCat.stock.toString() : '10',
+              sizes: customCat.sizes?.join(', ') || '',
+              gsm: customCat.gsm,
+            });
+          }
+        });
+
+        return {
+          id: cv.id || cv.color.toLowerCase(),
+          color: cv.color,
+          colorHex: cv.colorHex || '#111111',
+          images: Array.isArray(cv.images) ? cv.images.join(', ') : '',
+          categories,
+        };
+      });
+    } else {
+      // Legacy product scaffolding
+      const colorsList = product.colors && product.colors.length > 0 ? product.colors : ['Black'];
+      initialColorVariants = colorsList.map((col, idx) => ({
+        id: col.toLowerCase().replace(/\s+/g, '-'),
+        color: col,
+        colorHex: '#111111',
+        images: (product.colorImages?.[col] || (idx === 0 ? product.imageUrls : []) || []).join(', '),
+        categories: createDefaultFabricCategories(
+          product.sizes && product.sizes.length > 0 ? product.sizes.join(', ') : 'S, M, L, XL, 2XL'
+        ),
+      }));
+    }
+
     setFormData({
       id: product.id,
       name: product.name,
-      description: product.description,
-      price: product.price.toString(),
+      description: product.description || '',
       cost: product.cost?.toString() || '',
+      category: product.category || [],
+      featured: product.featured || false,
+      isHero: product.isHero || false,
+      colorVariants: initialColorVariants,
+      // Legacy compatibility
+      price: product.price.toString(),
       originalPrice: product.originalPrice?.toString() || '',
       discountPercentage: product.discountPercentage || 0,
       rating: product.rating || 4.5,
@@ -213,47 +584,131 @@ export default function AdminProductsPage() {
       sizes: product.sizes.join(', '),
       colors: product.colors.join(', '),
       colorImages: initialColorImages,
-      category: product.category || [],
-      featured: product.featured || false,
-      isHero: product.isHero || false,
     });
-
-    if (formRef.current) {
-      formRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.name && formData.price && formData.imageUrls && formData.category.length > 0) {
-      setIsSubmitting(true);
 
+    if (!formData.name.trim()) {
+      toast({
+        title: 'Product Name Required',
+        description: 'Please enter a name for this product / design.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (formData.category.length === 0) {
+      toast({
+        title: 'Category Required',
+        description: 'Please select at least one category tag for this product.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!formData.colorVariants || formData.colorVariants.length === 0) {
+      toast({
+        title: 'Color Variant Required',
+        description: 'Please add at least one color variant for this product.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const hasEnabledFabric = formData.colorVariants.some((cv) =>
+      cv.categories.some((c) => c.enabled && parseFloat(c.price) > 0)
+    );
+    if (!hasEnabledFabric) {
+      toast({
+        title: 'Fabric Quality Required',
+        description: 'Please enable at least one fabric quality (e.g., Regular or Oversized) with a valid price.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const hasAnyImage = formData.colorVariants.some((cv) => cv.images.trim().length > 0);
+    if (!hasAnyImage) {
+      toast({
+        title: 'Images Required',
+        description: 'Please provide at least one image URL for your color variant(s).',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Format structured colorVariants
+      const validColorVariants = (formData.colorVariants || []).filter((cv) => cv.color.trim());
+      const finalColorVariants = validColorVariants.map((cv) => ({
+        id: cv.id || cv.color.toLowerCase().replace(/\s+/g, '-'),
+        color: cv.color.trim(),
+        colorHex: cv.colorHex || '#111111',
+        images: cv.images.split(/[\n,]+/).map((u: string) => u.trim()).filter(Boolean),
+        categories: cv.categories
+          .filter((c) => c.enabled)
+          .map((c) => ({
+            id: c.id,
+            name: c.name,
+            price: parseFloat(c.price) || 0,
+            originalPrice: c.originalPrice ? parseFloat(c.originalPrice) : undefined,
+            stock: c.stock ? parseInt(c.stock, 10) : 50,
+            sizes: c.sizes.split(',').map((s: string) => s.trim()).filter(Boolean),
+            gsm: c.gsm,
+          })),
+      }));
+
+      // Build colorImages mapping
       const colorImagesObj: Record<string, string[]> = {};
-      if (formData.colorImages) {
-        Object.entries(formData.colorImages).forEach(([colorName, urlsStr]) => {
-          if (urlsStr && typeof urlsStr === 'string') {
-            const urlsArr = urlsStr.split(',').map((u: string) => u.trim()).filter((u: string) => u);
-            if (urlsArr.length > 0) {
-              colorImagesObj[colorName] = urlsArr;
-            }
-          }
+      finalColorVariants.forEach((cv) => {
+        if (cv.images.length > 0) {
+          colorImagesObj[cv.color] = cv.images;
+        }
+      });
+
+      // Auto-compute root catalog values
+      const allVariantPrices: number[] = [];
+      const allOriginalPrices: number[] = [];
+      let totalStock = 0;
+      const allSizesSet = new Set<string>();
+
+      finalColorVariants.forEach((cv) => {
+        cv.categories.forEach((cat) => {
+          if (cat.price > 0) allVariantPrices.push(cat.price);
+          if (cat.originalPrice && cat.originalPrice > 0) allOriginalPrices.push(cat.originalPrice);
+          if (typeof cat.stock === 'number') totalStock += cat.stock;
+          cat.sizes.forEach((s) => allSizesSet.add(s));
         });
-      }
+      });
+
+      const resolvedPrice = allVariantPrices.length > 0 ? Math.min(...allVariantPrices) : 499;
+      const resolvedOriginalPrice = allOriginalPrices.length > 0 ? Math.max(...allOriginalPrices) : undefined;
+      const resolvedSizes = allSizesSet.size > 0 ? Array.from(allSizesSet) : ['S', 'M', 'L', 'XL', '2XL'];
+      const resolvedColors = finalColorVariants.map((cv) => cv.color);
+      const allImagesList = Array.from(new Set(finalColorVariants.flatMap((cv) => cv.images)));
 
       const productData = {
-        name: formData.name,
-        description: formData.description,
-        price: parseFloat(formData.price),
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        price: resolvedPrice,
         cost: formData.cost ? parseFloat(formData.cost) : undefined,
-        originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
-        discountPercentage: formData.discountPercentage,
-        rating: formData.rating,
-        stock: formData.stock,
-        imageUrls: formData.imageUrls.split(',').map((url: string) => url.trim()).filter((url: string) => url),
+        originalPrice: resolvedOriginalPrice,
+        discountPercentage:
+          resolvedOriginalPrice && resolvedOriginalPrice > resolvedPrice
+            ? Math.round(((resolvedOriginalPrice - resolvedPrice) / resolvedOriginalPrice) * 100)
+            : 0,
+        rating: formData.rating || 4.5,
+        stock: totalStock > 0 ? totalStock : 10,
+        imageUrls: allImagesList.length > 0 ? allImagesList : ['https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500'],
         colorImages: Object.keys(colorImagesObj).length > 0 ? colorImagesObj : undefined,
+        colorVariants: finalColorVariants.length > 0 ? finalColorVariants : undefined,
         category: formData.category,
-        sizes: formData.sizes.split(',').map((s: string) => s.trim()).filter((s: string) => s),
-        colors: formData.colors.split(',').map((c: string) => c.trim()).filter((c: string) => c),
+        sizes: resolvedSizes,
+        colors: resolvedColors.length > 0 ? resolvedColors : ['Black'],
         featured: formData.featured,
         isHero: formData.isHero,
       };
@@ -266,19 +721,19 @@ export default function AdminProductsPage() {
           _id: formData.id,
           createdAt: originalProduct?.createdAt || new Date().toISOString(),
         });
+        toast({ title: 'Product Updated', description: `Successfully updated "${productData.name}".` });
       } else {
         await addProduct(productData);
+        toast({ title: 'Product Created', description: `Successfully published "${productData.name}".` });
       }
 
       resetForm();
-      setIsSubmitting(false);
       setShowForm(false);
-    } else {
-      toast({
-        title: 'Missing Fields',
-        description: 'Please fill out all required fields, including at least one category.',
-        variant: 'destructive',
-      });
+    } catch (err) {
+      console.error('Save product error:', err);
+      toast({ title: 'Save Failed', description: 'An error occurred while saving the product.', variant: 'destructive' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -290,6 +745,7 @@ export default function AdminProductsPage() {
   const resetForm = () => {
     setFormData(emptyProduct);
     setIsEditing(false);
+    setNewImageUrlByColor({});
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -360,18 +816,13 @@ export default function AdminProductsPage() {
           <Button
             size="sm"
             onClick={() => {
-              if (showForm && !isEditing) {
-                setShowForm(false);
-              } else {
-                resetForm();
-                setShowForm(true);
-                if (formRef.current) formRef.current.scrollIntoView({ behavior: 'smooth' });
-              }
+              resetForm();
+              setShowForm(true);
             }}
             className="h-9 text-xs font-semibold gap-1.5"
           >
             <PlusCircle className="h-4 w-4" />
-            {showForm && !isEditing ? 'Close Form' : 'Add New Product'}
+            Add New Product
           </Button>
 
           <Button
@@ -407,7 +858,7 @@ export default function AdminProductsPage() {
         <Card className="shadow-xs border-primary/30 bg-primary/5">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-xs font-medium text-primary">Hero Banner Item</CardTitle>
-            <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+            <Star className="h-4 w-4 text-primary fill-primary" />
           </CardHeader>
           <CardContent className="truncate">
             {loading ? (
@@ -428,7 +879,7 @@ export default function AdminProductsPage() {
         <Card className="shadow-xs">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-xs font-medium text-muted-foreground">Featured Products</CardTitle>
-            <Sparkles className="h-4 w-4 text-amber-500" />
+            <Sparkles className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{loading ? <Skeleton className="h-7 w-16" /> : stats.featuredCount}</div>
@@ -451,323 +902,644 @@ export default function AdminProductsPage() {
         </Card>
       </div>
 
-      {/* SECTION 2: ADD / EDIT PRODUCT FORM (COLLAPSIBLE STUDIO) */}
-      {(showForm || isEditing) && (
-        <div ref={formRef} className="animate-in fade-in slide-in-from-top-4 duration-300">
-          <Card className="border-primary/40 shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
+      {/* SECTION 2: ADD / EDIT PRODUCT MODAL (CLEAN LUXURY STUDIO) */}
+      <Dialog
+        open={showForm || isEditing}
+        onOpenChange={(open) => {
+          if (!open) {
+            resetForm();
+            setShowForm(false);
+          }
+        }}
+      >
+        <DialogContent className="max-w-4xl max-h-[92vh] sm:max-w-4xl lg:max-w-5xl flex flex-col p-0 overflow-hidden sm:rounded-2xl border-border shadow-2xl">
+          {/* MODAL HEADER */}
+          <DialogHeader className="px-6 py-4 border-b bg-card shrink-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pr-8">
               <div>
-                <CardTitle className="text-lg flex items-center gap-2">
+                <DialogTitle className="text-lg font-bold flex items-center gap-2">
                   <Shirt className="h-5 w-5 text-primary" />
-                  {isEditing ? `Edit Product: ${formData.name}` : 'Create New Catalog Product'}
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  {isEditing ? 'Modify pricing, stock levels, images, or categories.' : 'Fill in the details to publish a new store product.'}
-                </CardDescription>
+                  {isEditing ? `Edit Product: ${formData.name}` : 'New Product'}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                  Manage product details, colorways, fabric options, and inventory.
+                </DialogDescription>
               </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  resetForm();
-                  setShowForm(false);
-                }}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </CardHeader>
+              {/* LIVE VARIANT STATS BADGES */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className="text-xs font-semibold border-primary/50 bg-primary/10 text-primary">
+                  {variantStats.priceLabel}
+                </Badge>
+                <Badge variant="outline" className="text-xs font-medium text-muted-foreground">
+                  {variantStats.totalStock} in stock
+                </Badge>
+                <Badge variant="outline" className="text-xs font-medium text-muted-foreground">
+                  {variantStats.totalColors} {variantStats.totalColors === 1 ? 'colorway' : 'colorways'}
+                </Badge>
+                <Badge variant="secondary" className="text-xs font-medium">
+                  {variantStats.activeFabricsCount} {variantStats.activeFabricsCount === 1 ? 'active fit' : 'active fits'}
+                </Badge>
+              </div>
+            </div>
+          </DialogHeader>
 
-            <CardContent className="pt-6">
-              <form onSubmit={handleFormSubmit} className="space-y-6">
-                <div className="grid gap-6 md:grid-cols-2">
-                  {/* LEFT COLUMN: BASIC & PRICING */}
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name" className="text-xs font-bold">
-                        Product Name *
+          {/* MODAL FORM CONTAINER */}
+          <form onSubmit={handleFormSubmit} className="flex flex-col flex-1 overflow-hidden">
+            {/* SCROLLABLE BODY */}
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              {/* STEP 1: GENERAL INFORMATION */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/80 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+                      1
+                    </span>
+                    <h3 className="text-sm font-bold text-foreground">General Information</h3>
+                  </div>
+                  <Badge variant="outline" className="text-[10px]">
+                    Step 1 of 2
+                  </Badge>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  {/* DESIGN NAME */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="name" className="text-xs font-bold text-foreground">
+                      Product Name *
+                    </Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="e.g., Heavyweight Boxy Tee"
+                      className="h-9 text-xs"
+                      required
+                      disabled={isSubmitting}
+                    />
+                    <p className="text-[10px] text-muted-foreground">The title displayed on storefront cards, product details, and search.</p>
+                  </div>
+
+                  {/* CATEGORIES */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-foreground">Categories *</Label>
+                    <Popover open={openCategorySelector} onOpenChange={setOpenCategorySelector}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-between h-9 text-xs font-normal"
+                          disabled={categoriesLoading || isSubmitting}
+                        >
+                          <span className="truncate">
+                            {selectedCategories.length > 0
+                              ? selectedCategories.map((c) => c.name).join(', ')
+                              : 'Select categories...'}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[320px] p-0 z-50">
+                        <Command>
+                          <CommandInput placeholder="Search categories..." />
+                          <CommandList>
+                            <CommandEmpty>No categories found.</CommandEmpty>
+                            <CommandGroup>
+                              {categories.map((category) => (
+                                <CommandItem
+                                  key={category.id}
+                                  value={category.name}
+                                  onSelect={() => handleCategorySelect(category.id)}
+                                >
+                                  <Check
+                                    className={cn(
+                                      'mr-2 h-4 w-4',
+                                      formData.category.includes(category.id) ? 'opacity-100' : 'opacity-0'
+                                    )}
+                                  />
+                                  {category.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {selectedCategories.map((c) => (
+                        <Badge key={c.id} variant="secondary" className="text-[10px] px-2 py-0.5">
+                          {c.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* DESCRIPTION */}
+                  <div className="md:col-span-2 space-y-1.5">
+                    <Label htmlFor="description" className="text-xs font-bold text-foreground">
+                      Description
+                    </Label>
+                    <Textarea
+                      id="description"
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      placeholder="Enter product details, fit notes, fabric specifications, and care instructions..."
+                      rows={2}
+                      className="text-xs"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+
+                  {/* OPTIONAL BENCHMARK & FLAGS */}
+                  <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-border/50 items-center">
+                    <div className="space-y-1">
+                      <Label htmlFor="cost" className="text-[11px] font-semibold text-muted-foreground">
+                        Cost Per Item (₹)
                       </Label>
                       <Input
-                        id="name"
-                        name="name"
-                        value={formData.name}
+                        id="cost"
+                        name="cost"
+                        type="number"
+                        step="0.01"
+                        value={formData.cost}
                         onChange={handleInputChange}
-                        placeholder="e.g., Oversized Heavyweight Hoodie"
-                        required
+                        placeholder="e.g., 250 (private)"
+                        className="h-8 text-xs"
                         disabled={isSubmitting}
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="description" className="text-xs font-bold">
-                        Description
+                    <div className="flex items-center space-x-2 pt-4 sm:pt-0">
+                      <Switch
+                        id="featured"
+                        checked={formData.featured}
+                        onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, featured: checked }))}
+                        disabled={isSubmitting}
+                      />
+                      <Label htmlFor="featured" className="text-xs font-semibold cursor-pointer">
+                        Featured Product
                       </Label>
-                      <Textarea
-                        id="description"
-                        name="description"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        placeholder="Detailed product specification and fabric features..."
-                        rows={3}
+                    </div>
+
+                    <div className="flex items-center space-x-2 pt-2 sm:pt-0">
+                      <Switch
+                        id="isHero"
+                        checked={formData.isHero}
+                        onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, isHero: checked }))}
                         disabled={isSubmitting}
                       />
+                      <Label htmlFor="isHero" className="text-xs font-semibold cursor-pointer">
+                        Hero Banner Item
+                      </Label>
                     </div>
+                  </div>
+                </div>
+              </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="price" className="text-xs font-bold">
-                          Final Price (₹) *
-                        </Label>
-                        <Input
-                          id="price"
-                          name="price"
-                          type="number"
-                          step="0.01"
-                          value={formData.price}
-                          onChange={handleInputChange}
-                          placeholder="e.g., 599.00"
-                          required
-                          disabled={isSubmitting}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="originalPrice" className="text-xs font-bold">
-                          Original Price (₹)
-                        </Label>
-                        <Input
-                          id="originalPrice"
-                          name="originalPrice"
-                          type="number"
-                          step="0.01"
-                          value={formData.originalPrice}
-                          onChange={handleInputChange}
-                          placeholder="e.g., 999.00"
-                          disabled={isSubmitting}
-                        />
-                      </div>
-                    </div>
+              {/* STEP 2: GLOBAL FABRIC PRICING PRESETS */}
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-muted/40 border border-border/70 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <SlidersHorizontal className="h-4 w-4 text-primary" />
+                    <span className="text-xs font-bold text-foreground">Default Pricing Presets</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Regular: ₹499 · Oversized: ₹599 · French Terry (320 GSM): ₹749 · Sweatshirt: ₹799
+                  </p>
+                </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="cost" className="text-xs font-bold">
-                          Manufacturing Cost (₹)
-                        </Label>
-                        <Input
-                          id="cost"
-                          name="cost"
-                          type="number"
-                          step="0.01"
-                          value={formData.cost}
-                          onChange={handleInputChange}
-                          placeholder="e.g., 250.00"
-                          disabled={isSubmitting}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="stock" className="text-xs font-bold">
-                          Stock Quantity *
-                        </Label>
-                        <Input
-                          id="stock"
-                          name="stock"
-                          type="number"
-                          value={formData.stock}
-                          onChange={handleInputChange}
-                          required
-                          disabled={isSubmitting}
-                        />
-                      </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleApplyPresetMatrixToAll}
+                  className="h-8 text-xs font-medium gap-1.5 bg-background shadow-xs shrink-0"
+                >
+                  <RefreshCw className="h-3.5 w-3.5 text-primary" />
+                  Apply Defaults to All Colors
+                </Button>
+              </div>
+
+              {/* STEP 3: COLOR & FABRIC STUDIO */}
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+                      2
+                    </span>
+                    <div>
+                      <h3 className="text-sm font-bold text-foreground">
+                        Colorways & Fabric Options
+                      </h3>
+                      <p className="text-[11px] text-muted-foreground">
+                        Add images per color, and configure pricing, stock, and sizes for each fabric type.
+                      </p>
                     </div>
                   </div>
 
-                  {/* RIGHT COLUMN: CATEGORIES & MEDIA */}
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="imageUrls" className="text-xs font-bold">
-                        Image URLs (Comma-separated) *
-                      </Label>
-                      <Textarea
-                        id="imageUrls"
-                        name="imageUrls"
-                        value={formData.imageUrls}
-                        onChange={handleInputChange}
-                        placeholder="https://images.unsplash.com/photo-..., https://..."
-                        rows={3}
-                        required
-                        disabled={isSubmitting}
-                      />
-                      <p className="text-[10px] text-muted-foreground">Add multiple direct image URLs separated by commas.</p>
-                    </div>
+                  {/* QUICK ADD COLOR CHIPS */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-[11px] font-semibold text-muted-foreground mr-1 hidden lg:inline">Quick Add:</span>
+                    {QUICK_COLOR_PRESETS.map((preset) => {
+                      const alreadyExists = formData.colorVariants.some(
+                        (cv) => cv.color.toLowerCase() === preset.name.toLowerCase()
+                      );
+                      return (
+                        <Button
+                          key={preset.name}
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={alreadyExists || isSubmitting}
+                          onClick={() => handleAddColorVariant(preset)}
+                          className="h-7 px-2 text-[10px] gap-1 font-semibold bg-background"
+                        >
+                          <span
+                            className="h-2.5 w-2.5 rounded-full border border-border shrink-0"
+                            style={{ backgroundColor: preset.hex }}
+                          />
+                          {preset.name}
+                        </Button>
+                      );
+                    })}
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => handleAddColorVariant()}
+                      className="h-7 px-2.5 text-[11px] font-bold gap-1"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Add Color
+                    </Button>
+                  </div>
+                </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold">Product Categories *</Label>
-                      <Popover open={openCategorySelector} onOpenChange={setOpenCategorySelector}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className="w-full justify-between h-10 text-xs"
-                            disabled={categoriesLoading || isSubmitting}
-                          >
-                            <span className="truncate">
-                              {selectedCategories.length > 0
-                                ? selectedCategories.map((c) => c.name).join(', ')
-                                : 'Select product categories...'}
-                            </span>
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[320px] p-0 z-50">
-                          <Command>
-                            <CommandInput placeholder="Search categories..." />
-                            <CommandList>
-                              <CommandEmpty>No categories found.</CommandEmpty>
-                              <CommandGroup>
-                                {categories.map((category) => (
-                                  <CommandItem key={category.id} value={category.name} onSelect={() => handleCategorySelect(category.id)}>
-                                    <Check
-                                      className={cn(
-                                        'mr-2 h-4 w-4',
-                                        formData.category.includes(category.id) ? 'opacity-100' : 'opacity-0'
-                                      )}
-                                    />
-                                    {category.name}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {selectedCategories.map((c) => (
-                          <Badge key={c.id} variant="secondary" className="text-[10px]">
-                            {c.name}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
+                {/* COLOR CARDS LIST */}
+                <div className="space-y-5">
+                  {formData.colorVariants.map((colorVariant, colorIdx) => {
+                    const enabledCount = colorVariant.categories.filter((c) => c.enabled).length;
+                    const imageList = colorVariant.images
+                      .split(/[\n,]+/)
+                      .map((u) => u.trim())
+                      .filter(Boolean);
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="sizes" className="text-xs font-bold">
-                          Sizes
-                        </Label>
-                        <Input
-                          id="sizes"
-                          name="sizes"
-                          value={formData.sizes}
-                          onChange={handleInputChange}
-                          placeholder="XS, S, M, L, XL"
-                          disabled={isSubmitting}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="colors" className="text-xs font-bold">
-                          Colors
-                        </Label>
-                        <Input
-                          id="colors"
-                          name="colors"
-                          value={formData.colors}
-                          onChange={handleInputChange}
-                          placeholder="Black, White, Beige"
-                          disabled={isSubmitting}
-                        />
-                      </div>
-                    </div>
-
-                    {/* COLOR-SPECIFIC IMAGES (OPTIONAL MAPPING) */}
-                    {formData.colors.split(',').map((c) => c.trim()).filter(Boolean).length > 0 && (
-                      <div className="space-y-3 pt-3 border-t border-border mt-3">
-                        <Label className="text-xs font-bold flex items-center gap-1.5 text-primary">
-                          <Sparkles className="h-3.5 w-3.5" />
-                          Color-Specific Images (Optional)
-                        </Label>
-                        <p className="text-[11px] text-muted-foreground leading-normal">
-                          Provide comma-separated image URLs for each color variant. When a user selects a color in store or mobile app, only these images will be shown.
-                        </p>
-                        <div className="space-y-2.5">
-                          {formData.colors
-                            .split(',')
-                            .map((c) => c.trim())
-                            .filter(Boolean)
-                            .map((colorName) => (
-                              <div key={colorName} className="space-y-1 bg-muted/30 p-2.5 rounded-lg border border-border/50">
-                                <Label className="text-[11px] font-bold flex items-center justify-between text-foreground">
-                                  <span>{colorName} Variant Images</span>
-                                  <span className="text-[10px] text-muted-foreground font-normal">Comma-separated URLs</span>
-                                </Label>
-                                <Textarea
-                                  value={formData.colorImages?.[colorName] || ''}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      colorImages: {
-                                        ...(prev.colorImages || {}),
-                                        [colorName]: val,
-                                      },
-                                    }));
-                                  }}
-                                  placeholder={`https://.../photo1.jpg, https://.../photo2.jpg`}
-                                  className="text-xs min-h-[50px]"
-                                  rows={2}
-                                  disabled={isSubmitting}
+                    return (
+                      <div
+                        key={colorVariant.id || colorIdx}
+                        className="p-4 sm:p-5 rounded-2xl bg-card border border-border shadow-xs space-y-4 transition-all"
+                      >
+                        {/* COLOR CARD HEADER */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-border/60">
+                          <div className="flex items-center gap-3 flex-1 min-w-[240px]">
+                            {/* COLOR PICKER SWATCH */}
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="color"
+                                value={colorVariant.colorHex || '#111111'}
+                                onChange={(e) => handleColorVariantChange(colorIdx, 'colorHex', e.target.value)}
+                                className="h-8 w-8 rounded-lg cursor-pointer border border-border/80 bg-transparent p-0.5"
+                                title="Pick Color Swatch"
+                              />
+                              <div className="space-y-0.5">
+                                <Label className="text-[10px] text-muted-foreground uppercase font-bold">Color Name</Label>
+                                <Input
+                                  value={colorVariant.color}
+                                  onChange={(e) => handleColorVariantChange(colorIdx, 'color', e.target.value)}
+                                  placeholder="e.g., Black"
+                                  className="h-8 text-xs font-bold w-40 sm:w-56"
                                 />
                               </div>
+                            </div>
+
+                            <Badge variant="outline" className="text-[10px] hidden sm:inline-flex font-medium">
+                              {enabledCount} active
+                            </Badge>
+                          </div>
+
+                          {/* ACTION BUTTONS FOR THIS COLOR */}
+                          <div className="flex items-center gap-1.5">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDuplicateColorVariant(colorIdx)}
+                              className="h-8 px-2.5 text-[11px] font-medium gap-1"
+                              title="Duplicate this color with its fabric prices and sizes"
+                            >
+                              <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                              Duplicate
+                            </Button>
+
+                            {formData.colorVariants.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => handleCopyFabricToAllColors(colorIdx)}
+                                className="h-8 px-2.5 text-[11px] font-medium text-foreground/80 hover:text-foreground"
+                                title="Copy fabric prices from this color to all other colors"
+                              >
+                                Copy Pricing to All
+                              </Button>
+                            )}
+
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveColorVariant(colorIdx)}
+                              className="h-8 px-2 text-destructive hover:bg-destructive/10"
+                              disabled={formData.colorVariants.length <= 1}
+                              title="Remove color variant"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* COLOR-SPECIFIC GALLERY PHOTOS */}
+                        <div className="space-y-2.5 bg-muted/20 p-3.5 rounded-xl border border-border/50">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                            <Label className="text-xs font-bold flex items-center gap-1.5">
+                              <span>Images for {colorVariant.color || 'this Color'} *</span>
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                {imageList.length} {imageList.length === 1 ? 'image' : 'images'}
+                              </Badge>
+                            </Label>
+                            <span className="text-[10px] text-muted-foreground">First image is used as primary preview</span>
+                          </div>
+
+                          {/* QUICK IMAGE URL INPUT */}
+                          <div className="flex items-center gap-2">
+                            <Input
+                              value={newImageUrlByColor[colorIdx] || ''}
+                              onChange={(e) =>
+                                setNewImageUrlByColor((prev) => ({ ...prev, [colorIdx]: e.target.value }))
+                              }
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleAddSingleImage(colorIdx);
+                                }
+                              }}
+                              placeholder="Direct image URL (e.g., https://.../product.jpg)"
+                              className="h-8 text-xs bg-background"
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => handleAddSingleImage(colorIdx)}
+                              className="h-8 text-xs font-semibold shrink-0"
+                            >
+                              <Plus className="h-3.5 w-3.5 mr-1" />
+                              Add Image
+                            </Button>
+                          </div>
+
+                          {/* BULK TEXTAREA */}
+                          <div className="space-y-1">
+                            <div className="text-[10px] text-muted-foreground flex items-center justify-between">
+                              <span>Or enter multiple URLs:</span>
+                            </div>
+                            <Textarea
+                              value={colorVariant.images}
+                              onChange={(e) => handleColorVariantChange(colorIdx, 'images', e.target.value)}
+                              placeholder={`https://.../front.jpg, https://.../back.jpg`}
+                              className="text-xs min-h-[48px] bg-background font-mono"
+                              rows={1}
+                            />
+                          </div>
+
+                          {/* LIVE THUMBNAIL PREVIEW STRIP */}
+                          {imageList.length > 0 ? (
+                            <div className="flex items-center gap-2 overflow-x-auto pt-1 pb-1">
+                              {imageList.map((imgUrl, imgIdx) => (
+                                <div
+                                  key={imgIdx}
+                                  className="relative group h-16 w-14 rounded-lg overflow-hidden border border-border/80 shrink-0 bg-muted shadow-2xs"
+                                >
+                                  <Image
+                                    src={imgUrl}
+                                    alt={`${colorVariant.color} view ${imgIdx + 1}`}
+                                    fill
+                                    className="object-cover"
+                                    onError={(e: any) => {
+                                      e.target.style.display = 'none';
+                                    }}
+                                  />
+                                  <div className="absolute top-0.5 left-0.5 bg-black/70 text-[8px] font-medium text-white px-1 rounded-xs">
+                                    {imgIdx + 1}
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveColorImage(colorIdx, imgIdx)}
+                                    className="absolute top-0.5 right-0.5 bg-destructive text-white p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110 shadow-xs"
+                                    title="Remove image"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="py-3 px-4 rounded-lg border border-dashed border-border/70 text-center text-[11px] text-muted-foreground bg-background/50">
+                              No images added for {colorVariant.color || 'this color'} yet. Enter an image URL above.
+                            </div>
+                          )}
+                        </div>
+
+                        {/* FABRIC QUALITY & PRICING MATRIX */}
+                        <div className="space-y-2 pt-1">
+                          <Label className="text-xs font-bold text-foreground flex items-center justify-between">
+                            <span>Fabric Options for {colorVariant.color}:</span>
+                            <span className="text-[10px] text-muted-foreground font-normal">
+                              Configure pricing, inventory, and sizes for each fabric type
+                            </span>
+                          </Label>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {colorVariant.categories.map((cat) => (
+                              <div
+                                key={cat.id}
+                                className={cn(
+                                  'p-3.5 rounded-xl border transition-all space-y-2.5',
+                                  cat.enabled
+                                    ? 'bg-card border-primary/30 shadow-xs'
+                                    : 'bg-muted/30 border-border/50 opacity-60'
+                                )}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Switch
+                                      checked={cat.enabled}
+                                      onCheckedChange={(checked) =>
+                                        handleFabricCategoryChange(colorIdx, cat.id, 'enabled', checked)
+                                      }
+                                      id={`cat-${colorIdx}-${cat.id}`}
+                                    />
+                                    <Label
+                                      htmlFor={`cat-${colorIdx}-${cat.id}`}
+                                      className="text-xs font-bold cursor-pointer"
+                                    >
+                                      {cat.name}
+                                    </Label>
+                                  </div>
+                                  <Badge variant="secondary" className="text-[10px] px-2 py-0">
+                                    {cat.gsm || 'Standard'}
+                                  </Badge>
+                                </div>
+
+                                {cat.enabled && (
+                                  <div className="space-y-2.5 pt-1 text-xs">
+                                    <div className="grid grid-cols-3 gap-2">
+                                      <div className="space-y-1">
+                                        <Label className="text-[10px] font-semibold text-muted-foreground">
+                                          Price (₹) *
+                                        </Label>
+                                        <Input
+                                          type="number"
+                                          step="0.01"
+                                          value={cat.price}
+                                          onChange={(e) =>
+                                            handleFabricCategoryChange(colorIdx, cat.id, 'price', e.target.value)
+                                          }
+                                          placeholder="499"
+                                          className="h-8 text-xs font-bold"
+                                        />
+                                      </div>
+
+                                      <div className="space-y-1">
+                                        <Label className="text-[10px] font-semibold text-muted-foreground">
+                                          Compare at (₹)
+                                        </Label>
+                                        <Input
+                                          type="number"
+                                          step="0.01"
+                                          value={cat.originalPrice}
+                                          onChange={(e) =>
+                                            handleFabricCategoryChange(colorIdx, cat.id, 'originalPrice', e.target.value)
+                                          }
+                                          placeholder="999"
+                                          className="h-8 text-xs"
+                                        />
+                                      </div>
+
+                                      <div className="space-y-1">
+                                        <Label className="text-[10px] font-semibold text-muted-foreground">
+                                          Stock Quantity
+                                        </Label>
+                                        <Input
+                                          type="number"
+                                          value={cat.stock}
+                                          onChange={(e) =>
+                                            handleFabricCategoryChange(colorIdx, cat.id, 'stock', e.target.value)
+                                          }
+                                          placeholder="50"
+                                          className="h-8 text-xs"
+                                        />
+                                      </div>
+                                    </div>
+
+                                    {/* SIZES WITH 1-CLICK TOGGLES */}
+                                    <div className="space-y-1 pt-0.5">
+                                      <div className="flex items-center justify-between">
+                                        <Label className="text-[10px] font-semibold text-muted-foreground">
+                                          Available Sizes
+                                        </Label>
+                                        <span className="text-[9px] text-muted-foreground">Click to toggle</span>
+                                      </div>
+
+                                      <div className="flex flex-wrap gap-1 mb-1.5">
+                                        {STANDARD_SIZES.map((sz) => {
+                                          const sizesList = cat.sizes
+                                            .split(',')
+                                            .map((s) => s.trim())
+                                            .filter(Boolean);
+                                          const isSelected = sizesList.includes(sz);
+                                          return (
+                                            <button
+                                              key={sz}
+                                              type="button"
+                                              onClick={() => handleToggleFabricSize(colorIdx, cat.id, sz)}
+                                              className={cn(
+                                                'px-2 py-0.5 rounded text-[10px] font-bold border transition-all',
+                                                isSelected
+                                                  ? 'bg-primary text-primary-foreground border-primary'
+                                                  : 'bg-background hover:bg-muted text-muted-foreground border-border'
+                                              )}
+                                            >
+                                              {sz}
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+
+                                      <Input
+                                        value={cat.sizes}
+                                        onChange={(e) =>
+                                          handleFabricCategoryChange(colorIdx, cat.id, 'sizes', e.target.value)
+                                        }
+                                        placeholder="S, M, L, XL, 2XL"
+                                        className="h-7 text-xs font-mono"
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             ))}
+                          </div>
                         </div>
                       </div>
-                    )}
-
-                    <div className="flex items-center gap-6 pt-2">
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          id="featured"
-                          name="featured"
-                          checked={formData.featured}
-                          onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, featured: checked }))}
-                          disabled={isSubmitting}
-                        />
-                        <Label htmlFor="featured" className="text-xs font-semibold cursor-pointer">
-                          Featured Product
-                        </Label>
-                      </div>
-                    </div>
-                  </div>
+                    );
+                  })}
                 </div>
+              </div>
+            </div>
 
-                {/* FORM ACTIONS */}
-                <div className="flex items-center justify-end gap-3 border-t pt-4">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => {
-                      resetForm();
-                      setShowForm(false);
-                    }}
-                    disabled={isSubmitting}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting} className="min-w-[140px]">
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {isEditing ? 'Updating...' : 'Saving...'}
-                      </>
-                    ) : isEditing ? (
-                      'Update Product'
-                    ) : (
-                      'Publish Product'
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+            {/* MODAL FOOTER */}
+            <DialogFooter className="px-6 py-3.5 border-t bg-card/90 backdrop-blur-xs flex flex-row items-center justify-between shrink-0 gap-3">
+              <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <span className="font-semibold text-foreground">
+                  Starting at ₹{variantStats.minPrice || 499}
+                </span>
+                <span>·</span>
+                <span>{variantStats.totalStock} Total Units</span>
+                <span>·</span>
+                <span>{variantStats.totalColors} Colors</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    resetForm();
+                    setShowForm(false);
+                  }}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" size="sm" disabled={isSubmitting} className="min-w-[130px] font-bold text-xs">
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {isEditing ? 'Updating...' : 'Saving...'}
+                    </>
+                  ) : isEditing ? (
+                    'Update Product'
+                  ) : (
+                    'Save Product'
+                  )}
+                </Button>
+              </div>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* SECTION 3: CATALOG EXPLORER & MANAGEMENT TABLE / GRID */}
       <Card className="shadow-sm">

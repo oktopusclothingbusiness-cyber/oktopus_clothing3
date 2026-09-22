@@ -5,7 +5,7 @@ import clientPromise from '@/lib/mongodb';
 // POST a new custom design
 export async function POST(request: Request) {
   try {
-    const { userId, userName, designUrl, notes, tshirtColor, tshirtSize, printArea } = await request.json();
+    const { userId, userName, designUrl, notes, tshirtColor, tshirtSize, printArea, colorName, viewImageUrl, colorId, selectedView } = await request.json();
 
     if (!userId || !userName || !designUrl || !tshirtColor || !tshirtSize || !printArea) {
       return NextResponse.json({ message: 'Missing required fields.' }, { status: 400 });
@@ -18,7 +18,11 @@ export async function POST(request: Request) {
       userId,
       userName,
       designUrl, // This is a base64 data URI
-      tshirtColor,
+      tshirtColor, // Primary or selected view image URL
+      colorName: colorName || '',
+      viewImageUrl: viewImageUrl || tshirtColor,
+      colorId: colorId || '',
+      selectedView: selectedView || 'Front',
       tshirtSize,
       printArea,
       notes,
