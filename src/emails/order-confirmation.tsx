@@ -36,16 +36,52 @@ export const OrderConfirmationEmail = ({
   products,
 }: OrderConfirmationEmailProps) => {
   const previewText = `Your Order #${orderId.slice(-6)} confirmed!`;
-  const logoUrl = "https://i.ibb.co/GfTs981G/okto-new-logo-white.png";
+  const logoUrl = "https://www.oktopusclothing.in/logo2b.png";
+  const avatarUrl = "https://www.oktopusclothing.in/logo1.png";
   
   return (
-    <Html>
-      <Head />
+    <Html lang="en">
+      <Head>
+        <meta name="color-scheme" content="light only" />
+        <meta name="supported-color-schemes" content="light only" />
+        <style>{`
+          :root {
+            color-scheme: light only !important;
+            supported-color-schemes: light only !important;
+          }
+          @media (prefers-color-scheme: dark) {
+            body, .email-body {
+              background-color: #f6f9fc !important;
+              background-image: linear-gradient(#f6f9fc, #f6f9fc) !important;
+              color: #0f172a !important;
+            }
+            .email-container {
+              background-color: #ffffff !important;
+              background-image: linear-gradient(#ffffff, #ffffff) !important;
+              border-color: #e2e8f0 !important;
+            }
+            h1, h2, p, span, td {
+              color: #0f172a !important;
+            }
+          }
+        `}</style>
+      </Head>
       <Preview>{previewText}</Preview>
-      <Body style={main}>
-        <Container style={container}>
+      <Body style={main} className="email-body">
+        <Container style={container} className="email-container">
           <Section style={logoContainer}>
-            <Img src={logoUrl} width="140" height="40" alt="OKTOPUS CLOTHING" style={logo} />
+            <table role="presentation" cellSpacing="0" cellPadding="0" border={0} align="center" style={{ margin: "0 auto" }}>
+              <tbody>
+                <tr>
+                  <td style={{ verticalAlign: 'middle', paddingRight: '12px' }}>
+                    <Img src={avatarUrl} width="38" height="38" alt="Oktopus Avatar" style={{ borderRadius: "50%", display: "block", border: "1px solid #e2e8f0" }} />
+                  </td>
+                  <td style={{ verticalAlign: 'middle' }}>
+                    <Img src={logoUrl} width="168" height="35" alt="OKTOPUS CLOTHING" style={{ display: "block" }} />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </Section>
           <Heading style={h1}>Thanks for your order, {userName}!</Heading>
           <Text style={paragraph}>
@@ -60,7 +96,7 @@ export const OrderConfirmationEmail = ({
               </Column>
               <Column style={{ textAlign: 'right' }}>
                 <Text style={infoTitle}>Order Date</Text>
-                <Text style={infoValue}>{format(orderDate, "PP")}</Text>
+                <Text style={infoValue}>{format(new Date(orderDate), "PP")}</Text>
               </Column>
             </Row>
           </Section>
@@ -88,7 +124,7 @@ export const OrderConfirmationEmail = ({
           </Section>
 
           <Text style={footer}>
-            OKTOPUS CLOTHING | 123 Fashion Ave, Style City, 12345
+            OKTOPUS CLOTHING • Kolkata, West Bengal, India
           </Text>
         </Container>
       </Body>
@@ -100,23 +136,29 @@ export default OrderConfirmationEmail;
 
 const main = {
   backgroundColor: "#f6f9fc",
+  backgroundImage: "linear-gradient(#f6f9fc, #f6f9fc)",
   fontFamily:
     '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
 };
 
 const container = {
   backgroundColor: "#ffffff",
+  backgroundImage: "linear-gradient(#ffffff, #ffffff)",
   margin: "0 auto",
-  padding: "20px 0 48px",
+  padding: "0 0 48px",
   marginBottom: "64px",
   borderRadius: "8px",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+  border: "1px solid #e2e8f0",
+  overflow: "hidden" as const,
 };
 
 const logoContainer = {
   textAlign: "center" as const,
-  padding: '20px 0',
-  borderBottom: "1px solid #eaeaea",
+  padding: '24px 0',
+  backgroundColor: "#ffffff",
+  backgroundImage: "linear-gradient(#ffffff, #ffffff)",
+  borderBottom: "1px solid #e2e8f0",
 };
 
 const logo = {

@@ -62,16 +62,51 @@ export const InvoiceEmail = ({ order, settings }: InvoiceEmailProps) => {
   const discount = order.discount || 0;
 
   return (
-    <Html>
-      <Head />
+    <Html lang="en">
+      <Head>
+        <meta name="color-scheme" content="light only" />
+        <meta name="supported-color-schemes" content="light only" />
+        <style>{`
+          :root {
+            color-scheme: light only !important;
+            supported-color-schemes: light only !important;
+          }
+          @media (prefers-color-scheme: dark) {
+            body, .email-body {
+              background-color: #f6f9fc !important;
+              background-image: linear-gradient(#f6f9fc, #f6f9fc) !important;
+              color: #0f172a !important;
+            }
+            .email-container {
+              background-color: #ffffff !important;
+              background-image: linear-gradient(#ffffff, #ffffff) !important;
+              border-color: #e2e8f0 !important;
+            }
+            h1, h2, h3, p, span, td, th {
+              color: #0f172a !important;
+            }
+          }
+        `}</style>
+      </Head>
       <Preview>{previewText}</Preview>
-      <Body style={main}>
-        <Container style={container}>
+      <Body style={main} className="email-body">
+        <Container style={container} className="email-container">
            <Section style={header}>
             <div>
-              {settings?.logoUrl && (
-                <Img src={settings.logoUrl} alt="Oktopus Logo" width="150" style={logo} />
-              )}
+              <div style={{ padding: '4px 0', display: 'inline-block' }}>
+                <table role="presentation" cellSpacing="0" cellPadding="0" border={0}>
+                  <tbody>
+                    <tr>
+                      <td style={{ verticalAlign: 'middle', paddingRight: '8px' }}>
+                        <Img src="https://www.oktopusclothing.in/logo1.png" width="32" height="32" alt="Oktopus Avatar" style={{ borderRadius: "50%", display: "block", border: "1px solid #e2e8f0" }} />
+                      </td>
+                      <td style={{ verticalAlign: 'middle' }}>
+                        <Img src={settings?.logoUrl || "https://www.oktopusclothing.in/logo2b.png"} alt="OKTOPUS CLOTHING" width="140" height="29" style={logo} />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
               <Text style={baskeyLabel}>A UNIT OF BASKEY STUDIO</Text>
               <Text style={address}>Kolkata, West Bengal, India</Text>
             </div>
@@ -169,15 +204,19 @@ export default InvoiceEmail;
 
 const main = {
   backgroundColor: "#f6f9fc",
+  backgroundImage: "linear-gradient(#f6f9fc, #f6f9fc)",
   fontFamily:
     '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
 };
 
 const container = {
   backgroundColor: "#ffffff",
+  backgroundImage: "linear-gradient(#ffffff, #ffffff)",
   margin: "0 auto",
   padding: "20px 40px 48px",
   marginBottom: "64px",
+  border: "1px solid #e2e8f0",
+  borderRadius: "8px",
 };
 
 const header = {

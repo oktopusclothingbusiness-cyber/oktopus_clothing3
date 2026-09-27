@@ -81,10 +81,26 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (status) {
       const updatedOrder = await db.collection('orders').findOne({ _id: new ObjectId(id) });
       if (updatedOrder) {
-        if (updatedOrder.shippingAddress?.email) {
+        let customerEmail = updatedOrder.shippingAddress?.email;
+        if (!customerEmail && updatedOrder.userId) {
+          try {
+            const userDoc = await db.collection('users').findOne(
+              ObjectId.isValid(updatedOrder.userId) 
+                ? { _id: new ObjectId(updatedOrder.userId) } 
+                : { id: updatedOrder.userId }
+            );
+            if (userDoc?.email) {
+              customerEmail = userDoc.email;
+            }
+          } catch (e) {
+            console.warn('Could not resolve user email for order status update:', e);
+          }
+        }
+
+        if (customerEmail) {
           try {
             await sendOrderStatusUpdateEmail({
-              to: updatedOrder.shippingAddress.email,
+              to: customerEmail,
               orderId: updatedOrder._id.toString(),
               orderStatus: status,
               userName: updatedOrder.userName || 'Customer'
@@ -101,7 +117,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         if (['shipped', 'out_for_delivery', 'dispatch', 'dispatched'].includes(statusLower)) {
           triggerUserEventPushNotification({
             userId: updatedOrder.userId,
-            email: updatedOrder.shippingAddress?.email,
+            email: customerEmail,
             title: `Order #${id.slice(-6)} Shipped 🚚`,
             body: 'Your OKTOPUS shipment is on the way!',
             deepLink: '/track-order',

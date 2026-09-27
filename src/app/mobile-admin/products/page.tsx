@@ -36,14 +36,14 @@ export interface MobileColorVariant {
   categories: MobileFabricVariant[];
 }
 
-export const STANDARD_SIZES = ["XS", "S", "M", "L", "XL", "2XL", "3XL"];
+const STANDARD_SIZES = ["XS", "S", "M", "L", "XL", "2XL", "3XL"];
 
-export const QUICK_COLOR_PRESETS = [
+const QUICK_COLOR_PRESETS = [
   { name: "Black", hex: "#111111" },
   { name: "White", hex: "#F8F9FA" },
 ];
 
-export const createDefaultFabricCategories = (
+const createDefaultFabricCategories = (
   baseSizes = "S, M, L, XL, 2XL"
 ): MobileFabricVariant[] => [
   {

@@ -4,10 +4,12 @@ import { OrderConfirmationEmail } from '@/emails/order-confirmation';
 import { OrderStatusUpdateEmail } from '@/emails/order-status-update';
 import { PromotionalEmail } from '@/emails/promotional-email';
 import { InvoiceEmail } from '@/emails/invoice-email';
+import { generateInvoicePdfBuffer } from './invoicePdf';
+import { getShortOrderId } from './utils';
 import clientPromise from './mongodb';
 
-const resend = new Resend("re_hUGiai9e_8FKbk9HRaRFEpXHgnS755XGr");
-const fromEmail = 'OKTOPUS CLOTHING <onboarding@resend.dev>'; 
+const resend = new Resend(process.env.RESEND_API_KEY);
+const fromEmail = process.env.RESEND_FROM_EMAIL || 'OKTOPUS CLOTHING <care@oktopusclothing.in>'; 
 const adminEmail = 'oktopusclothing.business@gmail.com';
 
 type Product = {
@@ -37,10 +39,14 @@ type Order = {
   };
 };
 
-
 type Settings = {
     logoUrl?: string;
 }
+
+export type EmailAttachment = {
+  filename: string;
+  content: Buffer | string;
+};
 
 type OrderConfirmationProps = {
   to: string;
@@ -60,18 +66,23 @@ export const sendOrderConfirmationEmail = async ({
   products
 }: OrderConfirmationProps) => {
   try {
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: fromEmail,
       to: to,
       subject: `Order Confirmation #${orderId.slice(-6)}`,
       react: OrderConfirmationEmail({ orderId, userName, orderDate, total, products }),
     });
-    console.log(`Order confirmation email sent to ${to}`);
+    if (error) {
+      console.error(`Failed to send order confirmation email to ${to}:`, error);
+      return { success: false, error };
+    }
+    console.log(`Order confirmation email sent successfully to ${to} (id: ${data?.id})`);
+    return { success: true, data };
   } catch (error) {
     console.error('Error sending order confirmation email:', error);
+    return { success: false, error };
   }
 };
-
 
 type OrderStatusUpdateProps = {
     to: string;
@@ -87,15 +98,21 @@ export const sendOrderStatusUpdateEmail = async ({
     userName,
 }: OrderStatusUpdateProps) => {
     try {
-        await resend.emails.send({
+        const { data, error } = await resend.emails.send({
             from: fromEmail,
             to: to,
             subject: `Your Order #${orderId.slice(-6)} has been ${orderStatus}`,
             react: OrderStatusUpdateEmail({ orderId, orderStatus, userName })
         });
-         console.log(`Order status update email sent to ${to}`);
+        if (error) {
+            console.error(`Failed to send order status update email to ${to}:`, error);
+            return { success: false, error };
+        }
+        console.log(`Order status update email sent successfully to ${to} (id: ${data?.id})`);
+        return { success: true, data };
     } catch (error) {
         console.error('Error sending order status update email:', error);
+        return { success: false, error };
     }
 }
 
@@ -103,21 +120,37 @@ type PromotionalEmailProps = {
   to: string;
   subject: string;
   messageBody: string;
+  type?: 'update' | 'promotion' | 'information' | 'announcement';
+  headerTheme?: 'light' | 'dark';
+  attachments?: EmailAttachment[];
 }
 
 export const sendPromotionalEmail = async ({
   to,
   subject,
   messageBody,
+  type,
+  headerTheme,
+  attachments,
 }: PromotionalEmailProps) => {
    try {
-    await resend.emails.send({
+    const payload: any = {
       from: fromEmail,
       to: to,
       subject: subject,
-      react: PromotionalEmail({ subject, messageBody }),
-    });
-    console.log(`Promotional email sent to ${to}`);
+      react: PromotionalEmail({ subject, messageBody, type, headerTheme }),
+    };
+    if (attachments && attachments.length > 0) {
+      payload.attachments = attachments;
+    }
+
+    const { data, error } = await resend.emails.send(payload);
+    if (error) {
+      console.error(`Failed to send promotional email to ${to}:`, error);
+      throw new Error(error.message || 'Failed to send promotional email');
+    }
+    console.log(`Promotional email sent successfully to ${to} (id: ${data?.id})`);
+    return { success: true, data };
   } catch (error) {
     console.error('Error sending promotional email:', error);
     // Re-throw the error to be handled by the API route
@@ -129,23 +162,55 @@ type InvoiceEmailProps = {
   to: string;
   order: Order;
   settings: Settings | null;
+  attachments?: EmailAttachment[];
+  attachPdf?: boolean;
 };
 
 export const sendInvoiceEmail = async ({
   to,
   order,
   settings,
+  attachments,
+  attachPdf = true,
 }: InvoiceEmailProps) => {
   try {
-    await resend.emails.send({
+    const emailAttachments: EmailAttachment[] = attachments ? [...attachments] : [];
+
+    // Automatically generate and attach PDF invoice if attachPdf is true and none provided
+    if (attachPdf && emailAttachments.length === 0) {
+      try {
+        const shortCode = getShortOrderId(order._id);
+        const pdfBuffer = await generateInvoicePdfBuffer(order as any);
+        emailAttachments.push({
+          filename: `Invoice-OKT-${shortCode}.pdf`,
+          content: pdfBuffer,
+        });
+      } catch (pdfErr) {
+        console.warn('Could not generate PDF invoice buffer, continuing with HTML invoice:', pdfErr);
+      }
+    }
+
+    const payload: any = {
       from: fromEmail,
       to: to,
       subject: `Invoice for your Order #${order._id.slice(-6)}`,
       react: InvoiceEmail({ order, settings }),
-    });
-    console.log(`Invoice email sent to ${to}`);
+    };
+
+    if (emailAttachments.length > 0) {
+      payload.attachments = emailAttachments;
+    }
+
+    const { data, error } = await resend.emails.send(payload);
+    if (error) {
+      console.error(`Failed to send invoice email to ${to}:`, error);
+      return { success: false, error };
+    }
+    console.log(`Invoice email sent successfully to ${to} (id: ${data?.id}) with ${emailAttachments.length} attachment(s)`);
+    return { success: true, data };
   } catch (error) {
     console.error('Error sending invoice email:', error);
+    return { success: false, error };
   }
 };
 
@@ -157,7 +222,7 @@ type DataRequestProps = {
 
 export const sendDataRequestEmail = async ({ userId, userName, userEmail }: DataRequestProps) => {
   try {
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: fromEmail,
       to: adminEmail,
       subject: `User Data Request: ${userName}`,
@@ -167,6 +232,11 @@ export const sendDataRequestEmail = async ({ userId, userName, userEmail }: Data
              <p><strong>User ID:</strong> ${userId}</p>
              <p>Please process this request within 7 business days.</p>`,
     });
+    if (error) {
+      console.error(`Failed to send data request email to admin:`, error);
+      throw new Error(error.message);
+    }
+    return { success: true, data };
   } catch (error) {
     console.error('Error sending data request email to admin:', error);
     throw error;
@@ -175,7 +245,7 @@ export const sendDataRequestEmail = async ({ userId, userName, userEmail }: Data
 
 export const sendAccountDeletionRequestEmail = async ({ userId, userName, userEmail }: DataRequestProps) => {
     try {
-        await resend.emails.send({
+        const { data, error } = await resend.emails.send({
             from: fromEmail,
             to: adminEmail,
             subject: `Account Deletion Request: ${userName}`,
@@ -185,6 +255,11 @@ export const sendAccountDeletionRequestEmail = async ({ userId, userName, userEm
                    <p><strong>User ID:</strong> ${userId}</p>
                    <p>Please process this request within 7 business days by deleting the user from the database.</p>`,
         });
+        if (error) {
+            console.error(`Failed to send account deletion email to admin:`, error);
+            throw new Error(error.message);
+        }
+        return { success: true, data };
     } catch (error) {
         console.error('Error sending account deletion request email to admin:', error);
         throw error;

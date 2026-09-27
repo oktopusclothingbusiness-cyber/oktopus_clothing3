@@ -5,7 +5,24 @@ import clientPromise from '@/lib/mongodb';
 // POST a new custom design
 export async function POST(request: Request) {
   try {
-    const { userId, userName, designUrl, notes, tshirtColor, tshirtSize, printArea, colorName, viewImageUrl, colorId, selectedView } = await request.json();
+    const { 
+      userId, 
+      userName, 
+      designUrl, 
+      mockupUrl,
+      placement,
+      notes, 
+      tshirtColor, 
+      tshirtSize, 
+      printArea, 
+      colorName, 
+      viewImageUrl, 
+      colorId, 
+      selectedView,
+      fabricQuality,
+      price,
+      transform,
+    } = await request.json();
 
     if (!userId || !userName || !designUrl || !tshirtColor || !tshirtSize || !printArea) {
       return NextResponse.json({ message: 'Missing required fields.' }, { status: 400 });
@@ -17,15 +34,20 @@ export async function POST(request: Request) {
     const designData = {
       userId,
       userName,
-      designUrl, // This is a base64 data URI
+      designUrl, // This is a base64 data URI of the raw user-uploaded graphic file
+      mockupUrl: mockupUrl || null, // Rendered snapshot of the design placed on the exact tshirt
+      placement: placement || transform || null, // Coordinates: xPercent, yPercent, widthPercent, heightPercent, rotation
       tshirtColor, // Primary or selected view image URL
       colorName: colorName || '',
       viewImageUrl: viewImageUrl || tshirtColor,
       colorId: colorId || '',
       selectedView: selectedView || 'Front',
       tshirtSize,
+      fabricQuality: fabricQuality || 'Regular',
+      price: price || 499,
       printArea,
-      notes,
+      transform: transform || placement || null,
+      notes: notes || '',
       status: 'pending', // Initial status: pending, approved, rejected
       createdAt: new Date(),
     };
