@@ -1,4 +1,3 @@
-
 import { Resend } from 'resend';
 import { OrderConfirmationEmail } from '@/emails/order-confirmation';
 import { OrderStatusUpdateEmail } from '@/emails/order-status-update';
@@ -8,7 +7,19 @@ import { generateInvoicePdfBuffer } from './invoicePdf';
 import { getShortOrderId } from './utils';
 import clientPromise from './mongodb';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resendInstance: Resend | null = null;
+
+export function getResendClient(): Resend {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error('RESEND_API_KEY environment variable is not configured. Please set RESEND_API_KEY in your deployment environment.');
+  }
+  if (!resendInstance) {
+    resendInstance = new Resend(apiKey);
+  }
+  return resendInstance;
+}
+
 const fromEmail = process.env.RESEND_FROM_EMAIL || 'OKTOPUS CLOTHING <care@oktopusclothing.in>'; 
 const adminEmail = 'oktopusclothing.business@gmail.com';
 
@@ -66,6 +77,7 @@ export const sendOrderConfirmationEmail = async ({
   products
 }: OrderConfirmationProps) => {
   try {
+    const resend = getResendClient();
     const { data, error } = await resend.emails.send({
       from: fromEmail,
       to: to,
@@ -98,6 +110,7 @@ export const sendOrderStatusUpdateEmail = async ({
     userName,
 }: OrderStatusUpdateProps) => {
     try {
+        const resend = getResendClient();
         const { data, error } = await resend.emails.send({
             from: fromEmail,
             to: to,
@@ -134,6 +147,7 @@ export const sendPromotionalEmail = async ({
   attachments,
 }: PromotionalEmailProps) => {
    try {
+    const resend = getResendClient();
     const payload: any = {
       from: fromEmail,
       to: to,
@@ -174,6 +188,7 @@ export const sendInvoiceEmail = async ({
   attachPdf = true,
 }: InvoiceEmailProps) => {
   try {
+    const resend = getResendClient();
     const emailAttachments: EmailAttachment[] = attachments ? [...attachments] : [];
 
     // Automatically generate and attach PDF invoice if attachPdf is true and none provided
@@ -222,6 +237,7 @@ type DataRequestProps = {
 
 export const sendDataRequestEmail = async ({ userId, userName, userEmail }: DataRequestProps) => {
   try {
+    const resend = getResendClient();
     const { data, error } = await resend.emails.send({
       from: fromEmail,
       to: adminEmail,
@@ -245,6 +261,7 @@ export const sendDataRequestEmail = async ({ userId, userName, userEmail }: Data
 
 export const sendAccountDeletionRequestEmail = async ({ userId, userName, userEmail }: DataRequestProps) => {
     try {
+        const resend = getResendClient();
         const { data, error } = await resend.emails.send({
             from: fromEmail,
             to: adminEmail,
