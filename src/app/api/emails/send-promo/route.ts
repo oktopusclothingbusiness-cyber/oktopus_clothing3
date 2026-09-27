@@ -71,27 +71,51 @@ export async function POST(request: Request) {
       }
     }
 
-    // Dispatch emails to recipients
+    // Dispatch emails to recipients with rate-limit protection and error isolation
+    let successCount = 0;
+    let failCount = 0;
+    const errors: string[] = [];
+
     for (const recipient of recipients) {
       if (recipient.email) {
-        await sendPromotionalEmail({
-          to: recipient.email,
-          subject: subject,
-          messageBody: messageBody,
-          type: type || 'information',
-          headerTheme: headerTheme || 'light',
-          attachments: processedAttachments.length > 0 ? processedAttachments : undefined,
-        });
+        try {
+          await sendPromotionalEmail({
+            to: recipient.email,
+            subject: subject,
+            messageBody: messageBody,
+            type: type || 'information',
+            headerTheme: headerTheme || 'light',
+            attachments: processedAttachments.length > 0 ? processedAttachments : undefined,
+          });
+          successCount++;
+          // Resend free tier has a 2 req/sec limit. Add a small pause between recipients
+          if (recipients.length > 1) {
+            await new Promise((resolve) => setTimeout(resolve, 600));
+          }
+        } catch (err: any) {
+          console.error(`Failed to send email to ${recipient.email}:`, err);
+          failCount++;
+          errors.push(`${recipient.email}: ${err?.message || 'Dispatch error'}`);
+        }
       }
     }
 
-    const message = `Email sent successfully to ${recipients.length} recipient(s)${
-      processedAttachments.length > 0 ? ` with ${processedAttachments.length} attachment(s)` : ''
-    }.`;
+    if (successCount === 0 && failCount > 0) {
+      return NextResponse.json({
+        message: `Failed to dispatch emails: ${errors.join(', ')}`,
+      }, { status: 500 });
+    }
+
+    const message = `Email dispatched successfully to ${successCount} recipient(s)${
+      failCount > 0 ? ` (${failCount} failed: ${errors.join('; ')})` : ''
+    }${processedAttachments.length > 0 ? ` with ${processedAttachments.length} attachment(s)` : ''}.`;
+
     return NextResponse.json({ message: message }, { status: 200 });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to send promotional email(s):', error);
-    return NextResponse.json({ message: 'An internal server error occurred while sending emails.' }, { status: 500 });
+    return NextResponse.json({ 
+      message: error?.message || 'An internal server error occurred while sending emails.' 
+    }, { status: 500 });
   }
 }

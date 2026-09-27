@@ -38,9 +38,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: 'Invoice sent successfully.' }, { status: 200 });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to send invoice email:', error);
-    return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
+    return NextResponse.json({ message: error?.message || 'Failed to send invoice email.' }, { status: 500 });
   }
 }
 
