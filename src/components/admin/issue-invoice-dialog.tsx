@@ -380,6 +380,7 @@ export function IssueInvoiceDialog({
           mobile: customerMobile.trim(),
           address: customerAddress.trim() || 'Standard Delivery',
         },
+        orderId: invoiceNumber.trim(),
         customInvoiceNumber: invoiceNumber.trim(),
         products: items,
         subtotal,
@@ -708,7 +709,7 @@ export function IssueInvoiceDialog({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1">
                 <Label htmlFor="inv_num" className="text-xs">
-                  Invoice Number <span className="text-destructive">*</span>
+                  Order ID / Invoice Number <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="inv_num"

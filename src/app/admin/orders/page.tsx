@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Eye, PlusCircle, Store, Search, X } from 'lucide-react';
+import { Trash2, Eye, PlusCircle, Store, Search, X, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getShortOrderId } from '@/lib/utils';
@@ -33,6 +33,8 @@ type PaymentStatus = 'pending' | 'paid' | 'paid externally';
 
 type Order = {
   _id: string;
+  orderId?: string;
+  invoiceNumber?: string;
   userId: string;
   userName: string;
   products: { productId: string; name: string; quantity: number; price: number }[];
@@ -49,7 +51,7 @@ type Order = {
     paymentStatus?: PaymentStatus;
     paymentMethod?: string;
   };
-  orderSource?: 'online' | 'offline';
+  orderSource?: 'online' | 'offline' | 'admin_invoice';
   isOfflineSale?: boolean;
 };
 
@@ -110,6 +112,7 @@ export default function OrdersPage() {
       if (!q) return true;
 
       const orderId = (order._id || '').toLowerCase();
+      const customOrderId = (order.orderId || order.invoiceNumber || '').toLowerCase();
       const shortId = getShortOrderId(order._id).toLowerCase();
       const suffixId = orderId.slice(-6);
       const userName = (order.userName || '').toLowerCase();
@@ -120,6 +123,7 @@ export default function OrdersPage() {
 
       return (
         orderId.includes(q) ||
+        customOrderId.includes(q) ||
         shortId.includes(q) ||
         suffixId.includes(q) ||
         userName.includes(q) ||
@@ -384,7 +388,15 @@ export default function OrdersPage() {
                   sortedOrders.map((order) => (
                     <TableRow key={order._id}>
                       <TableCell>
-                         <span className="font-mono text-xs">#{order._id.slice(-6)}</span>
+                        <div className="flex flex-col">
+                          <span className="font-mono text-xs font-semibold">
+                            {order.orderId
+                              ? (order.orderId.startsWith('#') ? order.orderId : `#${order.orderId}`)
+                              : order.invoiceNumber
+                              ? (order.invoiceNumber.startsWith('#') ? order.invoiceNumber : `#${order.invoiceNumber}`)
+                              : `#${order._id.slice(-6)}`}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-1.5 flex-wrap">
@@ -395,6 +407,14 @@ export default function OrdersPage() {
                               className="text-[10px] px-1.5 py-0 border-emerald-500/40 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 flex items-center gap-1 font-semibold"
                             >
                               <Store className="w-2.5 h-2.5" /> Offline
+                            </Badge>
+                          )}
+                          {order.orderSource === 'admin_invoice' && (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] px-1.5 py-0 border-purple-500/40 bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 flex items-center gap-1 font-semibold"
+                            >
+                              <FileText className="w-2.5 h-2.5" /> Invoice Order
                             </Badge>
                           )}
                         </div>

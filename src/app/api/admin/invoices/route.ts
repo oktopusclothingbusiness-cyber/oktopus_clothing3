@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
     if (search) {
       query.$or = [
         { invoiceNumber: { $regex: search, $options: 'i' } },
+        { orderId: { $regex: search, $options: 'i' } },
         { 'customer.name': { $regex: search, $options: 'i' } },
         { 'customer.email': { $regex: search, $options: 'i' } },
         { 'customer.mobile': { $regex: search, $options: 'i' } },
@@ -126,25 +127,94 @@ export async function POST(request: NextRequest) {
     const client = await clientPromise;
     const db = client.db();
 
-    // Generate Invoice Number if not provided
-    let invoiceNumber = customInvoiceNumber ? String(customInvoiceNumber).trim().toUpperCase() : '';
+    // Generate Order ID & Invoice Number if not provided
+    const rawOrderId = body.orderId || customInvoiceNumber || '';
+    let invoiceNumber = rawOrderId ? String(rawOrderId).trim().toUpperCase() : '';
     if (!invoiceNumber) {
       const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
       invoiceNumber = `OKT-INV-${randomCode}`;
     }
 
-    // Ensure invoice number has prefix if plain
-    if (!invoiceNumber.startsWith('OKT-')) {
-      invoiceNumber = `OKT-${invoiceNumber}`;
-    }
+    // Ensure clean orderId & invoiceNumber
+    const cleanOrderId = invoiceNumber;
 
     const calculatedSubtotal = Number(subtotal) || products.reduce((acc: number, p: any) => acc + (Number(p.price) || 0) * (Number(p.quantity) || 1), 0);
     const calculatedDiscount = Math.max(0, Number(discount) || 0);
     const calculatedShipping = Math.max(0, Number(shipping) || 0);
     const calculatedTotal = Number(total) || Math.max(0, calculatedSubtotal + calculatedShipping - calculatedDiscount);
 
+    // Shared MongoDB ObjectId so both orders and invoices collections reference the exact same ID
+    const sharedObjectId = new ObjectId();
+    const now = new Date();
+
+    const formattedProducts = products.map((item: any) => ({
+      productId: item.productId ? String(item.productId) : '',
+      name: item.name || 'Apparel Item',
+      quantity: Math.max(1, Number(item.quantity) || 1),
+      price: Number(item.price) || 0,
+      size: item.size || 'Free Size',
+      color: item.color || '',
+      imageUrl: item.imageUrl || '',
+    }));
+
+    // 1. Create Corresponding Order document in 'orders' collection with the EXACT same Order ID
+    const orderDoc: any = {
+      _id: sharedObjectId,
+      orderId: cleanOrderId,
+      invoiceNumber: cleanOrderId,
+      userId: userId ? String(userId) : (customer.email ? customer.email.trim().toLowerCase() : `cust_${Date.now()}`),
+      userName: customer.name.trim(),
+      products: formattedProducts,
+      subtotal: calculatedSubtotal,
+      discount: calculatedDiscount,
+      shipping: calculatedShipping,
+      tax: Number(tax) || 0,
+      total: calculatedTotal,
+      shippingAddress: {
+        name: customer.name.trim(),
+        mobile: customer.mobile ? customer.mobile.trim() : '',
+        email: customer.email.trim().toLowerCase(),
+        address: customer.address ? customer.address.trim() : 'Standard Delivery',
+        instructions: notes ? String(notes).trim() : 'Custom Tax Invoice issued from Admin Panel',
+      },
+      status: paymentDetails?.paymentStatus === 'paid' ? 'accepted' : 'pending',
+      orderSource: 'admin_invoice',
+      isOfflineSale: false,
+      paymentDetails: {
+        paymentStatus: paymentDetails?.paymentStatus === 'paid' ? 'paid' : 'pending',
+        paymentMethod: paymentDetails?.paymentMethod || 'upi',
+        razorpay_payment_id: paymentDetails?.transactionRef || '',
+        transactionRef: paymentDetails?.transactionRef || '',
+        paidAt: paymentDetails?.paymentStatus === 'paid' ? now : undefined,
+      },
+      notes: notes ? String(notes).trim() : '',
+      dispatchMode,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    // Decrement inventory stock if productId is valid
+    for (const prod of formattedProducts) {
+      if (prod.productId && ObjectId.isValid(prod.productId)) {
+        try {
+          await db.collection('products').updateOne(
+            { _id: new ObjectId(prod.productId) },
+            { $inc: { stock: -prod.quantity } }
+          );
+        } catch (stockErr) {
+          console.warn(`Failed to decrement stock for product ${prod.productId}:`, stockErr);
+        }
+      }
+    }
+
+    // Insert order into 'orders' collection
+    await db.collection('orders').insertOne(orderDoc);
+
+    // 2. Create Invoice document in 'invoices' collection
     const newInvoiceDoc: any = {
-      invoiceNumber,
+      _id: sharedObjectId,
+      orderId: cleanOrderId,
+      invoiceNumber: cleanOrderId,
       userId: userId ? String(userId) : undefined,
       customer: {
         name: customer.name.trim(),
@@ -152,43 +222,30 @@ export async function POST(request: NextRequest) {
         mobile: customer.mobile ? customer.mobile.trim() : '',
         address: customer.address ? customer.address.trim() : 'Standard Shipping Address',
       },
-      products: products.map((item: any) => ({
-        productId: item.productId ? String(item.productId) : undefined,
-        name: item.name || 'Apparel Item',
-        quantity: Math.max(1, Number(item.quantity) || 1),
-        price: Number(item.price) || 0,
-        size: item.size || 'Free Size',
-        color: item.color || '',
-        imageUrl: item.imageUrl || '',
-      })),
+      products: formattedProducts,
       subtotal: calculatedSubtotal,
       discount: calculatedDiscount,
       shipping: calculatedShipping,
       tax: Number(tax) || 0,
       total: calculatedTotal,
-      paymentDetails: {
-        paymentStatus: paymentDetails?.paymentStatus === 'paid' ? 'paid' : 'pending',
-        paymentMethod: paymentDetails?.paymentMethod || 'upi',
-        transactionRef: paymentDetails?.transactionRef || '',
-        paidAt: paymentDetails?.paymentStatus === 'paid' ? new Date() : undefined,
-      },
+      paymentDetails: orderDoc.paymentDetails,
       notes: notes ? String(notes).trim() : '',
       dueDate: dueDate ? new Date(dueDate) : undefined,
       dispatchMode,
       source: 'admin_manual',
       emailSent: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     };
 
-    const insertResult = await db.collection('invoices').insertOne(newInvoiceDoc);
-    const invoiceId = insertResult.insertedId.toString();
+    await db.collection('invoices').insertOne(newInvoiceDoc);
+    const invoiceId = sharedObjectId.toString();
     newInvoiceDoc._id = invoiceId;
 
     let emailSentResult: any = null;
     let emailError: string | null = null;
 
-    // Send invoice email if requested
+    // Send invoice email if requested (using the authentic existing template, attachPdf: false)
     if (sendEmail) {
       try {
         const settings = (await db.collection('settings').findOne({ _id: 'global' as any })) as any;
@@ -196,6 +253,8 @@ export async function POST(request: NextRequest) {
         // Build invoice payload matching invoice template format
         const invoicePayload: any = {
           _id: invoiceId,
+          orderId: cleanOrderId,
+          invoiceNumber: cleanOrderId,
           userName: customer.name.trim(),
           products: newInvoiceDoc.products,
           total: calculatedTotal,
@@ -208,7 +267,6 @@ export async function POST(request: NextRequest) {
           },
           createdAt: newInvoiceDoc.createdAt,
           paymentDetails: newInvoiceDoc.paymentDetails,
-          invoiceNumber,
           notes: newInvoiceDoc.notes,
           dispatchMode,
         };
@@ -217,27 +275,39 @@ export async function POST(request: NextRequest) {
           to: customer.email.trim(),
           order: invoicePayload,
           settings: settings || null,
-          attachPdf: true,
+          attachPdf: false, // Use existing approved HTML email template directly
         });
 
         if (mailRes.success) {
-          await db.collection('invoices').updateOne(
-            { _id: insertResult.insertedId },
-            {
-              $set: {
-                emailSent: true,
-                emailSentAt: new Date(),
-                lastEmailId: mailRes.data?.id,
-              },
-            }
-          );
+          await Promise.all([
+            db.collection('invoices').updateOne(
+              { _id: sharedObjectId },
+              {
+                $set: {
+                  emailSent: true,
+                  emailSentAt: new Date(),
+                  lastEmailId: mailRes.data?.id,
+                },
+              }
+            ),
+            db.collection('orders').updateOne(
+              { _id: sharedObjectId },
+              {
+                $set: {
+                  emailSent: true,
+                  emailSentAt: new Date(),
+                  lastEmailId: mailRes.data?.id,
+                },
+              }
+            ),
+          ]);
           newInvoiceDoc.emailSent = true;
           newInvoiceDoc.emailSentAt = new Date();
           emailSentResult = mailRes.data;
         } else {
           emailError = (mailRes.error as any)?.message || 'Failed to dispatch email';
           await db.collection('invoices').updateOne(
-            { _id: insertResult.insertedId },
+            { _id: sharedObjectId },
             {
               $set: {
                 emailSent: false,
@@ -250,7 +320,7 @@ export async function POST(request: NextRequest) {
         console.error('Failed to send invoice email during creation:', err);
         emailError = err?.message || 'Exception while sending email';
         await db.collection('invoices').updateOne(
-          { _id: insertResult.insertedId },
+          { _id: sharedObjectId },
           {
             $set: {
               emailSent: false,

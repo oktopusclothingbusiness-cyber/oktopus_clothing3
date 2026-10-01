@@ -27,6 +27,8 @@ type OrderProduct = {
 
 type Order = {
   _id: string;
+  orderId?: string;
+  invoiceNumber?: string;
   userId: string;
   userName: string;
   products: OrderProduct[];
@@ -160,7 +162,9 @@ export default function OrderDetailsPage() {
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-bold">Order #{order._id.slice(-6)}</h1>
+                        <h1 className="text-2xl font-bold">
+                          Order #{order.orderId ? String(order.orderId).replace(/^#/, '') : (order.invoiceNumber ? String(order.invoiceNumber).replace(/^#/, '') : order._id.slice(-6))}
+                        </h1>
                         <p className="text-muted-foreground">{format(new Date(order.createdAt), 'PPpp')}</p>
                     </div>
                 </div>

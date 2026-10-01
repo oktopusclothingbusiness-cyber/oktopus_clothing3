@@ -33,6 +33,7 @@ type Order = {
     transactionRef?: string;
   };
   invoiceNumber?: string;
+  orderId?: string;
   notes?: string;
   dispatchMode?: string;
 };
@@ -99,8 +100,8 @@ export const Invoice = ({ order, settings }: InvoiceProps) => {
 
   const formattedDate = order.createdAt ? format(new Date(order.createdAt), 'MMMM dd, yyyy') : 'N/A';
   const shortCode = getShortOrderId(order._id);
-  const invoiceNum = order.invoiceNumber 
-    ? String(order.invoiceNumber).replace(/^#/, '') 
+  const invoiceNum = order.orderId || order.invoiceNumber 
+    ? String(order.orderId || order.invoiceNumber).replace(/^#/, '') 
     : `OKT-${shortCode}`;
 
   return (

@@ -8,7 +8,7 @@ export async function POST(request: Request) {
   try {
     const { orderId } = await request.json();
 
-    if (!orderId || !ObjectId.isValid(orderId)) {
+    if (!orderId) {
       return NextResponse.json({ message: 'Valid Order ID is required.' }, { status: 400 });
     }
     
@@ -16,7 +16,15 @@ export async function POST(request: Request) {
     const client = await clientPromise;
     const db = client.db();
 
-    const order = await db.collection('orders').findOne({ _id: new ObjectId(orderId) });
+    const orderQuery: any = {
+      $or: [
+        { orderId: orderId },
+        { invoiceNumber: orderId },
+        ...(ObjectId.isValid(orderId) ? [{ _id: new ObjectId(orderId) }] : []),
+      ],
+    };
+
+    const order = await db.collection('orders').findOne(orderQuery);
 
     if (!order) {
         return NextResponse.json({ message: 'Order not found.' }, { status: 404 });

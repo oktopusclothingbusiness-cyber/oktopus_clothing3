@@ -16,18 +16,25 @@ export async function GET(
     const client = await clientPromise;
     const db = client.db();
 
-    // 1. Check invoices collection by ObjectId or invoiceNumber
+    // 1. Check invoices collection by ObjectId, invoiceNumber, or orderId
     let invoice: any = null;
     if (ObjectId.isValid(id)) {
       invoice = await db.collection('invoices').findOne({ _id: new ObjectId(id) });
     }
     if (!invoice) {
-      invoice = await db.collection('invoices').findOne({ invoiceNumber: id });
+      invoice = await db.collection('invoices').findOne({
+        $or: [{ invoiceNumber: id }, { orderId: id }],
+      });
     }
 
-    // 2. Check orders collection
+    // 2. Check orders collection by ObjectId, orderId, or invoiceNumber
     if (!invoice && ObjectId.isValid(id)) {
       invoice = await db.collection('orders').findOne({ _id: new ObjectId(id) });
+    }
+    if (!invoice) {
+      invoice = await db.collection('orders').findOne({
+        $or: [{ orderId: id }, { invoiceNumber: id }],
+      });
     }
 
     if (!invoice) {
@@ -37,6 +44,7 @@ export async function GET(
     // Format standard invoice response
     const formattedInvoice = {
       _id: invoice._id.toString(),
+      orderId: invoice.orderId || invoice.invoiceNumber,
       userName: invoice.customer?.name || invoice.userName || 'Customer',
       products: invoice.products || [],
       total: Number(invoice.total) || 0,
@@ -49,7 +57,7 @@ export async function GET(
       },
       createdAt: invoice.createdAt,
       paymentDetails: invoice.paymentDetails || { paymentStatus: 'pending' },
-      invoiceNumber: invoice.invoiceNumber,
+      invoiceNumber: invoice.invoiceNumber || invoice.orderId,
       notes: invoice.notes,
       dispatchMode: invoice.dispatchMode,
     };

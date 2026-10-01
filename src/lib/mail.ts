@@ -186,18 +186,17 @@ export const sendInvoiceEmail = async ({
   order,
   settings,
   attachments,
-  attachPdf = true,
+  attachPdf = false,
 }: InvoiceEmailProps) => {
   try {
     const resend = getResendClient();
     const emailAttachments: EmailAttachment[] = attachments ? [...attachments] : [];
 
     const shortCode = getShortOrderId(order._id);
-    const invoiceCode = order?.invoiceNumber 
-      ? String(order.invoiceNumber).replace(/^#/, '') 
+    const invoiceCode = order?.orderId || order?.invoiceNumber 
+      ? String(order.orderId || order.invoiceNumber).replace(/^#/, '') 
       : `OKT-${shortCode}`;
 
-    // Automatically generate and attach PDF invoice if attachPdf is true and none provided
     if (attachPdf && emailAttachments.length === 0) {
       try {
         const pdfBuffer = await generateInvoicePdfBuffer(order as any);
@@ -206,7 +205,7 @@ export const sendInvoiceEmail = async ({
           content: pdfBuffer,
         });
       } catch (pdfErr) {
-        console.warn('Could not generate PDF invoice buffer, continuing with HTML invoice:', pdfErr);
+        console.warn('Could not generate PDF invoice buffer:', pdfErr);
       }
     }
 

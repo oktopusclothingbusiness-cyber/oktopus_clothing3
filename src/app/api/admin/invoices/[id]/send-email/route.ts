@@ -38,12 +38,21 @@ export async function POST(
       invoice = await db.collection('invoices').findOne({ _id: new ObjectId(id) });
     }
     if (!invoice) {
-      invoice = await db.collection('invoices').findOne({ invoiceNumber: id });
+      invoice = await db.collection('invoices').findOne({
+        $or: [{ invoiceNumber: id }, { orderId: id }]
+      });
     }
 
     // Fallback: check orders collection if someone sends an invoice for an existing order
-    if (!invoice && ObjectId.isValid(id)) {
-      const order = await db.collection('orders').findOne({ _id: new ObjectId(id) });
+    if (!invoice) {
+      const orderQuery: any = {
+        $or: [
+          { orderId: id },
+          { invoiceNumber: id },
+          ...(ObjectId.isValid(id) ? [{ _id: new ObjectId(id) }] : []),
+        ],
+      };
+      const order = await db.collection('orders').findOne(orderQuery);
       if (order) {
         isFromInvoicesCollection = false;
         invoice = order;
@@ -82,11 +91,13 @@ export async function POST(
     const settings = (await db.collection('settings').findOne({ _id: 'global' as any })) as any;
 
     const shortCode = getShortOrderId(invoice._id.toString());
-    const invoiceNumber = invoice.invoiceNumber || `OKT-${shortCode}`;
+    const invoiceNumber = invoice.orderId || invoice.invoiceNumber || `OKT-${shortCode}`;
 
     // Structure invoice payload matching email format
     const invoicePayload: any = {
       _id: invoice._id.toString(),
+      orderId: invoice.orderId || invoiceNumber,
+      invoiceNumber,
       userName: invoice.customer?.name || invoice.userName || 'Customer',
       products: invoice.products || [],
       total: Number(invoice.total) || 0,
@@ -99,7 +110,6 @@ export async function POST(
       },
       createdAt: invoice.createdAt,
       paymentDetails: invoice.paymentDetails || { paymentStatus: 'pending' },
-      invoiceNumber,
       notes: invoice.notes,
       dispatchMode: invoice.dispatchMode || 'Express Shipping',
     };
@@ -108,7 +118,7 @@ export async function POST(
       to: recipientEmail,
       order: invoicePayload,
       settings: settings || null,
-      attachPdf: true,
+      attachPdf: false, // Ensure authentic existing email template layout is rendered directly
     });
 
     if (!mailRes.success) {
@@ -125,6 +135,18 @@ export async function POST(
     // Update sent status
     if (isFromInvoicesCollection) {
       await db.collection('invoices').updateOne(
+        { _id: invoice._id },
+        {
+          $set: {
+            emailSent: true,
+            emailSentAt: new Date(),
+            lastEmailId: mailRes.data?.id,
+            lastEmailError: null,
+          },
+        }
+      );
+    } else {
+      await db.collection('orders').updateOne(
         { _id: invoice._id },
         {
           $set: {

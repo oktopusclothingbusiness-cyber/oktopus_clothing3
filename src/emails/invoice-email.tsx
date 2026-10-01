@@ -48,16 +48,15 @@ type Settings = {
 }
 
 type InvoiceEmailProps = {
-  order: Order & { invoiceNumber?: string; notes?: string };
+  order: Order & { invoiceNumber?: string; orderId?: string; notes?: string };
   settings: Settings | null;
 };
 
 export const InvoiceEmail = ({ order, settings }: InvoiceEmailProps) => {
   const shortCode = getShortOrderId(order._id);
-  const invoiceNumber = order.invoiceNumber 
-    ? String(order.invoiceNumber).replace(/^#/, '') 
-    : `OKT-${shortCode}`;
-  const previewText = `Tax Invoice #${invoiceNumber} - OKTOPUS CLOTHING`;
+  const displayId = order.orderId || order.invoiceNumber || `OKT-${shortCode}`;
+  const cleanId = String(displayId).replace(/^#/, '');
+  const previewText = `Invoice for your Order #${cleanId}`;
   
   // These values may not exist on old orders, so we calculate them
   const subtotal = order.subtotal || order.products.reduce((acc, p) => acc + (p.price * p.quantity), 0);
@@ -65,61 +64,28 @@ export const InvoiceEmail = ({ order, settings }: InvoiceEmailProps) => {
   const discount = order.discount || 0;
 
   return (
-    <Html lang="en">
-      <Head>
-        <meta name="color-scheme" content="light only" />
-        <meta name="supported-color-schemes" content="light only" />
-        <style>{`
-          :root {
-            color-scheme: light only !important;
-            supported-color-schemes: light only !important;
-          }
-          @media (prefers-color-scheme: dark) {
-            body, .email-body {
-              background-color: #f6f9fc !important;
-              background-image: linear-gradient(#f6f9fc, #f6f9fc) !important;
-              color: #0f172a !important;
-            }
-            .email-container {
-              background-color: #ffffff !important;
-              background-image: linear-gradient(#ffffff, #ffffff) !important;
-              border-color: #e2e8f0 !important;
-            }
-            h1, h2, h3, p, span, td, th {
-              color: #0f172a !important;
-            }
-          }
-        `}</style>
-      </Head>
+    <Html>
+      <Head />
       <Preview>{previewText}</Preview>
-      <Body style={main} className="email-body">
-        <Container style={container} className="email-container">
-           <Section style={header}>
+      <Body style={main}>
+        <Container style={container}>
+          <Section style={header}>
             <div>
-              <div style={{ padding: '4px 0', display: 'inline-block' }}>
-                <table role="presentation" cellSpacing="0" cellPadding="0" border={0}>
-                  <tbody>
-                    <tr>
-                      <td style={{ verticalAlign: 'middle', paddingRight: '8px' }}>
-                        <Img src="https://www.oktopusclothing.in/logo1.png" width="32" height="32" alt="Oktopus Avatar" style={{ borderRadius: "50%", display: "block", border: "1px solid #e2e8f0" }} />
-                      </td>
-                      <td style={{ verticalAlign: 'middle' }}>
-                        <Img src={settings?.logoUrl || "https://www.oktopusclothing.in/logo2b.png"} alt="OKTOPUS CLOTHING" width="140" height="29" style={logo} />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              {settings?.logoUrl ? (
+                <Img src={settings.logoUrl} alt="Oktopus Logo" width="150" style={logo} />
+              ) : (
+                <Img src="https://www.oktopusclothing.in/logo2b.png" alt="Oktopus Logo" width="150" style={logo} />
+              )}
               <Text style={baskeyLabel}>A UNIT OF BASKEY STUDIO</Text>
               <Text style={address}>Kolkata, West Bengal, India</Text>
             </div>
             <div style={{ textAlign: 'right' }}>
               <Heading as="h1" style={h1}>TAX INVOICE</Heading>
-              <Text style={invoiceId}>#{invoiceNumber}</Text>
+              <Text style={invoiceId}>#{cleanId}</Text>
             </div>
           </Section>
 
-           <Section style={customerInfo}>
+          <Section style={customerInfo}>
             <Row>
               <Column>
                 <Text style={infoTitle}>BILLED TO</Text>
@@ -129,9 +95,9 @@ export const InvoiceEmail = ({ order, settings }: InvoiceEmailProps) => {
               </Column>
               <Column style={{ textAlign: 'right' }}>
                  <Text style={infoTitle}>INVOICE DATE</Text>
-                 <Text style={infoValue}>{format(new Date(order.createdAt), 'MMMM dd, yyyy')}</Text>
+                 <Text style={infoValue}>{order.createdAt ? format(new Date(order.createdAt), 'MMMM dd, yyyy') : 'N/A'}</Text>
                  <Text style={infoTitle}>PAYMENT STATUS</Text>
-                 <Text style={infoValue}>{order.paymentDetails?.paymentStatus?.toUpperCase()}</Text>
+                 <Text style={infoValue}>{order.paymentDetails?.paymentStatus?.toUpperCase() || 'PENDING'}</Text>
               </Column>
             </Row>
           </Section>
@@ -151,9 +117,11 @@ export const InvoiceEmail = ({ order, settings }: InvoiceEmailProps) => {
                   <tr key={index} style={tableRow}>
                     <td style={tableCell}>
                         <Text style={productName}>{item.name}</Text>
-                        <Text style={productDetails}>
-                            Size: {item.size}, Color: {item.color}
-                        </Text>
+                        {(item.size || item.color) && (
+                          <Text style={productDetails}>
+                              {item.size ? `Size: ${item.size}` : ''}{item.size && item.color ? ' | ' : ''}{item.color ? `Color: ${item.color}` : ''}
+                          </Text>
+                        )}
                     </td>
                     <td style={tableCellCenter}>{item.quantity}</td>
                     <td style={tableCellRight}>₹{item.price.toFixed(2)}</td>

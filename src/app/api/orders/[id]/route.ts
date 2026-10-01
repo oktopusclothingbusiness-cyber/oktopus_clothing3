@@ -16,14 +16,22 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const { id } = await params;
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json({ message: 'Invalid order ID.' }, { status: 400 });
+    if (!id) {
+      return NextResponse.json({ message: 'Missing order identifier.' }, { status: 400 });
     }
 
     const client = await clientPromise;
     const db = client.db();
 
-    const order = await db.collection('orders').findOne({ _id: new ObjectId(id) });
+    const query: any = {
+      $or: [
+        { orderId: id },
+        { invoiceNumber: id },
+        ...(ObjectId.isValid(id) ? [{ _id: new ObjectId(id) }] : []),
+      ],
+    };
+
+    const order = await db.collection('orders').findOne(query);
 
     if (!order) {
       return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
@@ -34,7 +42,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ message: 'Access denied: You can only view your own orders.' }, { status: 403 });
     }
 
-    const orderWithId = { ...order, id: order._id.toString() };
+    const orderWithId = {
+      ...order,
+      id: order._id.toString(),
+      orderId: order.orderId || order.invoiceNumber || order._id.toString(),
+    };
     return NextResponse.json(orderWithId, { status: 200 });
   } catch (error) {
     console.error('Failed to fetch order:', error);
@@ -52,34 +64,47 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const { id } = await params;
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json({ message: 'Invalid order ID.' }, { status: 400 });
+    if (!id) {
+      return NextResponse.json({ message: 'Missing order identifier.' }, { status: 400 });
     }
-
-    const updateData = await request.json();
-    const { status, deliveryDate } = updateData;
 
     const client = await clientPromise;
     const db = client.db();
 
+    const query: any = {
+      $or: [
+        { orderId: id },
+        { invoiceNumber: id },
+        ...(ObjectId.isValid(id) ? [{ _id: new ObjectId(id) }] : []),
+      ],
+    };
+
+    const existingOrder = await db.collection('orders').findOne(query);
+    if (!existingOrder) {
+      return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
+    }
+
+    const updateData = await request.json();
+    const { status, deliveryDate, paymentStatus } = updateData;
+
     const updateFields: any = {};
     if (status) updateFields.status = status;
     if (deliveryDate) updateFields.deliveryDate = deliveryDate;
+    if (paymentStatus) {
+      updateFields['paymentDetails.paymentStatus'] = paymentStatus;
+    }
+    updateFields.updatedAt = new Date();
 
     const result = await db.collection('orders').updateOne(
-      { _id: new ObjectId(id) },
+      { _id: existingOrder._id },
       { $set: updateFields }
     );
-
-    if (result.matchedCount === 0) {
-      return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
-    }
 
     let responseMessage = 'Order updated successfully.';
     
     // Optionally trigger email & push notification when status changes
     if (status) {
-      const updatedOrder = await db.collection('orders').findOne({ _id: new ObjectId(id) });
+      const updatedOrder = await db.collection('orders').findOne({ _id: existingOrder._id });
       if (updatedOrder) {
         let customerEmail = updatedOrder.shippingAddress?.email;
         if (!customerEmail && updatedOrder.userId) {
@@ -115,10 +140,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         // Trigger Order Shipped / Out for Delivery push notification
         const statusLower = String(status).toLowerCase();
         if (['shipped', 'out_for_delivery', 'dispatch', 'dispatched'].includes(statusLower)) {
+          const displayCode = updatedOrder.orderId || updatedOrder.invoiceNumber || updatedOrder._id.toString().slice(-6);
           triggerUserEventPushNotification({
             userId: updatedOrder.userId,
             email: customerEmail,
-            title: `Order #${id.slice(-6)} Shipped 🚚`,
+            title: `Order #${displayCode} Shipped 🚚`,
             body: 'Your OKTOPUS shipment is on the way!',
             deepLink: '/track-order',
           }).catch((err) => console.error('Failed to trigger shipping push notification:', err));
@@ -143,18 +169,35 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         }
 
         const { id } = await params;
-        if (!ObjectId.isValid(id)) {
-            return NextResponse.json({ message: 'Invalid order ID.' }, { status: 400 });
+        if (!id) {
+          return NextResponse.json({ message: 'Missing order identifier.' }, { status: 400 });
         }
 
         const client = await clientPromise;
         const db = client.db();
 
-        const result = await db.collection('orders').deleteOne({ _id: new ObjectId(id) });
+        const query: any = {
+          $or: [
+            { orderId: id },
+            { invoiceNumber: id },
+            ...(ObjectId.isValid(id) ? [{ _id: new ObjectId(id) }] : []),
+          ],
+        };
 
-        if (result.deletedCount === 0) {
-            return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
+        const existingOrder = await db.collection('orders').findOne(query);
+        if (!existingOrder) {
+          return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
         }
+
+        await db.collection('orders').deleteOne({ _id: existingOrder._id });
+
+        // Also clean up matching invoice if present
+        await db.collection('invoices').deleteOne({
+          $or: [
+            { _id: existingOrder._id },
+            ...(existingOrder.orderId ? [{ orderId: existingOrder.orderId }, { invoiceNumber: existingOrder.orderId }] : []),
+          ],
+        });
 
         return NextResponse.json({ message: 'Order deleted successfully.' }, { status: 200 });
     } catch (error) {
