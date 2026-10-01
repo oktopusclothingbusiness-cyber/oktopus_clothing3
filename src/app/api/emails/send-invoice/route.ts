@@ -45,7 +45,8 @@ export async function POST(request: Request) {
     await sendInvoiceEmail({
       to: recipientEmail,
       order: order, 
-      settings: settings
+      settings: settings,
+      attachPdf: true,
     });
 
     return NextResponse.json({ message: 'Invoice sent successfully.' }, { status: 200 });

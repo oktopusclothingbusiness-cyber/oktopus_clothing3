@@ -100,9 +100,8 @@ export const Invoice = ({ order, settings }: InvoiceProps) => {
 
   const formattedDate = order.createdAt ? format(new Date(order.createdAt), 'MMMM dd, yyyy') : 'N/A';
   const shortCode = getShortOrderId(order._id);
-  const invoiceNum = order.orderId || order.invoiceNumber 
-    ? String(order.orderId || order.invoiceNumber).replace(/^#/, '') 
-    : `OKT-${shortCode}`;
+  const displayId = order.orderId || order.invoiceNumber || `OKT-${shortCode}`;
+  const cleanId = String(displayId).replace(/^#/, '');
 
   return (
     <div className="min-h-screen bg-slate-100/50 py-8 px-4 sm:px-6 lg:px-8 print:py-0 print:px-0 print:bg-white flex flex-col items-center">
@@ -135,7 +134,7 @@ export const Invoice = ({ order, settings }: InvoiceProps) => {
             {/* Right Header: 6-Digit Alphanumeric Order ID & Date */}
             <div className="text-left sm:text-right space-y-1">
               <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400 font-mono">TAX INVOICE</span>
-              <h1 className="text-xl font-mono font-bold text-slate-900">#{invoiceNum}</h1>
+              <h1 className="text-xl font-mono font-bold text-slate-900">#{cleanId}</h1>
               <p className="text-xs text-slate-500">{formattedDate}</p>
               <p className="text-xs font-semibold text-slate-600 uppercase pt-1">
                 Payment: <span className={order.paymentDetails?.paymentStatus === 'paid' ? 'text-emerald-600 font-bold' : 'text-amber-600 font-bold'}>
@@ -156,7 +155,7 @@ export const Invoice = ({ order, settings }: InvoiceProps) => {
 
             <div className="space-y-1 sm:text-right">
               <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 font-mono">Order Summary</h2>
-              <p className="text-slate-700 font-medium font-mono"><span className="text-slate-400 font-normal">Order ID:</span> #{shortCode}</p>
+              <p className="text-slate-700 font-medium font-mono"><span className="text-slate-400 font-normal">Order ID:</span> #{cleanId}</p>
               {order.paymentDetails?.razorpay_payment_id && (
                 <p className="text-slate-700 font-medium text-xs font-mono"><span className="text-slate-400 font-normal">Payment Ref:</span> {order.paymentDetails.razorpay_payment_id}</p>
               )}

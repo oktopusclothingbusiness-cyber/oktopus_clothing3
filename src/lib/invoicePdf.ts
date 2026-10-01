@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import PDFDocument from 'pdfkit';
 import { format } from 'date-fns';
 import { getShortOrderId } from './utils';
@@ -43,15 +45,14 @@ export async function generateInvoicePdfBuffer(order: OrderForInvoice): Promise<
   return new Promise((resolve, reject) => {
     try {
       const shortCode = getShortOrderId(order._id);
-      const invoiceNumber = order.invoiceNumber 
-        ? String(order.invoiceNumber).replace(/^#/, '') 
-        : `OKT-${shortCode}`;
+      const displayOrderId = order.orderId || order.invoiceNumber || `OKT-${shortCode}`;
+      const cleanOrderId = String(displayOrderId).replace(/^#/, '');
 
       const doc = new PDFDocument({
         margin: 36,
         size: 'A4',
         info: {
-          Title: `Tax Invoice #${invoiceNumber}`,
+          Title: `Tax Invoice #${cleanOrderId}`,
           Author: 'OKTOPUS CLOTHING',
           Subject: 'Official Tax Invoice',
         },
@@ -78,36 +79,47 @@ export async function generateInvoicePdfBuffer(order: OrderForInvoice): Promise<
       const rightColX = cardX + cardW - 24;
       let headerY = cardY + 24;
 
-      // Left Header: Brand Logo & MSME Parent Company Details (160px width aligned)
-      doc.fillColor('#0f172a').fontSize(16).font('Helvetica-Bold').text('OKTOPUS CLOTHING', leftColX, headerY);
-      doc.fillColor('#d97706').fontSize(8.5).font('Helvetica-Bold').text('A UNIT OF BASKEY STUDIO', leftColX, headerY + 22);
-      doc.fillColor('#94a3b8').fontSize(9).font('Helvetica').text('Kolkata, West Bengal, India', leftColX, headerY + 34);
+      // Left Header: Brand Logo & MSME Parent Company Details
+      const logoPath = path.join(process.cwd(), 'public', 'logo2b.png');
+      if (fs.existsSync(logoPath)) {
+        try {
+          doc.image(logoPath, leftColX, headerY, { width: 140 });
+        } catch {
+          doc.fillColor('#0f172a').fontSize(16).font('Helvetica-Bold').text('OKTOPUS CLOTHING', leftColX, headerY);
+        }
+      } else {
+        doc.fillColor('#0f172a').fontSize(16).font('Helvetica-Bold').text('OKTOPUS CLOTHING', leftColX, headerY);
+      }
+
+      doc.fillColor('#d97706').fontSize(8.5).font('Helvetica-Bold').text('A UNIT OF BASKEY STUDIO', leftColX, headerY + 34);
+      doc.fillColor('#94a3b8').fontSize(9).font('Helvetica').text('Kolkata, West Bengal, India', leftColX, headerY + 46);
 
       // Right Header: Tax Invoice Meta
       doc.fillColor('#94a3b8').fontSize(10).font('Helvetica-Bold').text('TAX INVOICE', cardX, headerY, { align: 'right', width: cardW - 24 });
-      doc.fillColor('#0f172a').fontSize(18).font('Helvetica-Bold').text(`#${invoiceNumber}`, cardX, headerY + 14, { align: 'right', width: cardW - 24 });
+      doc.fillColor('#0f172a').fontSize(18).font('Helvetica-Bold').text(`#${cleanOrderId}`, cardX, headerY + 14, { align: 'right', width: cardW - 24 });
       doc.fillColor('#64748b').fontSize(10).font('Helvetica').text(invoiceDate, cardX, headerY + 36, { align: 'right', width: cardW - 24 });
       
       doc.font('Helvetica-Bold').fontSize(10);
-      doc.fillColor('#64748b').text('Payment: ', cardX, headerY + 50, { align: 'right', width: cardW - 65 });
-      doc.fillColor(isPaid ? '#059669' : '#d97706').text(isPaid ? 'PAID' : 'PENDING', cardX, headerY + 50, { align: 'right', width: cardW - 24 });
+      doc.fillColor('#64748b').text('Payment: ', cardX, headerY + 52, { align: 'right', width: cardW - 65 });
+      doc.fillColor(isPaid ? '#059669' : '#d97706').text(isPaid ? 'PAID' : 'PENDING', cardX, headerY + 52, { align: 'right', width: cardW - 24 });
 
       // Header Divider Line
-      let currentY = headerY + 70;
+      let currentY = headerY + 74;
       doc.moveTo(leftColX, currentY).lineTo(rightColX, currentY).lineWidth(1).strokeColor('#e2e8f0').stroke();
 
-      // 3. Customer Information & Order Summary (2-Column Grid)
+      // 3. Customer Information & Order Summary (2-Column Grid matching web version)
       currentY += 16;
       doc.fillColor('#94a3b8').fontSize(9.5).font('Helvetica-Bold').text('BILLED TO', leftColX, currentY);
-      doc.text('INVOICE SUMMARY', 320, currentY);
+      doc.text('ORDER SUMMARY', 320, currentY);
 
       currentY += 14;
       doc.fillColor('#0f172a').fontSize(12).font('Helvetica-Bold').text(order.userName || 'Customer', leftColX, currentY);
-      doc.fillColor('#334155').fontSize(9.5).font('Helvetica');
-      doc.text(`Ref ID: #${shortCode}`, 320, currentY);
+      doc.fillColor('#0f172a').fontSize(10).font('Helvetica-Bold');
+      doc.text(`Order ID: #${cleanOrderId}`, 320, currentY);
 
       currentY += 14;
       const cleanAddress = (order.shippingAddress?.address || 'Address not specified').replace(/\n/g, ', ');
+      doc.fillColor('#334155').fontSize(9.5).font('Helvetica');
       doc.text(cleanAddress, leftColX, currentY, { width: 230 });
       const payRef = order.paymentDetails?.transactionRef || order.paymentDetails?.razorpay_payment_id || (order.paymentDetails?.paymentMethod ? `Mode: ${order.paymentDetails.paymentMethod.toUpperCase()}` : 'Direct Payment');
       doc.text(`Payment Ref: ${payRef}`, 320, currentY);

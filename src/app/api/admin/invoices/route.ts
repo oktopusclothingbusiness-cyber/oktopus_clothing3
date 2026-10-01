@@ -275,7 +275,7 @@ export async function POST(request: NextRequest) {
           to: customer.email.trim(),
           order: invoicePayload,
           settings: settings || null,
-          attachPdf: false, // Use existing approved HTML email template directly
+          attachPdf: true, // Attach official Tax Invoice PDF
         });
 
         if (mailRes.success) {

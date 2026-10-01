@@ -118,7 +118,7 @@ export async function POST(
       to: recipientEmail,
       order: invoicePayload,
       settings: settings || null,
-      attachPdf: false, // Ensure authentic existing email template layout is rendered directly
+      attachPdf: true, // Attach official Tax Invoice PDF
     });
 
     if (!mailRes.success) {

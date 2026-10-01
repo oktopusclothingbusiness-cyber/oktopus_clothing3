@@ -186,7 +186,7 @@ export const sendInvoiceEmail = async ({
   order,
   settings,
   attachments,
-  attachPdf = false,
+  attachPdf = true,
 }: InvoiceEmailProps) => {
   try {
     const resend = getResendClient();
