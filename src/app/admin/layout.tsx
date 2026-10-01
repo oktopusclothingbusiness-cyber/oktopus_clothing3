@@ -30,6 +30,7 @@ import {
   Loader2,
   ShieldAlert,
   Bell,
+  Receipt,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -127,6 +128,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       title: 'Sales & Customers',
       items: [
         { href: '/admin/orders', label: 'Orders', icon: Package },
+        { href: '/admin/invoices', label: 'Invoices', icon: Receipt },
         { href: '/admin/users', label: 'Users', icon: Users },
         { href: '/admin/custom-designs', label: 'Custom Designs', icon: Palette },
         { href: '/admin/shipping', label: 'Shipping', icon: Truck },

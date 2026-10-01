@@ -9,12 +9,16 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getProductImage(imageUrls: any, fallback = "https://placehold.co/600x800.png", targetWidth = 500): string {
-  if (!Array.isArray(imageUrls)) return getOptimizedImageUrl(fallback, targetWidth);
+  const safeFallback = fallback && fallback.trim() ? fallback.trim() : "https://placehold.co/600x800.png";
+  if (!Array.isArray(imageUrls)) {
+    return getOptimizedImageUrl(safeFallback, targetWidth) || safeFallback || '/logo1.png';
+  }
   const valid = imageUrls.find(url => 
     typeof url === 'string' && 
     (url.trim().startsWith('http://') || url.trim().startsWith('https://') || url.trim().startsWith('/'))
   );
-  return getOptimizedImageUrl(valid ? valid.trim() : fallback, targetWidth);
+  const result = getOptimizedImageUrl(valid ? valid.trim() : safeFallback, targetWidth);
+  return result || safeFallback || '/logo1.png';
 }
 
 /**

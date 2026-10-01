@@ -29,7 +29,12 @@ type Order = {
   paymentDetails: {
     razorpay_payment_id?: string;
     paymentStatus?: 'paid' | 'pending';
+    paymentMethod?: string;
+    transactionRef?: string;
   };
+  invoiceNumber?: string;
+  notes?: string;
+  dispatchMode?: string;
 };
 
 type Settings = {
@@ -94,7 +99,9 @@ export const Invoice = ({ order, settings }: InvoiceProps) => {
 
   const formattedDate = order.createdAt ? format(new Date(order.createdAt), 'MMMM dd, yyyy') : 'N/A';
   const shortCode = getShortOrderId(order._id);
-  const invoiceNum = `OKT-${shortCode}`;
+  const invoiceNum = order.invoiceNumber 
+    ? String(order.invoiceNumber).replace(/^#/, '') 
+    : `OKT-${shortCode}`;
 
   return (
     <div className="min-h-screen bg-slate-100/50 py-8 px-4 sm:px-6 lg:px-8 print:py-0 print:px-0 print:bg-white flex flex-col items-center">

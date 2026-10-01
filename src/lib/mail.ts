@@ -175,7 +175,7 @@ export const sendPromotionalEmail = async ({
 
 type InvoiceEmailProps = {
   to: string;
-  order: Order;
+  order: any;
   settings: Settings | null;
   attachments?: EmailAttachment[];
   attachPdf?: boolean;
@@ -192,13 +192,17 @@ export const sendInvoiceEmail = async ({
     const resend = getResendClient();
     const emailAttachments: EmailAttachment[] = attachments ? [...attachments] : [];
 
+    const shortCode = getShortOrderId(order._id);
+    const invoiceCode = order?.invoiceNumber 
+      ? String(order.invoiceNumber).replace(/^#/, '') 
+      : `OKT-${shortCode}`;
+
     // Automatically generate and attach PDF invoice if attachPdf is true and none provided
     if (attachPdf && emailAttachments.length === 0) {
       try {
-        const shortCode = getShortOrderId(order._id);
         const pdfBuffer = await generateInvoicePdfBuffer(order as any);
         emailAttachments.push({
-          filename: `Invoice-OKT-${shortCode}.pdf`,
+          filename: `Tax-Invoice-${invoiceCode}.pdf`,
           content: pdfBuffer,
         });
       } catch (pdfErr) {
@@ -209,7 +213,7 @@ export const sendInvoiceEmail = async ({
     const payload: any = {
       from: fromEmail,
       to: to,
-      subject: `Invoice for your Order #${order._id.slice(-6)}`,
+      subject: `Tax Invoice #${invoiceCode} - OKTOPUS CLOTHING`,
       react: InvoiceEmail({ order, settings }),
     };
 

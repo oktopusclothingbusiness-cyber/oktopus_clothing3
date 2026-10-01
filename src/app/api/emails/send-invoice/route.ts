@@ -22,16 +22,20 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
     }
 
-    const user = await db.collection('users').findOne({ _id: new ObjectId(order.userId) });
-    if (!user) {
-        return NextResponse.json({ message: 'Customer not found for this order.' }, { status: 404 });
+    let user: any = null;
+    if (order.userId && ObjectId.isValid(order.userId)) {
+      user = await db.collection('users').findOne({ _id: new ObjectId(order.userId) });
+    }
+
+    const recipientEmail = user?.email || order.customer?.email || order.shippingAddress?.email;
+    if (!recipientEmail) {
+      return NextResponse.json({ message: 'Customer email not found for this order.' }, { status: 404 });
     }
     
     const settings = await db.collection('settings').findOne({ _id: 'global' as any }) as any;
 
     await sendInvoiceEmail({
-      to: user.email,
-      // @ts-ignore
+      to: recipientEmail,
       order: order, 
       settings: settings
     });

@@ -305,37 +305,46 @@ export default function CheckoutPage() {
             <div className="bg-secondary p-6 rounded-lg space-y-4 h-fit">
               <h2 className="text-xl font-bold">Order Summary</h2>
               <div className="space-y-2">
-                {cart.map(item => (
-                  <div key={`${item.id}-${item.size}-${item.color}`} className="flex justify-between items-center text-sm">
+                {cart.map((item, index) => {
+                  const itemId = item.id || (item as any)._id || (item as any).productId || String(index);
+                  const price = Number(item.price) || 0;
+                  const qty = Number(item.quantity) || 1;
+                  const itemImages = Array.isArray(item.imageUrls) && item.imageUrls.length > 0 
+                    ? item.imageUrls 
+                    : ((item as any).imageUrl ? [(item as any).imageUrl] : []);
+
+                  return (
+                    <div key={`${itemId}-${item.size}-${item.color}-${index}`} className="flex justify-between items-center text-sm">
                       <div className="flex items-center gap-2">
-                        <Image src={getProductImage(item.imageUrls, "https://placehold.co/40x40.png")} alt={item.name || 'Order Item'} width={40} height={40} className="rounded-md" />
+                        <Image src={getProductImage(itemImages, "https://placehold.co/40x40.png")} alt={item.name || 'Order Item'} width={40} height={40} className="rounded-md object-cover" />
                         <div>
-                            <p className='font-medium'>{item.name || 'Product'} (x{item.quantity})</p>
-                            <p className='text-muted-foreground text-xs'>Size: {item.size}, Color: {item.color}</p>
+                          <p className='font-medium'>{item.name || 'Product'} (x{qty})</p>
+                          <p className='text-muted-foreground text-xs'>Size: {item.size || 'Free Size'}, Color: {item.color || 'Standard'}</p>
                         </div>
                       </div>
-                      <span>₹{(item.price * item.quantity).toFixed(2)}</span>
-                  </div>
-                ))}
+                      <span className="font-semibold">₹{(price * qty).toFixed(2)}</span>
+                    </div>
+                  );
+                })}
               </div>
               <div className="border-t pt-4 space-y-2">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>₹{subtotal.toFixed(2)}</span>
+                    <span>₹{(Number(subtotal) || 0).toFixed(2)}</span>
                   </div>
                   {discount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
-                      <span>- ₹{discount.toFixed(2)}</span>
+                      <span>- ₹{(Number(discount) || 0).toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span>Shipping</span>
-                    <span>{shipping > 0 ? `₹${shipping.toFixed(2)}` : 'Free'}</span>
+                    <span>{shipping > 0 ? `₹${(Number(shipping) || 0).toFixed(2)}` : 'Free'}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
                     <span>Total</span>
-                    <span>₹{total.toFixed(2)}</span>
+                    <span>₹{(Number(total) || 0).toFixed(2)}</span>
                   </div>
               </div>
               {checkoutPromotion && (
@@ -383,22 +392,22 @@ export default function CheckoutPage() {
                     <div className="text-sm space-y-2 mb-2">
                         <div className="flex justify-between">
                             <span>Subtotal</span>
-                            <span>₹{subtotal.toFixed(2)}</span>
+                            <span>₹{(Number(subtotal) || 0).toFixed(2)}</span>
                         </div>
                         {discount > 0 && (
                             <div className="flex justify-between text-green-600">
                                 <span>Discount</span>
-                                <span>- ₹{discount.toFixed(2)}</span>
+                                <span>- ₹{(Number(discount) || 0).toFixed(2)}</span>
                             </div>
                         )}
                         <div className="flex justify-between">
                             <span>Shipping</span>
-                            <span>{shipping > 0 ? `₹${shipping.toFixed(2)}` : 'Free'}</span>
+                            <span>{shipping > 0 ? `₹${(Number(shipping) || 0).toFixed(2)}` : 'Free'}</span>
                         </div>
                     </div>
                     <div className="flex justify-between items-center border-t pt-2">
                     <span className="text-muted-foreground">Total</span>
-                    <span className="text-xl font-bold">₹{total.toFixed(2)}</span>
+                    <span className="text-xl font-bold">₹{(Number(total) || 0).toFixed(2)}</span>
                     </div>
                 </CardContent>
             </Card>

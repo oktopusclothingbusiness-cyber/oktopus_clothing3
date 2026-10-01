@@ -57,16 +57,25 @@ export default function InvoicePage() {
       const fetchOrderAndSettings = async () => {
         try {
           setLoading(true);
-          const [orderRes, settingsRes] = await Promise.all([
-            fetch(`/api/orders/${id}`),
+          let orderData: any = null;
+          const [invoiceRes, settingsRes] = await Promise.all([
+            fetch(`/api/invoices/${id}`),
             fetch('/api/settings'),
           ]);
 
-          if (!orderRes.ok) throw new Error("Failed to fetch order");
-          const orderData = await orderRes.json();
+          if (invoiceRes.ok) {
+            orderData = await invoiceRes.json();
+          } else {
+            const fallbackOrderRes = await fetch(`/api/orders/${id}`);
+            if (fallbackOrderRes.ok) {
+              orderData = await fallbackOrderRes.json();
+            }
+          }
+
+          if (!orderData) throw new Error("Failed to load invoice");
           setOrder(orderData);
 
-          if(settingsRes.ok) {
+          if (settingsRes.ok) {
             const settingsData = await settingsRes.json();
             setSettings(settingsData);
           }

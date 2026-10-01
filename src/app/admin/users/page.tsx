@@ -5,7 +5,7 @@ import { useUser, User } from '@/context/user-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, Loader2 } from 'lucide-react';
+import { Trash2, Loader2, Receipt } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -23,12 +23,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
+import { IssueInvoiceDialog } from '@/components/admin/issue-invoice-dialog';
 
 export default function UsersPage() {
     const { users, loading, deleteUser, updateUserRole, updateUserOktocoins } = useUser();
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [coinBalances, setCoinBalances] = React.useState<{ [key: string]: string }>({});
     const [activeInput, setActiveInput] = React.useState<string | null>(null);
+    const [selectedUserForInvoice, setSelectedUserForInvoice] = React.useState<string | null>(null);
+    const [isInvoiceModalOpen, setIsInvoiceModalOpen] = React.useState(false);
     
     React.useEffect(() => {
         if (users.length > 0) {
@@ -149,26 +152,42 @@ export default function UsersPage() {
                             </TableCell>
                             <TableCell>{format(new Date(user.createdAt), 'PP')}</TableCell>
                             <TableCell className="text-right">
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" disabled={isSubmitting && activeInput === user.id}>
-                                      <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        This action cannot be undone. This will permanently delete the user
-                                        and remove their data from our servers.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction onClick={() => handleDeleteUser(user.id)}>Continue</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 text-xs gap-1.5 border-primary/30 hover:bg-primary/10 hover:text-primary transition-colors"
+                                    onClick={() => {
+                                      setSelectedUserForInvoice(user.id);
+                                      setIsInvoiceModalOpen(true);
+                                    }}
+                                    title={`Issue Invoice to ${user.firstName || 'User'}`}
+                                  >
+                                    <Receipt className="w-3.5 h-3.5 text-primary" />
+                                    <span className="hidden sm:inline">Issue Invoice</span>
+                                  </Button>
+
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button variant="ghost" size="icon" disabled={isSubmitting && activeInput === user.id}>
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          This action cannot be undone. This will permanently delete the user
+                                          and remove their data from our servers.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleDeleteUser(user.id)}>Continue</AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
                             </TableCell>
                           </TableRow>
                         ))
@@ -184,6 +203,12 @@ export default function UsersPage() {
                 </div>
               </CardContent>
             </Card>
+
+            <IssueInvoiceDialog
+              open={isInvoiceModalOpen}
+              onOpenChange={setIsInvoiceModalOpen}
+              preselectedUserId={selectedUserForInvoice}
+            />
         </>
     );
 }

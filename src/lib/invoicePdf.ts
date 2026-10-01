@@ -28,7 +28,11 @@ type OrderForInvoice = {
     razorpay_payment_id?: string;
     paymentStatus?: 'paid' | 'pending';
     paymentMethod?: string;
+    transactionRef?: string;
   };
+  invoiceNumber?: string;
+  orderId?: string;
+  dispatchMode?: string;
 };
 
 /**
@@ -38,11 +42,16 @@ type OrderForInvoice = {
 export async function generateInvoicePdfBuffer(order: OrderForInvoice): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     try {
+      const shortCode = getShortOrderId(order._id);
+      const invoiceNumber = order.invoiceNumber 
+        ? String(order.invoiceNumber).replace(/^#/, '') 
+        : `OKT-${shortCode}`;
+
       const doc = new PDFDocument({
         margin: 36,
         size: 'A4',
         info: {
-          Title: `Tax Invoice #OKT-${getShortOrderId(order._id)}`,
+          Title: `Tax Invoice #${invoiceNumber}`,
           Author: 'OKTOPUS CLOTHING',
           Subject: 'Official Tax Invoice',
         },
@@ -53,8 +62,6 @@ export async function generateInvoicePdfBuffer(order: OrderForInvoice): Promise<
       doc.on('end', () => resolve(Buffer.concat(buffers)));
       doc.on('error', (err) => reject(err));
 
-      const shortCode = getShortOrderId(order._id);
-      const invoiceNumber = `OKT-${shortCode}`;
       const invoiceDate = order.createdAt ? format(new Date(order.createdAt), 'MMMM dd, yyyy') : 'N/A';
       const isPaid = order.paymentDetails?.paymentStatus === 'paid';
 
@@ -92,25 +99,22 @@ export async function generateInvoicePdfBuffer(order: OrderForInvoice): Promise<
       // 3. Customer Information & Order Summary (2-Column Grid)
       currentY += 16;
       doc.fillColor('#94a3b8').fontSize(9.5).font('Helvetica-Bold').text('BILLED TO', leftColX, currentY);
-      doc.text('ORDER SUMMARY', 320, currentY);
+      doc.text('INVOICE SUMMARY', 320, currentY);
 
       currentY += 14;
       doc.fillColor('#0f172a').fontSize(12).font('Helvetica-Bold').text(order.userName || 'Customer', leftColX, currentY);
       doc.fillColor('#334155').fontSize(9.5).font('Helvetica');
-      doc.text(`Order ID: #${shortCode}`, 320, currentY);
+      doc.text(`Ref ID: #${shortCode}`, 320, currentY);
 
       currentY += 14;
       const cleanAddress = (order.shippingAddress?.address || 'Address not specified').replace(/\n/g, ', ');
       doc.text(cleanAddress, leftColX, currentY, { width: 230 });
-      if (order.paymentDetails?.razorpay_payment_id) {
-        doc.text(`Payment Ref: ${order.paymentDetails.razorpay_payment_id}`, 320, currentY);
-      } else {
-        doc.text('Payment Ref: Direct Online Payment', 320, currentY);
-      }
+      const payRef = order.paymentDetails?.transactionRef || order.paymentDetails?.razorpay_payment_id || (order.paymentDetails?.paymentMethod ? `Mode: ${order.paymentDetails.paymentMethod.toUpperCase()}` : 'Direct Payment');
+      doc.text(`Payment Ref: ${payRef}`, 320, currentY);
 
       currentY += 24;
       doc.text(`Mobile: ${order.shippingAddress?.mobile || 'N/A'}`, leftColX, currentY);
-      doc.text('Dispatch Mode: Express Shipping', 320, currentY);
+      doc.text(`Dispatch Mode: ${order.dispatchMode || 'Express Shipping'}`, 320, currentY);
 
       // 4. Itemized Product Table
       currentY += 26;

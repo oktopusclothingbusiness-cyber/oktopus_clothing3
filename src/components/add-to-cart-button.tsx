@@ -30,8 +30,8 @@ export function AddToCartButton({ product, className, ...props }: AddToCartButto
     }
     // For list view, we add with default size and color.
     // A more complex implementation might open a dialog to select options.
-    const defaultSize = product.sizes.length > 0 ? product.sizes[0] : 'N/A';
-    const defaultColor = product.colors.length > 0 ? product.colors[0] : 'N/A';
+    const defaultSize = Array.isArray(product.sizes) && product.sizes.length > 0 ? product.sizes[0] : 'Free Size';
+    const defaultColor = Array.isArray(product.colors) && product.colors.length > 0 ? product.colors[0] : 'Standard';
     addToCart(product, defaultSize, defaultColor);
   };
   

@@ -48,13 +48,16 @@ type Settings = {
 }
 
 type InvoiceEmailProps = {
-  order: Order;
+  order: Order & { invoiceNumber?: string; notes?: string };
   settings: Settings | null;
 };
 
 export const InvoiceEmail = ({ order, settings }: InvoiceEmailProps) => {
   const shortCode = getShortOrderId(order._id);
-  const previewText = `Invoice for your Order #OKT-${shortCode}`;
+  const invoiceNumber = order.invoiceNumber 
+    ? String(order.invoiceNumber).replace(/^#/, '') 
+    : `OKT-${shortCode}`;
+  const previewText = `Tax Invoice #${invoiceNumber} - OKTOPUS CLOTHING`;
   
   // These values may not exist on old orders, so we calculate them
   const subtotal = order.subtotal || order.products.reduce((acc, p) => acc + (p.price * p.quantity), 0);
@@ -112,7 +115,7 @@ export const InvoiceEmail = ({ order, settings }: InvoiceEmailProps) => {
             </div>
             <div style={{ textAlign: 'right' }}>
               <Heading as="h1" style={h1}>TAX INVOICE</Heading>
-              <Text style={invoiceId}>#OKT-{shortCode}</Text>
+              <Text style={invoiceId}>#{invoiceNumber}</Text>
             </div>
           </Section>
 

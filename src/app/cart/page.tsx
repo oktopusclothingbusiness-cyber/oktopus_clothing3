@@ -69,35 +69,49 @@ export default function CartPage() {
           ) : (
             <div className="grid md:grid-cols-3 gap-8">
               <div className="md:col-span-2 space-y-4">
-                {cart.map((item) => (
-                  <div key={`${item.id}-${item.size}-${item.color}-${item.fabricQuality || ''}`} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <Image src={getProductImage(item.imageUrls, "https://placehold.co/80x80.png")} alt={item.name || 'Cart Item'} width={80} height={80} className="rounded-md" />
-                      <div>
-                        <h2 className="font-semibold">{item.name}</h2>
-                        <p className="text-sm text-muted-foreground">
-                          {item.fabricQuality ? <span className="font-medium text-foreground mr-1.5">[{item.fabricQuality}]</span> : null}
-                          Size: {item.size}, Color: {item.color}
-                        </p>
-                        <p className="text-muted-foreground font-semibold">₹{item.price.toFixed(2)}</p>
+                {cart.map((item, index) => {
+                  const itemId = item.id || (item as any)._id || (item as any).productId || String(index);
+                  const price = Number(item.price) || 0;
+                  const itemImages = Array.isArray(item.imageUrls) && item.imageUrls.length > 0 
+                    ? item.imageUrls 
+                    : ((item as any).imageUrl ? [(item as any).imageUrl] : []);
+
+                  return (
+                    <div key={`${itemId}-${item.size}-${item.color}-${item.fabricQuality || ''}-${index}`} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <Image 
+                          src={getProductImage(itemImages, "https://placehold.co/80x80.png")} 
+                          alt={item.name || 'Cart Item'} 
+                          width={80} 
+                          height={80} 
+                          className="rounded-md object-cover" 
+                        />
+                        <div>
+                          <h2 className="font-semibold">{item.name || 'Apparel Item'}</h2>
+                          <p className="text-sm text-muted-foreground">
+                            {item.fabricQuality ? <span className="font-medium text-foreground mr-1.5">[{item.fabricQuality}]</span> : null}
+                            Size: {item.size || 'Free Size'}, Color: {item.color || 'Standard'}
+                          </p>
+                          <p className="text-muted-foreground font-semibold">₹{price.toFixed(2)}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="icon" onClick={() => updateQuantity(itemId, item.size, item.color, (Number(item.quantity) || 1) - 1, item.fabricQuality)} disabled={(Number(item.quantity) || 1) <= 1}>
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <span className="font-medium">{item.quantity || 1}</span>
+                          <Button variant="outline" size="icon" onClick={() => updateQuantity(itemId, item.size, item.color, (Number(item.quantity) || 1) + 1, item.fabricQuality)}>
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={() => removeFromCart(itemId, item.size, item.color, item.fabricQuality)}>
+                          <Trash2 className="h-5 w-5 text-destructive" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity - 1, item.fabricQuality)} disabled={item.quantity <= 1}>
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                        <span>{item.quantity}</span>
-                        <Button variant="outline" size="icon" onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity + 1, item.fabricQuality)}>
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id, item.size, item.color, item.fabricQuality)}>
-                        <Trash2 className="h-5 w-5 text-destructive" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
                  <Button variant="outline" onClick={clearCart} className="mt-4">
                   Clear Cart
                 </Button>
@@ -106,21 +120,21 @@ export default function CartPage() {
                 <h2 className="text-xl font-bold">Order Summary</h2>
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>₹{subtotal.toFixed(2)}</span>
+                  <span>₹{(Number(subtotal) || 0).toFixed(2)}</span>
                 </div>
                  {discount > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span>Discount</span>
-                    <span>- ₹{discount.toFixed(2)}</span>
+                    <span>- ₹{(Number(discount) || 0).toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span>{shipping > 0 ? `₹${shipping.toFixed(2)}` : 'Free'}</span>
+                  <span>{shipping > 0 ? `₹${(Number(shipping) || 0).toFixed(2)}` : 'Free'}</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                   <span>Total</span>
-                  <span>₹{total.toFixed(2)}</span>
+                  <span>₹{(Number(total) || 0).toFixed(2)}</span>
                 </div>
                 <Button className="w-full" size="lg" onClick={handleCheckoutClick}>
                     Checkout
@@ -163,31 +177,45 @@ export default function CartPage() {
             </div>
           ) : (
             <div className="p-4 space-y-4">
-              {cart.map((item) => (
-                <div key={`${item.id}-${item.size}-${item.color}-${item.fabricQuality || ''}`} className="flex items-start gap-4 p-4 card-glass rounded-lg shadow-sm">
-                  <Image src={getProductImage(item.imageUrls, "https://placehold.co/80x80.png")} alt={item.name || 'Cart Item'} width={80} height={80} className="rounded-md" />
-                  <div className="flex-grow">
-                    <h2 className="font-semibold text-sm">{item.name}</h2>
-                    <p className="text-xs text-muted-foreground">
-                      {item.fabricQuality ? <span className="font-semibold text-primary mr-1">[{item.fabricQuality}]</span> : null}
-                      Size: {item.size}, Color: {item.color}
-                    </p>
-                    <p className="text-primary font-bold text-md">₹{item.price.toFixed(2)}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity - 1, item.fabricQuality)} disabled={item.quantity <= 1}>
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="text-sm">{item.quantity}</span>
-                      <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity + 1, item.fabricQuality)}>
-                        <Plus className="h-3 w-3" />
-                      </Button>
+              {cart.map((item, index) => {
+                const itemId = item.id || (item as any)._id || (item as any).productId || String(index);
+                const price = Number(item.price) || 0;
+                const itemImages = Array.isArray(item.imageUrls) && item.imageUrls.length > 0 
+                  ? item.imageUrls 
+                  : ((item as any).imageUrl ? [(item as any).imageUrl] : []);
+
+                return (
+                  <div key={`${itemId}-${item.size}-${item.color}-${item.fabricQuality || ''}-${index}`} className="flex items-start gap-4 p-4 card-glass rounded-lg shadow-sm">
+                    <Image 
+                      src={getProductImage(itemImages, "https://placehold.co/80x80.png")} 
+                      alt={item.name || 'Cart Item'} 
+                      width={80} 
+                      height={80} 
+                      className="rounded-md object-cover" 
+                    />
+                    <div className="flex-grow">
+                      <h2 className="font-semibold text-sm">{item.name || 'Apparel Item'}</h2>
+                      <p className="text-xs text-muted-foreground">
+                        {item.fabricQuality ? <span className="font-semibold text-primary mr-1">[{item.fabricQuality}]</span> : null}
+                        Size: {item.size || 'Free Size'}, Color: {item.color || 'Standard'}
+                      </p>
+                      <p className="text-primary font-bold text-md">₹{price.toFixed(2)}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(itemId, item.size, item.color, (Number(item.quantity) || 1) - 1, item.fabricQuality)} disabled={(Number(item.quantity) || 1) <= 1}>
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="text-sm font-medium">{item.quantity || 1}</span>
+                        <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(itemId, item.size, item.color, (Number(item.quantity) || 1) + 1, item.fabricQuality)}>
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeFromCart(itemId, item.size, item.color, item.fabricQuality)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeFromCart(item.id, item.size, item.color, item.fabricQuality)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
           {cart.length > 0 && (
@@ -196,22 +224,22 @@ export default function CartPage() {
                  <div className="text-xs space-y-1 mb-2">
                     <div className="flex justify-between">
                         <span>Subtotal</span>
-                        <span>₹{subtotal.toFixed(2)}</span>
+                        <span>₹{(Number(subtotal) || 0).toFixed(2)}</span>
                     </div>
                     {discount > 0 && (
                         <div className="flex justify-between text-green-600">
                             <span>Discount</span>
-                            <span>- ₹{discount.toFixed(2)}</span>
+                            <span>- ₹{(Number(discount) || 0).toFixed(2)}</span>
                         </div>
                     )}
                      <div className="flex justify-between">
                         <span>Shipping</span>
-                        <span>{shipping > 0 ? `₹${shipping.toFixed(2)}` : 'Free'}</span>
+                        <span>{shipping > 0 ? `₹${(Number(shipping) || 0).toFixed(2)}` : 'Free'}</span>
                     </div>
                  </div>
                 <div className="flex justify-between items-center mb-4 border-t pt-2">
                   <span className="text-muted-foreground">Total</span>
-                  <span className="text-xl font-bold">₹{total.toFixed(2)}</span>
+                  <span className="text-xl font-bold">₹{(Number(total) || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex gap-2">
                     <Dialog open={isCouponDialogOpen} onOpenChange={setIsCouponDialogOpen}>
