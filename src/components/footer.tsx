@@ -11,15 +11,15 @@ export function Footer() {
 
   React.useEffect(() => {
     const fetchSettings = async () => {
-        try {
-            const response = await fetch('/api/settings');
-            if (response.ok) {
-                const data = await response.json();
-                setLogoUrl(data.logoUrl || '');
-            }
-        } catch (error) {
-            console.error("Failed to fetch settings for footer logo:", error);
+      try {
+        const response = await fetch('/api/settings');
+        if (response.ok) {
+          const data = await response.json();
+          setLogoUrl(data.logoUrl || '');
         }
+      } catch (error) {
+        console.error("Failed to fetch settings for footer logo:", error);
+      }
     };
     fetchSettings();
   }, []);
@@ -30,9 +30,9 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
             {logoUrl ? (
-                <Image src={logoUrl} alt="Site Logo" width={140} height={40} className="object-contain mb-4" />
+              <Image src={logoUrl} alt="Site Logo" width={140} height={40} className="object-contain mb-4" />
             ) : (
-                <h3 className="font-bold mb-4 h-10"></h3>
+              <h3 className="font-bold mb-4 h-10"></h3>
             )}
             <p className="text-sm text-muted-foreground">Style meets expression.</p>
           </div>
@@ -53,37 +53,37 @@ export function Footer() {
               <li><Link href="/shipping-policy" className="text-sm text-muted-foreground hover:text-primary">Shipping Policy</Link></li>
               <li><Link href="/privacy-policy" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
               <li><Link href="/terms-and-conditions" className="text-sm text-muted-foreground hover:text-primary">Terms & Conditions</Link></li>
-               <li><Link href="/verify-product" className="text-sm text-muted-foreground hover:text-primary">Verify Product</Link></li>
+              <li><Link href="/verify-product" className="text-sm text-muted-foreground hover:text-primary">Verify Product</Link></li>
             </ul>
           </div>
           <div>
             <h3 className="font-semibold mb-4">Privacy</h3>
             <ul className="space-y-2">
-                <li><Link href="/request-data" className="text-sm text-muted-foreground hover:text-primary">Request My Data</Link></li>
-                <li><Link href="/delete-account" className="text-sm text-muted-foreground hover:text-primary">Delete My Account</Link></li>
+              <li><Link href="/request-data" className="text-sm text-muted-foreground hover:text-primary">Request My Data</Link></li>
+              <li><Link href="/delete-account" className="text-sm text-muted-foreground hover:text-primary">Delete My Account</Link></li>
             </ul>
             <h3 className="font-semibold mb-4 mt-4">Follow Us</h3>
             <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" asChild>
-                    <Link href="#" target="_blank" aria-label="GitHub">
-                        <Github className="h-5 w-5" />
-                    </Link>
-                </Button>
-                <Button variant="ghost" size="icon" asChild>
-                    <Link href="#" target="_blank" aria-label="Twitter">
-                        <Twitter className="h-5 w-5" />
-                    </Link>
-                </Button>
-                <Button variant="ghost" size="icon" asChild>
-                    <Link href="#" target="_blank" aria-label="Instagram">
-                        <Instagram className="h-5 w-5" />
-                    </Link>
-                </Button>
+              <Button variant="ghost" size="icon" asChild>
+                <Link href="#" target="_blank" aria-label="GitHub">
+                  <Github className="h-5 w-5" />
+                </Link>
+              </Button>
+              <Button variant="ghost" size="icon" asChild>
+                <Link href="#" target="_blank" aria-label="Twitter">
+                  <Twitter className="h-5 w-5" />
+                </Link>
+              </Button>
+              <Button variant="ghost" size="icon" asChild>
+                <Link href="#" target="_blank" aria-label="Instagram">
+                  <Instagram className="h-5 w-5" />
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
         <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground flex flex-col items-center gap-2">
-          <p>© 2025. All rights reserved.</p>
+          <p>© 2026. All rights reserved.</p>
           <BaskeyAttribution className="text-[10px] mt-1" />
         </div>
       </div>
