@@ -8,9 +8,16 @@ import { ShoppingCart } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
+import { useState, useEffect } from 'react';
+
 export function FloatingCartButton() {
   const { cart, isAnimating } = useCart();
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const cartItemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -25,7 +32,7 @@ export function FloatingCartButton() {
     '/checkout',
   ];
 
-  if (!pathname) return null;
+  if (!mounted || !pathname) return null;
 
   const shouldHide = hiddenPaths.some(path => pathname?.startsWith(path));
 

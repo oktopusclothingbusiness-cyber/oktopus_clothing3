@@ -47,6 +47,7 @@ import {
   AlertCircle,
   Receipt,
   FileCheck,
+  Pencil,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { IssueInvoiceDialog } from '@/components/admin/issue-invoice-dialog';
@@ -112,8 +113,9 @@ export default function AdminInvoicesPage() {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState<'all' | 'paid' | 'pending'>('all');
 
-  // Issue Dialog State
+  // Issue / Edit Dialog State
   const [isIssueModalOpen, setIsIssueModalOpen] = React.useState(false);
+  const [invoiceToEdit, setInvoiceToEdit] = React.useState<InvoiceItem | null>(null);
   const [sendingEmailId, setSendingEmailId] = React.useState<string | null>(null);
 
   // Delete State
@@ -284,7 +286,10 @@ export default function AdminInvoicesPage() {
 
           <Button
             size="sm"
-            onClick={() => setIsIssueModalOpen(true)}
+            onClick={() => {
+              setInvoiceToEdit(null);
+              setIsIssueModalOpen(true);
+            }}
             className="text-xs gap-1.5 h-9 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xs"
           >
             <PlusCircle className="w-4 h-4" /> Issue New Invoice
@@ -440,7 +445,10 @@ export default function AdminInvoicesPage() {
               <Button
                 size="sm"
                 className="mt-2 text-xs gap-1.5"
-                onClick={() => setIsIssueModalOpen(true)}
+                onClick={() => {
+                  setInvoiceToEdit(null);
+                  setIsIssueModalOpen(true);
+                }}
               >
                 <PlusCircle className="w-3.5 h-3.5" /> Issue First Invoice
               </Button>
@@ -519,8 +527,8 @@ export default function AdminInvoicesPage() {
                   </div>
 
                   {/* BOTTOM ROW: ACTIONS */}
-                  <div className="flex items-center gap-2 pt-1">
-                    <Button variant="outline" size="sm" asChild className="flex-1 h-8 text-xs font-semibold gap-1">
+                  <div className="flex items-center gap-1.5 pt-1 flex-wrap">
+                    <Button variant="outline" size="sm" asChild className="h-8 text-xs font-semibold gap-1 px-2.5">
                       <a href={`/invoice/${inv._id}`} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="w-3.5 h-3.5" />
                         View
@@ -530,9 +538,22 @@ export default function AdminInvoicesPage() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => {
+                        setInvoiceToEdit(inv);
+                        setIsIssueModalOpen(true);
+                      }}
+                      className="h-8 text-xs font-semibold gap-1 px-2.5"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      Edit
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleSendEmail(inv)}
                       disabled={isSendingThisEmail}
-                      className="flex-1 h-8 text-xs font-semibold gap-1"
+                      className="h-8 text-xs font-semibold gap-1 px-2.5"
                     >
                       {isSendingThisEmail ? (
                         <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -612,7 +633,10 @@ export default function AdminInvoicesPage() {
                       <Button
                         size="sm"
                         className="mt-2 text-xs gap-1.5"
-                        onClick={() => setIsIssueModalOpen(true)}
+                        onClick={() => {
+                          setInvoiceToEdit(null);
+                          setIsIssueModalOpen(true);
+                        }}
                       >
                         <PlusCircle className="w-3.5 h-3.5" /> Issue First Invoice
                       </Button>
@@ -732,6 +756,20 @@ export default function AdminInvoicesPage() {
                       {/* Actions */}
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
+                          {/* Quick Edit Button */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                            onClick={() => {
+                              setInvoiceToEdit(inv);
+                              setIsIssueModalOpen(true);
+                            }}
+                            title="Edit Invoice Details"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </Button>
+
                           {/* Quick Send Email Button */}
                           <Button
                             variant="ghost"
@@ -772,11 +810,21 @@ export default function AdminInvoicesPage() {
                                 <MoreVertical className="w-3.5 h-3.5" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="text-xs w-48">
+                            <DropdownMenuContent align="end" className="text-xs w-52">
                               <DropdownMenuLabel className="text-[11px] font-mono">
                                 #{inv.invoiceNumber}
                               </DropdownMenuLabel>
                               <DropdownMenuSeparator />
+
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setInvoiceToEdit(inv);
+                                  setIsIssueModalOpen(true);
+                                }}
+                                className="flex items-center gap-2 cursor-pointer font-medium"
+                              >
+                                <Pencil className="w-3.5 h-3.5 text-primary" /> Edit Invoice Details
+                              </DropdownMenuItem>
 
                               <DropdownMenuItem asChild>
                                 <a
@@ -835,11 +883,18 @@ export default function AdminInvoicesPage() {
         </div>
       </Card>
 
-      {/* ISSUE INVOICE DIALOG */}
+      {/* ISSUE / EDIT INVOICE DIALOG */}
       <IssueInvoiceDialog
         open={isIssueModalOpen}
-        onOpenChange={setIsIssueModalOpen}
+        onOpenChange={(open) => {
+          setIsIssueModalOpen(open);
+          if (!open) setInvoiceToEdit(null);
+        }}
+        invoiceToEdit={invoiceToEdit}
         onInvoiceIssued={() => {
+          fetchInvoices();
+        }}
+        onInvoiceUpdated={() => {
           fetchInvoices();
         }}
       />

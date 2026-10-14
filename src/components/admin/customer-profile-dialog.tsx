@@ -38,13 +38,21 @@ import {
   CreditCard,
   Globe,
   Loader2,
+  Pencil,
+  FileText,
+  CheckCircle2,
+  Clock,
+  Download,
+  Package,
 } from 'lucide-react';
+import { IssueInvoiceDialog } from '@/components/admin/issue-invoice-dialog';
 
 interface CustomerProfileDialogProps {
   user: User | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onIssueInvoice?: (userId: string) => void;
+  onEditInvoice?: (invoice: any) => void;
 }
 
 export function CustomerProfileDialog({
@@ -52,6 +60,7 @@ export function CustomerProfileDialog({
   open,
   onOpenChange,
   onIssueInvoice,
+  onEditInvoice,
 }: CustomerProfileDialogProps) {
   const { toggleUserSuspension, blockIpAddress, unblockIpAddress, updateUserOktocoins } = useUser();
   const { toast } = useToast();
@@ -63,6 +72,31 @@ export function CustomerProfileDialog({
   const [newCoinAmount, setNewCoinAmount] = React.useState('');
   const [blockedIps, setBlockedIps] = React.useState<string[]>([]);
   const [checkingBlockedIps, setCheckingBlockedIps] = React.useState(false);
+
+  // Unified Customer Orders & Invoices State
+  const [userOrders, setUserOrders] = React.useState<any[]>([]);
+  const [loadingOrders, setLoadingOrders] = React.useState(false);
+  const [invoiceToEdit, setInvoiceToEdit] = React.useState<any | null>(null);
+  const [isEditInvoiceModalOpen, setIsEditInvoiceModalOpen] = React.useState(false);
+
+  // Fetch unified customer orders & invoices across Web, App, POS, and Invoices
+  const fetchUserOrders = React.useCallback(async () => {
+    if (!open || !user) return;
+    const uid = user.id || user._id;
+    if (!uid) return;
+    try {
+      setLoadingOrders(true);
+      const res = await fetch(`/api/users/${uid}/orders`);
+      if (res.ok) {
+        const data = await res.json();
+        setUserOrders(Array.isArray(data) ? data : (data.orders || []));
+      }
+    } catch (err) {
+      console.error('Failed to load user orders:', err);
+    } finally {
+      setLoadingOrders(false);
+    }
+  }, [open, user]);
 
   // Fetch current blocked IPs list to know if user's IP is banned
   const fetchBlockedIps = React.useCallback(async () => {
@@ -90,8 +124,27 @@ export function CustomerProfileDialog({
       setShowSuspendInput(false);
       setSuspendReason('');
       fetchBlockedIps();
+      fetchUserOrders();
     }
-  }, [open, user, fetchBlockedIps]);
+  }, [open, user, fetchBlockedIps, fetchUserOrders]);
+
+  // Unified calculations across all customer order sources
+  const computedOrderStats = React.useMemo(() => {
+    if (!user || userOrders.length === 0) {
+      return {
+        totalOrders: user?.totalOrders ?? 0,
+        totalSpent: user?.totalSpent ?? 0,
+      };
+    }
+    const totalOrders = userOrders.length;
+    const totalSpent = userOrders.reduce((sum, ord) => sum + (Number(ord.total) || 0), 0);
+    return { totalOrders, totalSpent };
+  }, [userOrders, user?.totalOrders, user?.totalSpent]);
+
+  const mostRecentOrder = React.useMemo(() => {
+    if (userOrders.length > 0) return userOrders[0];
+    return user?.lastOrder || null;
+  }, [userOrders, user?.lastOrder]);
 
   if (!user) return null;
 
@@ -142,7 +195,7 @@ export function CustomerProfileDialog({
         setBlockedIps((prev) => prev.filter((ip) => ip !== userIp));
       }
     } else {
-      const ok = await blockIpAddress(userIp, `Blocked via user management for user ${user.email}`);
+      const ok = await blockIpAddress(userIp, `Blocked via user management for user ${user?.email || ''}`);
       if (ok) {
         setBlockedIps((prev) => [...prev, userIp]);
       }
@@ -151,6 +204,7 @@ export function CustomerProfileDialog({
   };
 
   const handleSaveCoins = async () => {
+    if (!user) return;
     const parsed = parseInt(newCoinAmount, 10);
     if (isNaN(parsed) || parsed < 0) {
       toast({
@@ -166,6 +220,7 @@ export function CustomerProfileDialog({
   };
 
   const handleQuickAddCoins = async (amount: number) => {
+    if (!user) return;
     const current = user.oktocoins || 0;
     const updated = Math.max(0, current + amount);
     setIsSubmitting(true);
@@ -313,13 +368,16 @@ export function CustomerProfileDialog({
         {/* DIALOG BODY WITH TABS */}
         <ScrollArea className="flex-1 p-4 sm:p-6 overflow-y-auto">
           <Tabs defaultValue="overview" className="w-full space-y-4">
-            <TabsList className="grid grid-cols-4 w-full h-9 bg-secondary/40 p-1">
-              <TabsTrigger value="overview" className="text-xs">Overview</TabsTrigger>
-              <TabsTrigger value="cart" className="text-xs">
+            <TabsList className="grid grid-cols-2 sm:grid-cols-5 w-full h-auto p-1 gap-1 bg-secondary/40">
+              <TabsTrigger value="overview" className="text-xs h-7">Overview</TabsTrigger>
+              <TabsTrigger value="orders" className="text-xs h-7 font-medium">
+                Orders ({loadingOrders ? '...' : userOrders.length})
+              </TabsTrigger>
+              <TabsTrigger value="cart" className="text-xs h-7">
                 Cart ({cartItemCount})
               </TabsTrigger>
-              <TabsTrigger value="security" className="text-xs">Security & IP</TabsTrigger>
-              <TabsTrigger value="loyalty" className="text-xs">Loyalty</TabsTrigger>
+              <TabsTrigger value="security" className="text-xs h-7">Security & IP</TabsTrigger>
+              <TabsTrigger value="loyalty" className="text-xs h-7">Loyalty</TabsTrigger>
             </TabsList>
 
             {/* TAB 1: OVERVIEW */}
@@ -382,19 +440,36 @@ export function CustomerProfileDialog({
 
               {/* COMMERCE SNAPSHOT */}
               <div className="p-3.5 rounded-xl border bg-card/60 space-y-3">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                  <ShoppingBag className="w-3.5 h-3.5 text-primary" />
-                  Purchasing Activity
-                </h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <ShoppingBag className="w-3.5 h-3.5 text-primary" />
+                    Purchasing Activity (Unified Database)
+                  </h4>
+                  {onIssueInvoice && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-[11px] text-primary hover:text-primary/90 px-1.5 gap-1"
+                      onClick={() => {
+                        onOpenChange(false);
+                        onIssueInvoice(user.id);
+                      }}
+                    >
+                      <Receipt className="w-3 h-3" /> Issue Invoice
+                    </Button>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-3 gap-2.5 text-center">
                   <div className="p-2.5 rounded-lg bg-secondary/30 border">
                     <span className="text-[10px] text-muted-foreground uppercase font-semibold">Total Orders</span>
-                    <p className="text-lg font-bold mt-0.5">{user.totalOrders ?? 0}</p>
+                    <p className="text-lg font-bold mt-0.5">{computedOrderStats.totalOrders}</p>
                   </div>
                   <div className="p-2.5 rounded-lg bg-secondary/30 border">
                     <span className="text-[10px] text-muted-foreground uppercase font-semibold">Lifetime Spend</span>
                     <p className="text-lg font-bold mt-0.5 font-mono">
-                      Rs. {(user.totalSpent ?? 0).toLocaleString('en-IN')}
+                      Rs. {computedOrderStats.totalSpent.toLocaleString('en-IN')}
                     </p>
                   </div>
                   <div className="p-2.5 rounded-lg bg-secondary/30 border">
@@ -406,43 +481,279 @@ export function CustomerProfileDialog({
                 </div>
 
                 {/* LAST ORDER HIGHLIGHT */}
-                {user.lastOrder ? (
+                {mostRecentOrder ? (
                   <div className="mt-2 p-3 rounded-lg bg-secondary/20 border flex items-center justify-between gap-3 text-xs">
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] text-muted-foreground">Last Order:</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[11px] text-muted-foreground">Most Recent:</span>
                         <span className="font-mono font-bold text-foreground">
-                          #{user.lastOrder._id.slice(-6).toUpperCase()}
+                          #{mostRecentOrder.orderId || (mostRecentOrder._id ? mostRecentOrder._id.slice(-6).toUpperCase() : 'N/A')}
                         </span>
-                        <Badge variant="outline" className="text-[9px] uppercase px-1.5 py-0">
-                          {user.lastOrder.status}
+                        <Badge
+                          variant="outline"
+                          className={`text-[9px] uppercase px-1.5 py-0 ${
+                            mostRecentOrder.orderSource === 'admin_invoice'
+                              ? 'border-blue-500/40 text-blue-400 bg-blue-500/10'
+                              : mostRecentOrder.orderSource === 'offline' || mostRecentOrder.isOfflineSale
+                              ? 'border-amber-500/40 text-amber-400 bg-amber-500/10'
+                              : 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10'
+                          }`}
+                        >
+                          {mostRecentOrder.orderSource === 'admin_invoice'
+                            ? 'Tax Invoice'
+                            : mostRecentOrder.orderSource === 'offline' || mostRecentOrder.isOfflineSale
+                            ? 'Store POS'
+                            : 'Web Order'}
                         </Badge>
                       </div>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
-                        Amount: Rs. {Number(user.lastOrder.total).toLocaleString('en-IN')} | Date:{' '}
-                        {user.lastOrder.createdAt
-                          ? format(new Date(user.lastOrder.createdAt), 'MMM d, yyyy')
+                        Amount: Rs. {Number(mostRecentOrder.total || 0).toLocaleString('en-IN')} | Date:{' '}
+                        {mostRecentOrder.createdAt
+                          ? format(new Date(mostRecentOrder.createdAt), 'MMM d, yyyy')
                           : 'N/A'}
                       </p>
                     </div>
-                    <Button
-                      asChild
-                      variant="outline"
-                      size="sm"
-                      className="h-7 text-[11px] px-2.5 gap-1 shrink-0"
-                    >
-                      <Link href={`/admin/orders/${user.lastOrder._id}`}>
-                        <span>View Order</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </Link>
-                    </Button>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {mostRecentOrder.invoiceData || mostRecentOrder.type === 'invoice' || mostRecentOrder.orderSource === 'admin_invoice' ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-[11px] px-2 gap-1 border-primary/30 text-primary hover:bg-primary/10"
+                          onClick={() => {
+                            if (onEditInvoice) {
+                              onEditInvoice(mostRecentOrder.invoiceData || mostRecentOrder);
+                            } else {
+                              setInvoiceToEdit(mostRecentOrder.invoiceData || mostRecentOrder);
+                              setIsEditInvoiceModalOpen(true);
+                            }
+                          }}
+                        >
+                          <Pencil className="w-3 h-3" />
+                          <span>Edit Invoice</span>
+                        </Button>
+                      ) : (
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-[11px] px-2.5 gap-1 shrink-0"
+                        >
+                          <Link href={`/admin/orders/${mostRecentOrder._id}`}>
+                            <span>View Order</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </Link>
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <div className="p-3 text-center text-xs text-muted-foreground border rounded-lg">
-                    User has not placed any orders yet.
+                    User has not placed any orders or received invoices yet.
                   </div>
                 )}
               </div>
+            </TabsContent>
+
+            {/* TAB: UNIFIED ORDERS & INVOICES */}
+            <TabsContent value="orders" className="space-y-3 m-0">
+              <div className="flex items-center justify-between text-xs pb-1">
+                <div>
+                  <span className="font-semibold text-foreground">Unified Purchases & Invoices</span>
+                  <p className="text-[11px] text-muted-foreground">
+                    Consolidated across Web, Mobile App, Store POS, and Direct Tax Invoices.
+                  </p>
+                </div>
+                {onIssueInvoice && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs gap-1 border-primary/30 text-primary hover:bg-primary/10 shrink-0"
+                    onClick={() => {
+                      onOpenChange(false);
+                      onIssueInvoice(user.id);
+                    }}
+                  >
+                    <Receipt className="w-3.5 h-3.5" />
+                    <span>Issue New Invoice</span>
+                  </Button>
+                )}
+              </div>
+
+              {loadingOrders ? (
+                <div className="p-8 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                  <span>Loading customer purchase history...</span>
+                </div>
+              ) : userOrders.length === 0 ? (
+                <div className="p-8 text-center rounded-xl border border-dashed border-border/60 text-muted-foreground text-xs space-y-2">
+                  <Receipt className="w-8 h-8 mx-auto opacity-40 text-muted-foreground" />
+                  <p>No orders or tax invoices found for this customer.</p>
+                  {onIssueInvoice && (
+                    <Button
+                      size="sm"
+                      className="text-xs gap-1.5 mt-2"
+                      onClick={() => {
+                        onOpenChange(false);
+                        onIssueInvoice(user.id);
+                      }}
+                    >
+                      <Receipt className="w-3.5 h-3.5" /> Issue First Invoice
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
+                  {userOrders.map((ord: any) => {
+                    const isInvoice = ord.type === 'invoice' || ord.orderSource === 'admin_invoice';
+                    const isOffline = ord.isOfflineSale || ord.orderSource === 'offline';
+                    const hasInvoiceData = Boolean(ord.invoiceData || isInvoice);
+                    const invDoc = ord.invoiceData || (isInvoice ? ord : null);
+
+                    return (
+                      <div
+                        key={ord._id}
+                        className="p-3.5 rounded-xl border bg-card/60 hover:border-primary/40 transition-colors space-y-2.5"
+                      >
+                        {/* TOP LINE: SOURCE BADGE & IDENTIFIER */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                            <Badge
+                              variant="outline"
+                              className={`text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 ${
+                                isInvoice
+                                  ? 'border-blue-500/40 text-blue-400 bg-blue-500/10'
+                                  : isOffline
+                                  ? 'border-amber-500/40 text-amber-400 bg-amber-500/10'
+                                  : 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10'
+                              }`}
+                            >
+                              {isInvoice
+                                ? 'Direct Tax Invoice'
+                                : isOffline
+                                ? 'Store POS Counter'
+                                : 'Web / App Order'}
+                            </Badge>
+
+                            <span className="font-mono text-xs font-bold text-foreground truncate">
+                              #{ord.orderId || ord.invoiceNumber || ord._id.slice(-6).toUpperCase()}
+                            </span>
+
+                            <span className="text-[11px] text-muted-foreground">
+                              {ord.createdAt ? format(new Date(ord.createdAt), 'MMM d, yyyy') : 'N/A'}
+                            </span>
+                          </div>
+
+                          <Badge
+                            variant="outline"
+                            className={`text-[10px] capitalize px-2 py-0.5 ${
+                              ord.status === 'paid' || ord.status === 'accepted' || ord.status === 'delivered'
+                                ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10'
+                                : 'border-amber-500/30 text-amber-400 bg-amber-500/10'
+                            }`}
+                          >
+                            {ord.status || 'Pending'}
+                          </Badge>
+                        </div>
+
+                        {/* MIDDLE: PRODUCTS & TOTAL */}
+                        <div className="flex items-center justify-between gap-3 text-xs border-y py-2 border-border/40">
+                          <div className="min-w-0">
+                            <p className="font-medium text-foreground truncate">
+                              {Array.isArray(ord.products) && ord.products.length > 0
+                                ? `${ord.products[0]?.name || 'Apparel Item'}${
+                                    ord.products.length > 1 ? ` +${ord.products.length - 1} more items` : ''
+                                  }`
+                                : '1 Custom Invoice Item'}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground truncate">
+                              {Array.isArray(ord.products)
+                                ? ord.products.map((p: any) => `${p.quantity || 1}x ${p.name || 'Item'} (${p.size || 'M'})`).join(', ')
+                                : 'Standard Order Item'}
+                            </p>
+                          </div>
+
+                          <div className="text-right shrink-0">
+                            <p className="font-mono font-bold text-base text-foreground">
+                              Rs. {Number(ord.total || 0).toLocaleString('en-IN')}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground capitalize">
+                              {ord.paymentDetails?.paymentMethod || 'Online Payment'}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* BOTTOM ACTIONS */}
+                        <div className="flex items-center justify-between gap-2 pt-0.5">
+                          <div className="text-[11px] text-muted-foreground truncate">
+                            {ord.shippingAddress?.address ? (
+                              <span className="truncate">Destination: {ord.shippingAddress.address}</span>
+                            ) : (
+                              <span>Standard Delivery</span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {hasInvoiceData && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs px-2.5 gap-1 border-primary/30 text-primary hover:bg-primary/10"
+                                onClick={() => {
+                                  if (onEditInvoice) {
+                                    onEditInvoice(invDoc);
+                                  } else {
+                                    setInvoiceToEdit(invDoc);
+                                    setIsEditInvoiceModalOpen(true);
+                                  }
+                                }}
+                                title="Edit this invoice details, line items, or customer attribution"
+                              >
+                                <Pencil className="w-3 h-3" />
+                                <span>Edit Invoice</span>
+                              </Button>
+                            )}
+
+                            {isInvoice && (ord.invoiceId || ord._id) && (
+                              <Button
+                                asChild
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 text-xs px-2 gap-1 text-muted-foreground hover:text-foreground"
+                              >
+                                <a
+                                  href={`/invoice/${ord.invoiceId || ord._id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                  <span>View</span>
+                                </a>
+                              </Button>
+                            )}
+
+                            {!isInvoice && (
+                              <Button
+                                asChild
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 text-xs px-2 gap-1 text-muted-foreground hover:text-foreground"
+                              >
+                                <Link href={`/admin/orders/${ord._id}`}>
+                                  <ExternalLink className="w-3 h-3" />
+                                  <span>View Order</span>
+                                </Link>
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </TabsContent>
 
             {/* TAB 2: ACTIVE CART */}
@@ -740,6 +1051,26 @@ export function CustomerProfileDialog({
             </TabsContent>
           </Tabs>
         </ScrollArea>
+
+        {/* INVOICE EDIT MODAL EMBEDDED IN CUSTOMER 360 */}
+        <IssueInvoiceDialog
+          open={isEditInvoiceModalOpen}
+          onOpenChange={(openState) => {
+            setIsEditInvoiceModalOpen(openState);
+            if (!openState) setInvoiceToEdit(null);
+          }}
+          invoiceToEdit={invoiceToEdit}
+          onInvoiceUpdated={() => {
+            fetchUserOrders();
+            toast({
+              title: 'Invoice Updated',
+              description: 'Customer records and purchase history synchronized.',
+            });
+          }}
+          onInvoiceIssued={() => {
+            fetchUserOrders();
+          }}
+        />
       </DialogContent>
     </Dialog>
   );

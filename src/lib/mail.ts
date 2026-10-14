@@ -8,7 +8,7 @@ import { getShortOrderId } from './utils';
 import clientPromise from './mongodb';
 
 let resendInstance: Resend | null = null;
-const DEFAULT_RESEND_KEY = Buffer.from('cmVfRm5yaGU1SHJfM1pRS0JNck5YQUJSM2FrajNZSzNLYzRZ', 'base64').toString('ascii');
+const DEFAULT_RESEND_KEY = Buffer.from('cmVfZW9TOUJYeVdfM0JUVzloOFIxUUZoNms0MjlWYTlmYzQ4', 'base64').toString('ascii');
 
 export function getResendClient(): Resend {
   const apiKey = process.env.RESEND_API_KEY || DEFAULT_RESEND_KEY;

@@ -74,16 +74,21 @@ interface IssueInvoiceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   preselectedUserId?: string | null;
+  invoiceToEdit?: any | null;
   onInvoiceIssued?: (invoice: any) => void;
+  onInvoiceUpdated?: (invoice: any) => void;
 }
 
 export function IssueInvoiceDialog({
   open,
   onOpenChange,
   preselectedUserId,
+  invoiceToEdit,
   onInvoiceIssued,
+  onInvoiceUpdated,
 }: IssueInvoiceDialogProps) {
   const { toast } = useToast();
+  const isEditMode = Boolean(invoiceToEdit);
   const { users: contextUsers, loading: usersLoading } = useUser();
   const [directUsers, setDirectUsers] = React.useState<User[]>([]);
   const [fetchingUsers, setFetchingUsers] = React.useState(false);
@@ -146,17 +151,9 @@ export function IssueInvoiceDialog({
   const [sendEmail, setSendEmail] = React.useState(true);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  // Generate fresh invoice number and fetch all users & products when opened
+  // Fetch users & catalog products on open
   React.useEffect(() => {
     if (open) {
-      const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
-      setInvoiceNumber(`OKT-INV-${randomCode}`);
-
-      // Set default due date to 7 days from now
-      const due = new Date();
-      due.setDate(due.getDate() + 7);
-      setDueDate(due.toISOString().split('T')[0]);
-
       // Direct load all registered users
       setFetchingUsers(true);
       fetch('/api/users')
@@ -185,9 +182,64 @@ export function IssueInvoiceDialog({
     }
   }, [open, catalogProducts.length]);
 
-  // Handle preselected user if provided
+  // Handle preloading for Edit Mode
   React.useEffect(() => {
-    if (open && preselectedUserId && allUsers.length > 0) {
+    if (open && invoiceToEdit) {
+      setInvoiceNumber(invoiceToEdit.invoiceNumber || invoiceToEdit.orderId || '');
+      setCustomerName(invoiceToEdit.customer?.name || '');
+      setCustomerEmail(invoiceToEdit.customer?.email || '');
+      setCustomerMobile(invoiceToEdit.customer?.mobile || '');
+      setCustomerAddress(invoiceToEdit.customer?.address || '');
+      setSelectedUserId(invoiceToEdit.userId || '');
+      setUserMode(invoiceToEdit.userId ? 'registered' : 'custom');
+
+      if (Array.isArray(invoiceToEdit.products) && invoiceToEdit.products.length > 0) {
+        setItems(
+          invoiceToEdit.products.map((p: any) => ({
+            productId: p.productId ? String(p.productId) : '',
+            name: p.name || 'Apparel Item',
+            price: Number(p.price) || 0,
+            quantity: Math.max(1, Number(p.quantity) || 1),
+            size: p.size || 'M',
+            color: p.color || '',
+            imageUrl: p.imageUrl || '',
+          }))
+        );
+      } else {
+        setItems([]);
+      }
+
+      setDiscount(invoiceToEdit.discount !== undefined ? Number(invoiceToEdit.discount) : 0);
+      setShipping(invoiceToEdit.shipping !== undefined ? Number(invoiceToEdit.shipping) : 0);
+      setPaymentStatus(invoiceToEdit.paymentDetails?.paymentStatus || 'paid');
+      setPaymentMethod(invoiceToEdit.paymentDetails?.paymentMethod || 'upi');
+      setTransactionRef(invoiceToEdit.paymentDetails?.transactionRef || '');
+      setNotes(
+        invoiceToEdit.notes ||
+          'Thank you for your purchase with OKTOPUS CLOTHING! Official Tax Invoice verified by BASKEY Studio.'
+      );
+      setDueDate(
+        invoiceToEdit.dueDate
+          ? new Date(invoiceToEdit.dueDate).toISOString().split('T')[0]
+          : ''
+      );
+      setDispatchMode(invoiceToEdit.dispatchMode || 'Express Shipping');
+      setSendEmail(false);
+    } else if (open && !invoiceToEdit) {
+      // New Invoice Defaults
+      const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
+      setInvoiceNumber(`OKT-INV-${randomCode}`);
+
+      const due = new Date();
+      due.setDate(due.getDate() + 7);
+      setDueDate(due.toISOString().split('T')[0]);
+      setSendEmail(true);
+    }
+  }, [open, invoiceToEdit]);
+
+  // Handle preselected user if provided in create mode
+  React.useEffect(() => {
+    if (open && !invoiceToEdit && preselectedUserId && allUsers.length > 0) {
       const matched = allUsers.find((u) => u.id === preselectedUserId || u._id === preselectedUserId);
       if (matched) {
         setSelectedUserId(matched.id || matched._id);
@@ -198,7 +250,21 @@ export function IssueInvoiceDialog({
         setCustomerAddress(matched.address || 'Standard Shipping Address');
       }
     }
-  }, [open, preselectedUserId, allUsers]);
+  }, [open, invoiceToEdit, preselectedUserId, allUsers]);
+
+  // Check if customer email or phone matches an existing registered user
+  const matchedCustomerUser = React.useMemo(() => {
+    if (!customerEmail.trim()) return null;
+    const cleanEmail = customerEmail.trim().toLowerCase();
+    const cleanMobile = customerMobile.trim();
+    return (
+      allUsers.find(
+        (u) =>
+          (u.email && u.email.toLowerCase().trim() === cleanEmail) ||
+          (cleanMobile && (u.mobile === cleanMobile || u.phone === cleanMobile))
+      ) || null
+    );
+  }, [customerEmail, customerMobile, allUsers]);
 
   // When registered user selected
   const handleSelectUser = (userId: string) => {
@@ -398,8 +464,16 @@ export function IssueInvoiceDialog({
         sendEmail,
       };
 
-      const res = await fetch('/api/admin/invoices', {
-        method: 'POST',
+      let url = '/api/admin/invoices';
+      let method = 'POST';
+
+      if (invoiceToEdit && invoiceToEdit._id) {
+        url = `/api/admin/invoices/${invoiceToEdit._id}`;
+        method = 'PUT';
+      }
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
@@ -407,24 +481,30 @@ export function IssueInvoiceDialog({
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || 'Failed to issue invoice.');
+        throw new Error(data.message || (isEditMode ? 'Failed to update invoice.' : 'Failed to issue invoice.'));
       }
 
       toast({
-        title: 'Invoice Issued Successfully!',
-        description: data.message || `Invoice #${invoiceNumber} issued for ${customerName} (₹${grandTotal.toFixed(2)}).`,
+        title: isEditMode ? 'Invoice Updated Successfully' : 'Invoice Issued Successfully',
+        description:
+          data.message ||
+          (isEditMode
+            ? `Invoice #${invoiceNumber} and associated customer orders have been updated.`
+            : `Invoice #${invoiceNumber} issued for ${customerName} (₹${grandTotal.toFixed(2)}).`),
       });
 
       resetForm();
       onOpenChange(false);
-      if (onInvoiceIssued) {
+      if (isEditMode && onInvoiceUpdated) {
+        onInvoiceUpdated(data.invoice);
+      } else if (onInvoiceIssued) {
         onInvoiceIssued(data.invoice);
       }
     } catch (error: any) {
-      console.error('Failed to issue invoice:', error);
+      console.error('Failed to submit invoice:', error);
       toast({
-        title: 'Error Issuing Invoice',
-        description: error.message || 'An error occurred while creating or sending the invoice.',
+        title: isEditMode ? 'Error Updating Invoice' : 'Error Issuing Invoice',
+        description: error.message || 'An error occurred while saving or sending the invoice.',
         variant: 'destructive',
       });
     } finally {
@@ -441,9 +521,13 @@ export function IssueInvoiceDialog({
               <FileText className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <DialogTitle className="text-xl font-bold tracking-tight">Issue Official Tax Invoice</DialogTitle>
+              <DialogTitle className="text-xl font-bold tracking-tight">
+                {isEditMode ? `Edit Tax Invoice #${invoiceNumber}` : 'Issue Official Tax Invoice'}
+              </DialogTitle>
               <DialogDescription className="text-xs">
-                Issue a custom or order-linked tax invoice to a specific customer with automatic PDF generation and email delivery.
+                {isEditMode
+                  ? 'Update customer details, attribution to registered account, line items, and payment status.'
+                  : 'Issue a custom or order-linked tax invoice to a specific customer with automatic PDF generation and email delivery.'}
               </DialogDescription>
             </div>
           </div>
@@ -485,6 +569,33 @@ export function IssueInvoiceDialog({
                 </Button>
               </div>
             </div>
+
+            {/* Auto-match Registered Customer Banner */}
+            {matchedCustomerUser && selectedUserId !== matchedCustomerUser.id && (
+              <div className="p-3 rounded-lg border border-primary/40 bg-primary/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="p-1.5 rounded-full bg-primary/20 shrink-0">
+                    <UserIcon className="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-foreground truncate">
+                      Registered customer account detected: {matchedCustomerUser.firstName} {matchedCustomerUser.lastName}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground font-mono truncate">
+                      {matchedCustomerUser.email} {matchedCustomerUser.mobile ? `| ${matchedCustomerUser.mobile}` : ''}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-7 text-xs font-semibold shrink-0 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
+                  onClick={() => handleSelectUser(matchedCustomerUser.id)}
+                >
+                  <Check className="w-3.5 h-3.5" /> Link Customer Account
+                </Button>
+              </div>
+            )}
 
             {/* If registered user: Dropdown Menu with Search */}
             {userMode === 'registered' && (
@@ -1081,7 +1192,11 @@ export function IssueInvoiceDialog({
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Issuing & Dispatching...
+                  <Loader2 className="w-4 h-4 animate-spin" /> {isEditMode ? 'Saving Changes...' : 'Issuing & Dispatching...'}
+                </>
+              ) : isEditMode ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4" /> Save Invoice Changes (₹{grandTotal.toFixed(2)})
                 </>
               ) : sendEmail ? (
                 <>

@@ -767,6 +767,9 @@ export default function UsersPage() {
         open={isInvoiceModalOpen}
         onOpenChange={setIsInvoiceModalOpen}
         preselectedUserId={selectedUserForInvoice}
+        onInvoiceIssued={() => {
+          refetchUsers();
+        }}
       />
     </div>
   );

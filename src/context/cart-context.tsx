@@ -71,22 +71,8 @@ function normalizeCartItem(item: any): CartItem {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
-            return parsed.map(normalizeCartItem);
-          }
-        }
-      } catch (e) {
-        console.warn("Failed to parse cart from localStorage:", e);
-      }
-    }
-    return [];
-  });
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const { toast } = useToast();
   const [isAnimating, setIsAnimating] = useState(false);
@@ -96,16 +82,32 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const { user, loading: authLoading } = useAuth();
   const initialSyncDone = useRef(false);
 
-  // Sync state to localStorage whenever cart changes
+  // Load cart from localStorage after mount to prevent hydration mismatch
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cart));
-      } catch (e) {
-        console.warn("Failed to persist cart to localStorage:", e);
+    try {
+      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          setCart(parsed.map(normalizeCartItem));
+        }
       }
+    } catch (e) {
+      console.warn("Failed to parse cart from localStorage:", e);
+    } finally {
+      setIsLoaded(true);
     }
-  }, [cart]);
+  }, []);
+
+  // Sync state to localStorage whenever cart changes (only after initial load)
+  useEffect(() => {
+    if (!isLoaded) return;
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cart));
+    } catch (e) {
+      console.warn("Failed to persist cart to localStorage:", e);
+    }
+  }, [cart, isLoaded]);
 
   const saveCartToDb = useCallback(async (updatedCart: CartItem[]) => {
     if (user?._id) {
@@ -158,10 +160,10 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user, cart, saveCartToDb]);
 
   useEffect(() => {
-    if (!authLoading) {
+    if (!authLoading && isLoaded) {
       fetchCartAndSettings();
     }
-  }, [authLoading, user?._id]);
+  }, [authLoading, user?._id, isLoaded]);
 
   const subtotal = useMemo(() => {
     return cart.reduce((acc, item) => {

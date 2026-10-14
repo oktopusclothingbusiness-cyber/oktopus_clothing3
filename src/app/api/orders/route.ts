@@ -79,7 +79,14 @@ export async function POST(request: Request) {
 
     // Verify whether any products are mobile app exclusive
     const appSecret = request.headers.get('x-app-secret');
-    const isMobileAppReq = appSecret === 'okto_mobile_sec_2026_prod';
+    const platform = request.headers.get('x-platform');
+    const isMobileAppReq =
+      appSecret === 'okto_mobile_sec_2026_prod' ||
+      platform === 'android' ||
+      platform === 'ios' ||
+      orderSource === 'app' ||
+      orderSource === 'mobile' ||
+      orderSource === 'mobile_app';
     if (!isMobileAppReq && Array.isArray(products) && products.length > 0) {
       const { ObjectId } = await import('mongodb');
       const rawIds = products.map((p: any) => p.productId || p.id || p._id).filter(Boolean);

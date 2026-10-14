@@ -18,46 +18,100 @@ export async function GET(request: NextRequest) {
     }).sort({ createdAt: -1 }).toArray();
 
     const ordersCollection = db.collection('orders');
+    const invoicesCollection = db.collection('invoices');
 
-    // Aggregate user order history, cart data, and contact info
+    // Aggregate user order history, invoices, cart data, and contact info
     const enrichedUsers = await Promise.all(
       users.map(async (u: any) => {
         const userIdStr = u._id ? u._id.toString() : '';
         const userEmail = (u.email || '').toLowerCase().trim();
+        const userMobile = (u.mobile || u.phone || '').trim();
 
-        const matchConditions: any[] = [];
-        if (userIdStr) matchConditions.push({ userId: userIdStr });
-        if (userEmail) matchConditions.push({ customerEmail: userEmail });
+        const orderMatchConditions: any[] = [];
+        if (userIdStr) orderMatchConditions.push({ userId: userIdStr });
+        if (userEmail) {
+          orderMatchConditions.push({ userId: userEmail });
+          orderMatchConditions.push({ customerEmail: userEmail });
+          orderMatchConditions.push({ 'shippingAddress.email': userEmail });
+        }
+        if (userMobile) {
+          orderMatchConditions.push({ 'shippingAddress.mobile': userMobile });
+          orderMatchConditions.push({ 'shippingAddress.phone': userMobile });
+        }
 
-        let lastOrder: any = null;
-        let totalOrders = 0;
-        let totalSpent = 0;
+        const invoiceMatchConditions: any[] = [];
+        if (userIdStr) invoiceMatchConditions.push({ userId: userIdStr });
+        if (userEmail) {
+          invoiceMatchConditions.push({ userId: userEmail });
+          invoiceMatchConditions.push({ 'customer.email': userEmail });
+        }
+        if (userMobile) {
+          invoiceMatchConditions.push({ 'customer.mobile': userMobile });
+        }
 
-        if (matchConditions.length > 0) {
-          const userOrders = await ordersCollection
-            .find({ $or: matchConditions })
-            .sort({ createdAt: -1 })
-            .toArray();
+        const [userOrders, userInvoices] = await Promise.all([
+          orderMatchConditions.length > 0
+            ? ordersCollection.find({ $or: orderMatchConditions }).sort({ createdAt: -1 }).toArray()
+            : [],
+          invoiceMatchConditions.length > 0
+            ? invoicesCollection.find({ $or: invoiceMatchConditions }).sort({ createdAt: -1 }).toArray()
+            : [],
+        ]);
 
-          totalOrders = userOrders.length;
-          if (userOrders.length > 0) {
-            const first = userOrders[0];
-            lastOrder = {
-              _id: first._id.toString(),
-              total: first.total,
-              status: first.status,
-              createdAt: first.createdAt,
-              shippingAddress: first.shippingAddress,
-            };
-            totalSpent = userOrders.reduce((sum: number, o: any) => sum + (Number(o.total) || 0), 0);
+        // Deduplicate records that exist in both orders and invoices
+        const seenCodes = new Set<string>();
+        const unifiedRecords: any[] = [];
+
+        for (const ord of userOrders) {
+          const ordId = ord._id.toString();
+          const code = (ord.orderId || ord.invoiceNumber || ordId).toLowerCase();
+          seenCodes.add(code);
+          seenCodes.add(ordId);
+          unifiedRecords.push({
+            _id: ordId,
+            orderId: ord.orderId || ord.invoiceNumber || ordId,
+            total: Number(ord.total) || 0,
+            status: ord.status || 'pending',
+            createdAt: ord.createdAt,
+            shippingAddress: ord.shippingAddress,
+            orderSource: ord.orderSource || (ord.isOfflineSale ? 'offline' : 'online'),
+          });
+        }
+
+        for (const inv of userInvoices) {
+          const invId = inv._id.toString();
+          const code = (inv.invoiceNumber || inv.orderId || invId).toLowerCase();
+          if (!seenCodes.has(code) && !seenCodes.has(invId)) {
+            seenCodes.add(code);
+            seenCodes.add(invId);
+            unifiedRecords.push({
+              _id: invId,
+              orderId: inv.invoiceNumber || inv.orderId || invId,
+              total: Number(inv.total) || 0,
+              status: inv.paymentDetails?.paymentStatus === 'paid' ? 'accepted' : 'pending',
+              createdAt: inv.createdAt,
+              shippingAddress: {
+                address: inv.customer?.address,
+                email: inv.customer?.email,
+                mobile: inv.customer?.mobile,
+                phone: inv.customer?.mobile,
+              },
+              orderSource: 'admin_invoice',
+            });
           }
         }
+
+        unifiedRecords.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        const totalOrders = unifiedRecords.length;
+        const totalSpent = unifiedRecords.reduce((sum, r) => sum + (Number(r.total) || 0), 0);
+        const lastOrder = unifiedRecords.length > 0 ? unifiedRecords[0] : null;
 
         // Cart items and count
         const cartArray = Array.isArray(u.cart) ? u.cart : [];
         const cartCount = cartArray.reduce((acc: number, item: any) => acc + (Number(item.quantity) || 1), 0);
 
-        // Address fallback from last order shipping address
+        // Address fallback from last order or invoice shipping address
         let effectiveAddress = u.address || '';
         if (!effectiveAddress && lastOrder?.shippingAddress) {
           const sa = lastOrder.shippingAddress;
@@ -67,8 +121,8 @@ export async function GET(request: NextRequest) {
           }
         }
 
-        // Phone fallback from last order shipping phone
-        const effectiveMobile = u.mobile || u.phone || lastOrder?.shippingAddress?.phone || '';
+        // Phone fallback from last order or invoice shipping phone
+        const effectiveMobile = u.mobile || u.phone || lastOrder?.shippingAddress?.phone || lastOrder?.shippingAddress?.mobile || '';
 
         return {
           ...u,
