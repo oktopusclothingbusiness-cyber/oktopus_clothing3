@@ -37,6 +37,7 @@ import {
   RefreshCw,
   Info,
   ExternalLink,
+  Smartphone,
 } from 'lucide-react';
 import {
   Dialog,
@@ -137,6 +138,7 @@ type ProductFormData = {
   cost: string;
   featured: boolean;
   isHero: boolean;
+  isMobileExclusive: boolean;
   colorVariants: AdminColorVariant[];
   // Legacy / derived compatibility fields
   price?: string;
@@ -158,6 +160,7 @@ const emptyProduct: ProductFormData = {
   cost: '',
   featured: false,
   isHero: false,
+  isMobileExclusive: false,
   colorVariants: [
     {
       id: 'color-black',
@@ -188,10 +191,17 @@ export default function AdminProductsPage() {
   const [bulkFile, setBulkFile] = React.useState<File | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState('');
-  const [filterTab, setFilterTab] = React.useState<'all' | 'featured' | 'hero' | 'low_stock'>('all');
+  const [filterTab, setFilterTab] = React.useState<'all' | 'featured' | 'hero' | 'mobile_exclusive' | 'low_stock'>('all');
   const [viewMode, setViewMode] = React.useState<'table' | 'grid'>('table');
   const { toast } = useToast();
   const [openCategorySelector, setOpenCategorySelector] = React.useState(false);
+
+  // Automatically default to grid cards view on mobile screens
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setViewMode('grid');
+    }
+  }, []);
 
   type SortField = 'name' | 'price' | 'stock' | 'createdAt';
   type SortOrder = 'asc' | 'desc';
@@ -214,9 +224,10 @@ export default function AdminProductsPage() {
     const total = products.length;
     const hero = products.find((p) => p.isHero);
     const featuredCount = products.filter((p) => p.featured).length;
+    const mobileExclusiveCount = products.filter((p) => p.isMobileExclusive).length;
     const lowStockCount = products.filter((p) => typeof p.stock === 'number' && p.stock < 10).length;
 
-    return { total, hero, featuredCount, lowStockCount };
+    return { total, hero, featuredCount, mobileExclusiveCount, lowStockCount };
   }, [products]);
 
   // FILTERED AND SORTED PRODUCTS
@@ -228,6 +239,8 @@ export default function AdminProductsPage() {
       result = result.filter((p) => p.featured);
     } else if (filterTab === 'hero') {
       result = result.filter((p) => p.isHero);
+    } else if (filterTab === 'mobile_exclusive') {
+      result = result.filter((p) => p.isMobileExclusive);
     } else if (filterTab === 'low_stock') {
       result = result.filter((p) => typeof p.stock === 'number' && p.stock < 10);
     }
@@ -573,6 +586,7 @@ export default function AdminProductsPage() {
       category: product.category || [],
       featured: product.featured || false,
       isHero: product.isHero || false,
+      isMobileExclusive: product.isMobileExclusive || false,
       colorVariants: initialColorVariants,
       // Legacy compatibility
       price: product.price.toString(),
@@ -711,6 +725,7 @@ export default function AdminProductsPage() {
         colors: resolvedColors.length > 0 ? resolvedColors : ['Black'],
         featured: formData.featured,
         isHero: formData.isHero,
+        isMobileExclusive: formData.isMobileExclusive,
       };
 
       if (isEditing) {
@@ -739,6 +754,11 @@ export default function AdminProductsPage() {
 
   const handleFeatureToggle = async (product: Product) => {
     const updatedProduct = { ...product, featured: !product.featured };
+    await updateProduct(updatedProduct);
+  };
+
+  const handleMobileExclusiveToggle = async (product: Product) => {
+    const updatedProduct = { ...product, isMobileExclusive: !product.isMobileExclusive };
     await updateProduct(updatedProduct);
   };
 
@@ -802,11 +822,11 @@ export default function AdminProductsPage() {
   const selectedCategories = categories.filter((cat) => formData.category.includes(cat.id));
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-6 sm:space-y-8 pb-12 min-w-0 max-w-full overflow-x-hidden">
       {/* PAGE HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Products Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Products Management</h1>
           <p className="text-xs text-muted-foreground mt-1">
             Organize catalog items, update stock levels, toggle hero products, and upload bulk inventories.
           </p>
@@ -841,7 +861,7 @@ export default function AdminProductsPage() {
       </div>
 
       {/* SECTION 1: EXECUTIVE CATALOG SUMMARY CARDS */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* CARD 1: TOTAL PRODUCTS */}
         <Card className="shadow-xs">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -849,7 +869,7 @@ export default function AdminProductsPage() {
             <Shirt className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{loading ? <Skeleton className="h-7 w-16" /> : stats.total}</div>
+            <div className="text-xl sm:text-2xl font-bold">{loading ? <Skeleton className="h-7 w-16" /> : stats.total}</div>
             <p className="text-[10px] text-muted-foreground mt-1">Across {categories.length} store categories</p>
           </CardContent>
         </Card>
@@ -865,13 +885,13 @@ export default function AdminProductsPage() {
               <Skeleton className="h-7 w-28" />
             ) : stats.hero ? (
               <div className="flex items-center gap-2 truncate">
-                <div className="text-sm font-bold truncate">{stats.hero.name}</div>
-                <Badge className="text-[9px] px-1.5 py-0 bg-primary shrink-0">Active Hero</Badge>
+                <div className="text-xs sm:text-sm font-bold truncate">{stats.hero.name}</div>
+                <Badge className="text-[9px] px-1.5 py-0 bg-primary shrink-0">Hero</Badge>
               </div>
             ) : (
-              <span className="text-xs text-muted-foreground font-medium">No Hero item set</span>
+              <span className="text-xs text-muted-foreground font-medium">No Hero item</span>
             )}
-            <p className="text-[10px] text-muted-foreground mt-1">Featured on store home banner</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Featured on home</p>
           </CardContent>
         </Card>
 
@@ -882,8 +902,8 @@ export default function AdminProductsPage() {
             <Sparkles className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{loading ? <Skeleton className="h-7 w-16" /> : stats.featuredCount}</div>
-            <p className="text-[10px] text-muted-foreground mt-1">High-visibility store picks</p>
+            <div className="text-xl sm:text-2xl font-bold">{loading ? <Skeleton className="h-7 w-16" /> : stats.featuredCount}</div>
+            <p className="text-[10px] text-muted-foreground mt-1">High-visibility picks</p>
           </CardContent>
         </Card>
 
@@ -894,10 +914,10 @@ export default function AdminProductsPage() {
             <AlertTriangle className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+            <div className="text-xl sm:text-2xl font-bold text-amber-600 dark:text-amber-400">
               {loading ? <Skeleton className="h-7 w-16" /> : `${stats.lowStockCount} items`}
             </div>
-            <p className="text-[10px] text-muted-foreground mt-1">Stock quantity &lt; 10 items</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Stock &lt; 10 items</p>
           </CardContent>
         </Card>
       </div>
@@ -912,9 +932,9 @@ export default function AdminProductsPage() {
           }
         }}
       >
-        <DialogContent className="max-w-4xl max-h-[92vh] sm:max-w-4xl lg:max-w-5xl flex flex-col p-0 overflow-hidden sm:rounded-2xl border-border shadow-2xl">
+        <DialogContent className="w-[96vw] max-w-full sm:max-w-4xl max-h-[92vh] lg:max-w-5xl flex flex-col p-0 overflow-hidden rounded-xl sm:rounded-2xl border-border shadow-2xl">
           {/* MODAL HEADER */}
-          <DialogHeader className="px-6 py-4 border-b bg-card shrink-0">
+          <DialogHeader className="px-4 sm:px-6 py-3 sm:py-4 border-b bg-card shrink-0">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pr-8">
               <div>
                 <DialogTitle className="text-lg font-bold flex items-center gap-2">
@@ -1092,6 +1112,19 @@ export default function AdminProductsPage() {
                       />
                       <Label htmlFor="isHero" className="text-xs font-semibold cursor-pointer">
                         Hero Banner Item
+                      </Label>
+                    </div>
+
+                    <div className="flex items-center space-x-2 pt-2 sm:pt-0">
+                      <Switch
+                        id="isMobileExclusive"
+                        checked={formData.isMobileExclusive}
+                        onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, isMobileExclusive: checked }))}
+                        disabled={isSubmitting}
+                      />
+                      <Label htmlFor="isMobileExclusive" className="text-xs font-semibold cursor-pointer flex items-center gap-1.5">
+                        <Smartphone className="h-3.5 w-3.5 text-muted-foreground" />
+                        Mobile App Exclusive
                       </Label>
                     </div>
                   </div>
@@ -1542,7 +1575,7 @@ export default function AdminProductsPage() {
       </Dialog>
 
       {/* SECTION 3: CATALOG EXPLORER & MANAGEMENT TABLE / GRID */}
-      <Card className="shadow-sm">
+      <Card className="shadow-sm min-w-0 overflow-hidden">
         <CardHeader className="space-y-4 pb-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -1564,7 +1597,7 @@ export default function AdminProductsPage() {
                 />
               </div>
 
-              <div className="flex items-center border rounded-md p-0.5 bg-muted/40">
+              <div className="hidden md:flex items-center border rounded-md p-0.5 bg-muted/40">
                 <Button
                   variant={viewMode === 'table' ? 'secondary' : 'ghost'}
                   size="icon"
@@ -1619,6 +1652,16 @@ export default function AdminProductsPage() {
               Hero Banner Item ({stats.hero ? 1 : 0})
             </button>
             <button
+              onClick={() => setFilterTab('mobile_exclusive')}
+              className={cn(
+                'px-3 py-1.5 rounded-full font-medium transition-all flex items-center gap-1 shrink-0',
+                filterTab === 'mobile_exclusive' ? 'bg-primary text-primary-foreground font-bold' : 'hover:bg-secondary text-muted-foreground'
+              )}
+            >
+              <Smartphone className="h-3 w-3" />
+              App Exclusive ({stats.mobileExclusiveCount})
+            </button>
+            <button
               onClick={() => setFilterTab('low_stock')}
               className={cn(
                 'px-3 py-1.5 rounded-full font-medium transition-all flex items-center gap-1 shrink-0',
@@ -1631,10 +1674,10 @@ export default function AdminProductsPage() {
           </div>
         </CardHeader>
 
-        <CardContent className="pt-2">
-          {/* VIEW MODE 1: DESKTOP TABLE VIEW */}
-          {viewMode === 'table' ? (
-            <div className="border rounded-lg overflow-x-auto">
+        <CardContent className="pt-2 min-w-0 overflow-hidden">
+          {/* DESKTOP TABLE VIEW (ONLY WHEN viewMode === 'table' AND SCREEN >= md) */}
+          {viewMode === 'table' && (
+            <div className="hidden md:block border rounded-lg overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -1660,6 +1703,7 @@ export default function AdminProductsPage() {
                     </TableHead>
                     <TableHead className="w-[110px]">Hero Item</TableHead>
                     <TableHead className="w-[90px]">Featured</TableHead>
+                    <TableHead className="w-[95px]">App Only</TableHead>
                     <TableHead className="text-right w-[110px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1684,6 +1728,9 @@ export default function AdminProductsPage() {
                         </TableCell>
                         <TableCell>
                           <Skeleton className="h-7 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-6 w-10" />
                         </TableCell>
                         <TableCell>
                           <Skeleton className="h-6 w-10" />
@@ -1765,6 +1812,13 @@ export default function AdminProductsPage() {
                               aria-label="Toggle featured status"
                             />
                           </TableCell>
+                          <TableCell>
+                            <Switch
+                              checked={!!product.isMobileExclusive}
+                              onCheckedChange={() => handleMobileExclusiveToggle(product)}
+                              aria-label="Toggle app exclusive status"
+                            />
+                          </TableCell>
                           <TableCell className="text-right">
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditClick(product)}>
                               <Edit className="h-3.5 w-3.5 text-foreground" />
@@ -1778,7 +1832,7 @@ export default function AdminProductsPage() {
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                      <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
                         <div className="flex flex-col items-center gap-2">
                           <Shirt className="h-8 w-8 opacity-40" />
                           <p className="text-xs font-semibold">No products found matching query.</p>
@@ -1794,9 +1848,10 @@ export default function AdminProductsPage() {
                 </TableBody>
               </Table>
             </div>
-          ) : (
-            /* VIEW MODE 2: MOBILE & RESPONSIVE GRID CARDS */
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          )}
+
+          {/* RESPONSIVE CARDS VIEW (ON MOBILE ALWAYS, OR ON DESKTOP WHEN viewMode === 'grid') */}
+          <div className={cn("grid gap-3 sm:grid-cols-2 lg:grid-cols-3", viewMode === 'table' && 'md:hidden')}>
               {loading ? (
                 Array.from({ length: 6 }).map((_, idx) => (
                   <Card key={idx} className="p-4 space-y-3">
@@ -1822,6 +1877,11 @@ export default function AdminProductsPage() {
                         <div className="absolute top-2 left-2 flex flex-col gap-1">
                           {product.isHero && <Badge className="bg-primary text-[10px]">Active Hero</Badge>}
                           {product.featured && <Badge variant="secondary" className="text-[10px]">Featured</Badge>}
+                          {product.isMobileExclusive && (
+                            <Badge variant="outline" className="text-[10px] bg-background/90 border-border flex items-center gap-1">
+                              <Smartphone className="h-3 w-3" /> App Only
+                            </Badge>
+                          )}
                         </div>
 
                         <div className="absolute top-2 right-2">
@@ -1890,7 +1950,6 @@ export default function AdminProductsPage() {
                 </div>
               )}
             </div>
-          )}
         </CardContent>
       </Card>
 

@@ -42,6 +42,7 @@ export type Product = {
   colors: string[];
   featured?: boolean;
   isHero?: boolean;
+  isMobileExclusive?: boolean;
   createdAt: string;
 };
 

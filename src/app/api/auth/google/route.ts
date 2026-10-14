@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import firebaseAdmin from '@/lib/firebaseAdmin';
 import { generateJWT } from '@/lib/auth';
+import { getClientIp } from '@/lib/rateLimit';
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request);
     const body = await request.json();
     const { idToken, email, name, firstName, lastName, googleId, photo, profilePictureUrl, authProvider } = body;
 
@@ -42,8 +44,24 @@ export async function POST(request: Request) {
     });
 
     if (user) {
+      // Check account suspension status
+      if (user.status === 'suspended' || user.isBlocked === true) {
+        return NextResponse.json(
+          {
+            message: user.suspendedReason
+              ? `Your account has been suspended: ${user.suspendedReason}`
+              : 'Your account has been suspended by administration. Please contact customer support.',
+          },
+          { status: 403 }
+        );
+      }
+
       // User exists -> Update profile details if updated info is available
-      const updateFields: any = { updatedAt: new Date() };
+      const updateFields: any = {
+        updatedAt: new Date(),
+        lastLoginIp: ip,
+        lastLoginAt: new Date(),
+      };
 
       if (effectiveGoogleId && !user.googleId) {
         updateFields.googleId = effectiveGoogleId;
@@ -64,10 +82,14 @@ export async function POST(request: Request) {
         updateFields.authProvider = authProvider;
       }
 
-      if (Object.keys(updateFields).length > 1) {
-        await usersCollection.updateOne({ _id: user._id }, { $set: updateFields });
-        user = { ...user, ...updateFields };
-      }
+      await usersCollection.updateOne(
+        { _id: user._id },
+        {
+          $set: updateFields,
+          $addToSet: { knownIps: ip },
+        }
+      );
+      user = { ...user, ...updateFields };
 
       const { password, ...userWithoutPassword } = (user as any) || {};
 
@@ -108,6 +130,12 @@ export async function POST(request: Request) {
         authProvider: authProvider || 'google',
         oktocoins: 100, // 100 Welcome Oktocoins
         role: userEmail === 'rbaskeydomi2018@gmail.com' ? 'admin' : 'user',
+        status: 'active',
+        isBlocked: false,
+        registrationIp: ip,
+        lastLoginIp: ip,
+        knownIps: [ip],
+        lastLoginAt: new Date(),
         cart: [],
         wishlist: [],
         createdAt: new Date(),

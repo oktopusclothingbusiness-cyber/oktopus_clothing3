@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     const updateUrl =
       platform === 'ios'
         ? 'https://apps.apple.com/app/oktopus-clothing/id123456789'
-        : 'https://play.google.com/store/apps/details?id=com.oktopus.clothing';
+        : 'https://play.google.com/store/apps/details?id=com.anonymous.okto_app';
 
     return NextResponse.json(
       {

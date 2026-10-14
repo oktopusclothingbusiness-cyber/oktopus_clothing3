@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Product } from '@/context/product-context';
 import * as React from 'react';
-import { Star } from 'lucide-react';
+import { Star, Smartphone } from 'lucide-react';
 import { format, addDays, isWithinInterval, subDays } from 'date-fns';
 import { cn, getOptimizedImageUrl } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -69,7 +69,13 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
               <Link href={productHref}>
                 <div className="relative aspect-[3/4]">
                     <ProductImageSlider imageUrls={product.imageUrls} alt={product.name || 'Product'} isMobile={isMobile} />
-                     {isNew && <Badge variant="destructive" className="absolute top-2 left-2">Fresh</Badge>}
+                     {product.isMobileExclusive ? (
+                        <Badge className="absolute top-2 left-2 bg-stone-950/90 text-white border border-stone-700/80 text-[10px] font-semibold flex items-center gap-1 shadow-sm">
+                            <Smartphone className="h-3 w-3" /> App Exclusive
+                        </Badge>
+                     ) : isNew ? (
+                        <Badge variant="destructive" className="absolute top-2 left-2">Fresh</Badge>
+                     ) : null}
                       {Boolean(product.discountPercentage && product.discountPercentage > 0) && (
                         <Badge variant="destructive" className="absolute top-2 right-2">
                             {product.discountPercentage}% OFF
@@ -96,7 +102,13 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
             <Link href={productHref}>
                 <div className="relative aspect-[3/4] bg-gray-100">
                     <ProductImageSlider imageUrls={product.imageUrls} alt={product.name || 'Product'} isMobile={isMobile} />
-                     {isNew && <Badge variant="default" className="absolute top-3 left-3 bg-stone-900 text-white">New</Badge>}
+                     {product.isMobileExclusive ? (
+                        <Badge className="absolute top-3 left-3 bg-stone-950/90 text-white border border-stone-700/80 text-[11px] font-semibold flex items-center gap-1 shadow-sm">
+                            <Smartphone className="h-3.5 w-3.5" /> App Exclusive
+                        </Badge>
+                     ) : isNew ? (
+                        <Badge variant="default" className="absolute top-3 left-3 bg-stone-900 text-white">New</Badge>
+                     ) : null}
                       {Boolean(product.discountPercentage && product.discountPercentage > 0) && (
                         <Badge variant="destructive" className="absolute top-3 right-3">
                             {product.discountPercentage}% OFF

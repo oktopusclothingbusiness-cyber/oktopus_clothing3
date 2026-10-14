@@ -230,20 +230,20 @@ export default function CustomDesignsPage() {
   };
 
   return (
-    <>
-      <div className="flex items-center justify-between mb-8">
+    <div className="space-y-6 sm:space-y-8 min-w-0 max-w-full overflow-x-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-3xl font-black tracking-tight">Custom Design Requests</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">Custom Design Requests</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             Review user-placed garment mockups, inspect original graphic files, and configure pricing.
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchDesignsAndColors} disabled={loading}>
+        <Button variant="outline" size="sm" onClick={fetchDesignsAndColors} disabled={loading} className="shrink-0 w-fit">
           Refresh Queue
         </Button>
       </div>
 
-      <Card>
+      <Card className="min-w-0 overflow-hidden">
         <CardHeader>
           <CardTitle>All Submissions</CardTitle>
           <CardDescription>
@@ -251,7 +251,203 @@ export default function CustomDesignsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="border rounded-xl overflow-hidden">
+          {/* MOBILE CARDS VIEW (< md) */}
+          <div className="space-y-3 md:hidden">
+            {loading ? (
+              Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="p-4 rounded-xl border bg-card space-y-3">
+                  <div className="flex gap-3">
+                    <Skeleton className="h-16 w-16 rounded-md shrink-0" />
+                    <div className="space-y-1.5 flex-1">
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-3 w-36" />
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-8 w-full" />
+                </div>
+              ))
+            ) : designs.length > 0 ? (
+              designs.map((design) => {
+                const placement = getPlacement(design);
+                const tshirtImg = design.viewImageUrl || design.tshirtColor;
+
+                return (
+                  <div key={design._id} className="p-3.5 rounded-xl border bg-card shadow-xs space-y-3">
+                    {/* TOP: PREVIEW THUMBNAIL & CUSTOMER INFO */}
+                    <div className="flex gap-3 items-start">
+                      <div
+                        onClick={() => openInspection(design)}
+                        className="relative h-20 w-20 rounded-lg border bg-secondary/30 overflow-hidden cursor-pointer shrink-0 shadow-xs"
+                        title="Click to inspect"
+                      >
+                        {design.mockupUrl ? (
+                          <img
+                            src={design.mockupUrl}
+                            alt="Mockup"
+                            className="h-full w-full object-contain p-0.5"
+                          />
+                        ) : (
+                          <div className="relative h-full w-full">
+                            {tshirtImg && (
+                              <img
+                                src={tshirtImg}
+                                alt="Garment"
+                                className="h-full w-full object-contain p-0.5"
+                              />
+                            )}
+                            <img
+                              src={design.designUrl}
+                              alt="Placed Art"
+                              className="absolute object-contain pointer-events-none"
+                              style={{
+                                left: `${placement.xPercent}%`,
+                                top: `${placement.yPercent}%`,
+                                width: `${placement.widthPercent}%`,
+                                transform: `translate(-50%, -50%) rotate(${placement.rotation || 0}deg)`,
+                              }}
+                            />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-background/60 opacity-0 active:opacity-100 flex items-center justify-center transition-opacity">
+                          <Eye className="h-4 w-4" />
+                        </div>
+                      </div>
+
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="font-bold text-sm truncate">{design.userName}</span>
+                          <span className="text-[10px] text-muted-foreground shrink-0">
+                            {format(new Date(design.createdAt), 'MMM d')}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-xs font-semibold text-foreground">
+                            {design.colorName || colorMap.get(design.tshirtColor) || 'Garment'}
+                          </span>
+                          <Badge variant="outline" className="text-[9px] px-1 py-0 font-mono">
+                            {design.selectedView || 'Front'}
+                          </Badge>
+                          <Badge variant="secondary" className="text-[9px] px-1 py-0">
+                            Size {design.tshirtSize}
+                          </Badge>
+                        </div>
+
+                        <div className="text-[10px] text-muted-foreground">
+                          {design.fabricQuality || 'Regular'} · {design.printArea ? `${design.printArea.width}"×${design.printArea.height}"` : 'Custom Print'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* PRICING & STATUS ROW */}
+                    <div className="grid grid-cols-2 gap-2 pt-1 border-t text-xs">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase">Price (₹)</label>
+                        {design.status === 'pending' || design.status === 'approved' ? (
+                          <div className="relative">
+                            <IndianRupee className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                            <Input
+                              type="number"
+                              className="pl-6 h-8 text-xs font-mono w-full"
+                              placeholder="Price"
+                              value={priceInputs[design._id] !== undefined ? priceInputs[design._id] : (design.price || '')}
+                              onChange={(e) => handlePriceChange(design._id, e.target.value)}
+                              disabled={design.status !== 'pending'}
+                            />
+                          </div>
+                        ) : design.price ? (
+                          <div className="h-8 flex items-center font-mono font-bold text-sm">₹{design.price.toFixed(2)}</div>
+                        ) : (
+                          <div className="h-8 flex items-center text-muted-foreground text-xs">N/A</div>
+                        )}
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase">Status</label>
+                        {design.status === 'paid' ? (
+                          <div className="h-8 flex items-center">
+                            <Badge variant={getStatusVariant(design.status)}>Paid</Badge>
+                          </div>
+                        ) : (
+                          <Select
+                            value={design.status}
+                            onValueChange={(value: DesignStatus) => handleStatusChange(design._id, value)}
+                          >
+                            <SelectTrigger className="h-8 text-xs w-full">
+                              <SelectValue>
+                                <Badge variant={getStatusVariant(design.status)} className="text-[10px] px-1.5 py-0">
+                                  {design.status}
+                                </Badge>
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {statusOptions.map((status) => (
+                                <SelectItem key={status} value={status} className="text-xs">
+                                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ACTIONS ROW */}
+                    <div className="flex items-center gap-2 pt-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 h-8 text-xs font-semibold gap-1.5"
+                        onClick={() => openInspection(design)}
+                      >
+                        <Eye className="h-3.5 w-3.5" /> Inspect Mockup
+                      </Button>
+
+                      <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" asChild>
+                        <a
+                          href={design.designUrl}
+                          download={`artwork-${design._id}.png`}
+                          title="Download Artwork"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                        </a>
+                      </Button>
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10 shrink-0">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Design Request?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Permanently removes this customization request and artwork.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(design._id)}>
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="p-8 text-center text-muted-foreground border rounded-xl bg-card text-xs">
+                No custom design submissions found.
+              </div>
+            )}
+          </div>
+
+          {/* DESKTOP TABLE VIEW (>= md) */}
+          <div className="hidden md:block border rounded-xl overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -469,7 +665,7 @@ export default function CustomDesignsPage() {
       {/* --- DETAILED ATELIER INSPECTION MODAL --- */}
       {selectedInspectDesign && (
         <Dialog open={inspectModalOpen} onOpenChange={setInspectModalOpen}>
-          <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto p-6">
+          <DialogContent className="w-[96vw] max-w-full sm:max-w-4xl max-h-[92vh] overflow-y-auto p-4 sm:p-6 rounded-xl sm:rounded-2xl">
             <DialogHeader className="border-b border-border/60 pb-3">
               <div className="flex items-center justify-between">
                 <div>
@@ -733,6 +929,6 @@ export default function CustomDesignsPage() {
           </DialogContent>
         </Dialog>
       )}
-    </>
+    </div>
   );
 }

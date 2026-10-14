@@ -157,7 +157,7 @@ router.get('/config/app-version', (req, res) => {
     const updateUrl =
       platform === 'ios'
         ? 'https://apps.apple.com/app/oktopus-clothing/id123456789'
-        : 'https://play.google.com/store/apps/details?id=com.oktopus.clothing';
+        : 'https://play.google.com/store/apps/details?id=com.anonymous.okto_app';
 
     return res.status(200).json({
       forceUpdate,

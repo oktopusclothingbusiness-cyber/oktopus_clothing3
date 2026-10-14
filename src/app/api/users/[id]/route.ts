@@ -46,6 +46,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       oktocoins,
       pushToken,
       personalization,
+      status,
+      isBlocked,
+      suspendedReason,
     } = body;
 
     const client = await clientPromise;
@@ -70,6 +73,36 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (mobile !== undefined) updateData.mobile = mobile;
     if (address !== undefined) updateData.address = address;
     if (profilePictureUrl !== undefined) updateData.profilePictureUrl = profilePictureUrl;
+
+    if (status !== undefined) {
+      if (!['active', 'suspended'].includes(status)) {
+        return NextResponse.json({ message: 'Invalid status specified.' }, { status: 400 });
+      }
+      updateData.status = status;
+      updateData.isBlocked = status === 'suspended';
+      if (status === 'suspended') {
+        updateData.suspendedAt = new Date();
+      } else {
+        updateData.suspendedAt = null;
+        updateData.suspendedReason = null;
+      }
+    }
+
+    if (isBlocked !== undefined) {
+      const blocked = Boolean(isBlocked);
+      updateData.isBlocked = blocked;
+      updateData.status = blocked ? 'suspended' : 'active';
+      if (blocked) {
+        updateData.suspendedAt = new Date();
+      } else {
+        updateData.suspendedAt = null;
+        updateData.suspendedReason = null;
+      }
+    }
+
+    if (suspendedReason !== undefined) {
+      updateData.suspendedReason = suspendedReason;
+    }
 
     if (pushToken !== undefined) {
       updateData.pushToken = pushToken;
@@ -112,7 +145,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (coinDiff > 0) {
       triggerUserEventPushNotification({
         userId: id,
-        title: `You Earned ${coinDiff} Oktocoins! 🪙`,
+        title: `You Earned ${coinDiff} Oktocoins!`,
         body: 'Your rewards balance has been updated.',
         deepLink: '/rewards',
       }).catch((err) => console.error('Failed to trigger coins push notification:', err));

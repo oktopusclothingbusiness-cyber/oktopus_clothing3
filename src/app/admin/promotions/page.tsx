@@ -92,9 +92,9 @@ export default function AdminPromotionsPage() {
 
   return (
     <>
-      <h1 className="text-3xl font-bold mb-8">Promotion Management</h1>
-      <div className="grid md:grid-cols-3 gap-8">
-        <div className="md:col-span-1">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Promotion Management</h1>
+      <div className="grid md:grid-cols-3 gap-6 sm:gap-8 min-w-0 max-w-full">
+        <div className="md:col-span-1 min-w-0 w-full">
           <Card>
             <CardHeader>
               <CardTitle>{isEditing ? 'Edit Promotion' : 'Add New Promotion'}</CardTitle>
@@ -155,8 +155,8 @@ export default function AdminPromotionsPage() {
             </CardContent>
           </Card>
         </div>
-        <div className="md:col-span-2">
-          <Card>
+        <div className="md:col-span-2 min-w-0 w-full">
+          <Card className="min-w-0 overflow-hidden">
             <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <CardTitle>Manage Promotions & Banners</CardTitle>
@@ -179,8 +179,8 @@ export default function AdminPromotionsPage() {
                 ))}
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="border rounded-lg overflow-hidden">
+            <CardContent className="min-w-0 overflow-hidden p-3 sm:p-6">
+              <div className="border rounded-lg overflow-x-auto w-full max-w-full">
                 <Table>
                   <TableHeader>
                     <TableRow>

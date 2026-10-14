@@ -207,6 +207,15 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const addToCart = (product: any, size: string = 'Free Size', color: string = 'Standard', fabricQuality?: string) => {
+    if (product?.isMobileExclusive) {
+      toast({
+        title: 'Mobile App Exclusive',
+        description: 'This item is exclusive to the OKTOPUS mobile app. Please open the app to purchase.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const productId = product?.id || product?._id || product?.productId || String(Date.now());
     const safeSize = size || 'Free Size';
     const safeColor = color || 'Standard';

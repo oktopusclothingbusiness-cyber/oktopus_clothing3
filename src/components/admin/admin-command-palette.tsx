@@ -59,9 +59,22 @@ export function AdminCommandPalette() {
 
   return (
     <>
+      {/* MOBILE COMPACT SEARCH ICON BUTTON */}
       <Button
         variant="outline"
-        className="relative h-8 w-full max-w-[240px] justify-start rounded-lg text-xs font-normal text-muted-foreground shadow-none sm:w-64"
+        size="icon"
+        className="h-8 w-8 sm:hidden rounded-lg text-muted-foreground shrink-0"
+        onClick={() => setOpen(true)}
+        title="Search pages & tasks (Cmd + K)"
+        aria-label="Search pages and tasks"
+      >
+        <Search className="h-3.5 w-3.5" />
+      </Button>
+
+      {/* TABLET / DESKTOP FULL SEARCH INPUT BUTTON */}
+      <Button
+        variant="outline"
+        className="relative h-8 w-full max-w-[240px] justify-start rounded-lg text-xs font-normal text-muted-foreground shadow-none sm:w-64 hidden sm:flex"
         onClick={() => setOpen(true)}
       >
         <Search className="mr-2 h-3.5 w-3.5 text-muted-foreground" />

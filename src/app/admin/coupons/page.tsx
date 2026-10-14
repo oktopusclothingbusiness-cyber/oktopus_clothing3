@@ -95,9 +95,9 @@ export default function AdminCouponsPage() {
 
   return (
     <>
-      <h1 className="text-3xl font-bold mb-8">Coupon Management</h1>
-      <div className="grid md:grid-cols-3 gap-8">
-        <div className="md:col-span-1">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Coupon Management</h1>
+      <div className="grid md:grid-cols-3 gap-6 sm:gap-8 min-w-0 max-w-full">
+        <div className="md:col-span-1 min-w-0 w-full">
           <Card>
             <CardHeader>
               <CardTitle>{isEditing ? 'Edit Coupon' : 'Add New Coupon'}</CardTitle>
@@ -173,14 +173,14 @@ export default function AdminCouponsPage() {
             </CardContent>
           </Card>
         </div>
-        <div className="md:col-span-2">
-          <Card>
+        <div className="md:col-span-2 min-w-0 w-full">
+          <Card className="min-w-0 overflow-hidden">
             <CardHeader>
               <CardTitle>Manage Coupons</CardTitle>
               <CardDescription>View, edit, or delete your existing coupons.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="border rounded-lg overflow-hidden">
+            <CardContent className="min-w-0 overflow-hidden p-3 sm:p-6">
+              <div className="border rounded-lg overflow-x-auto w-full max-w-full">
                 <Table>
                   <TableHeader>
                     <TableRow>

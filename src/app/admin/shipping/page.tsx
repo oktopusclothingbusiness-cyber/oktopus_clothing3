@@ -80,9 +80,9 @@ export default function AdminShippingPage() {
     };
 
     return (
-        <>
-            <h1 className="text-3xl font-bold mb-8">Shipping and Delivery Settings</h1>
-            <Card className="max-w-2xl">
+        <div className="space-y-6 sm:space-y-8 min-w-0 max-w-full overflow-x-hidden">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Shipping and Delivery Settings</h1>
+            <Card className="max-w-2xl min-w-0 overflow-hidden">
                 <CardHeader>
                     <CardTitle>Delivery Charges and Rules</CardTitle>
                     <CardDescription>Configure delivery fees, free shipping thresholds, and estimated timelines for web and mobile apps.</CardDescription>
@@ -155,6 +155,6 @@ export default function AdminShippingPage() {
                     )}
                 </CardContent>
             </Card>
-        </>
+        </div>
     );
 }

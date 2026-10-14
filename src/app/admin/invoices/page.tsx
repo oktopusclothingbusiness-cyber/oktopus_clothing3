@@ -258,19 +258,19 @@ export default function AdminInvoicesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 sm:space-y-8 min-w-0 max-w-full overflow-x-hidden">
       {/* HEADER & ACTION BAR */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
-            <Receipt className="w-7 h-7 text-primary" /> Invoices Management
+            <Receipt className="w-7 h-7 text-primary shrink-0" /> Invoices Management
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             Issue official tax invoices directly to registered customers or walk-in clients with instant PDF generation and email delivery.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
           <Button
             variant="outline"
             size="sm"
@@ -409,9 +409,168 @@ export default function AdminInvoicesPage() {
         </CardContent>
       </Card>
 
-      {/* INVOICES TABLE */}
+      {/* INVOICES LIST & TABLE */}
       <Card className="shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* MOBILE CARD LIST (< lg) */}
+        <div className="p-4 space-y-3 lg:hidden">
+          {loading ? (
+            Array.from({ length: 4 }).map((_, idx) => (
+              <div key={idx} className="p-4 rounded-xl border bg-card space-y-2.5">
+                <div className="flex justify-between items-center">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                </div>
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-6 w-24" />
+                <div className="flex gap-2 pt-2">
+                  <Skeleton className="h-8 flex-1" />
+                  <Skeleton className="h-8 w-8" />
+                </div>
+              </div>
+            ))
+          ) : invoices.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-8 text-center gap-2 text-muted-foreground">
+              <FileText className="w-10 h-10 stroke-[1.2] text-muted-foreground/40" />
+              <p className="text-sm font-semibold text-foreground">No invoices found</p>
+              <p className="text-xs max-w-sm">
+                {searchQuery
+                  ? 'No invoices match your search query.'
+                  : 'No tax invoices issued yet.'}
+              </p>
+              <Button
+                size="sm"
+                className="mt-2 text-xs gap-1.5"
+                onClick={() => setIsIssueModalOpen(true)}
+              >
+                <PlusCircle className="w-3.5 h-3.5" /> Issue First Invoice
+              </Button>
+            </div>
+          ) : (
+            invoices.map((inv) => {
+              const isPaid = inv.paymentDetails.paymentStatus === 'paid';
+              const isSendingThisEmail = sendingEmailId === inv._id;
+
+              return (
+                <div
+                  key={inv._id}
+                  className="p-4 rounded-xl border bg-card shadow-xs hover:border-primary/50 transition-all space-y-3"
+                >
+                  {/* TOP ROW: INVOICE NUMBER & BADGES */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="font-mono text-xs font-bold text-primary truncate">
+                        #{inv.invoiceNumber}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(inv.invoiceNumber, inv._id)}
+                        className="text-muted-foreground hover:text-foreground p-0.5 rounded shrink-0"
+                        title="Copy invoice number"
+                      >
+                        {copiedId === inv._id ? (
+                          <Check className="w-3 h-3 text-emerald-600" />
+                        ) : (
+                          <Copy className="w-3 h-3" />
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Badge
+                        variant="outline"
+                        onClick={() => handleTogglePaymentStatus(inv)}
+                        className={`cursor-pointer text-[10px] px-2 py-0.5 capitalize transition-all select-none ${
+                          isPaid
+                            ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
+                            : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30'
+                        }`}
+                        title="Click to toggle Paid / Pending"
+                      >
+                        {isPaid ? 'Paid' : 'Pending'}
+                      </Badge>
+
+                      {inv.emailSent && (
+                        <Badge
+                          variant="outline"
+                          className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30 text-[9px] px-1.5 py-0"
+                        >
+                          <Mail className="w-2.5 h-2.5 mr-0.5" /> Sent
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* MIDDLE ROW: CUSTOMER INFO & TOTAL */}
+                  <div className="flex items-center justify-between gap-2 border-b pb-2.5">
+                    <div className="min-w-0">
+                      <div className="font-semibold text-xs text-foreground truncate">{inv.customer.name}</div>
+                      <div className="text-[11px] text-muted-foreground truncate font-mono">{inv.customer.email}</div>
+                      <div className="text-[10px] text-muted-foreground">
+                        {inv.products.length} {inv.products.length === 1 ? 'item' : 'items'} · {inv.createdAt ? format(new Date(inv.createdAt), 'MMM d, yyyy') : 'N/A'}
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <div className="text-base font-black font-mono text-foreground">
+                        ₹{Number(inv.total || 0).toFixed(2)}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">Total Invoiced</div>
+                    </div>
+                  </div>
+
+                  {/* BOTTOM ROW: ACTIONS */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <Button variant="outline" size="sm" asChild className="flex-1 h-8 text-xs font-semibold gap-1">
+                      <a href={`/invoice/${inv._id}`} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        View
+                      </a>
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSendEmail(inv)}
+                      disabled={isSendingThisEmail}
+                      className="flex-1 h-8 text-xs font-semibold gap-1"
+                    >
+                      {isSendingThisEmail ? (
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Send className="w-3.5 h-3.5" />
+                      )}
+                      Email
+                    </Button>
+
+                    <Button variant="outline" size="icon" asChild className="h-8 w-8 shrink-0">
+                      <a
+                        href={`/api/admin/invoices/${inv._id}/pdf`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Download PDF"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </a>
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:bg-destructive/10 shrink-0"
+                      onClick={() => setInvoiceToDelete(inv)}
+                      title="Delete Invoice"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* DESKTOP TABLE VIEW (>= lg) */}
+        <div className="overflow-x-auto hidden lg:block">
           <Table>
             <TableHeader className="bg-muted/40">
               <TableRow>

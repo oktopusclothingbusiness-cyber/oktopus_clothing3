@@ -28,7 +28,9 @@ import {
   Check,
   Share2,
   Tag,
-  Zap
+  Zap,
+  Smartphone,
+  QrCode
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -272,6 +274,48 @@ export default function ProductDetailPage() {
     }
   };
 
+  const handleOpenInApp = () => {
+    if (!product) return;
+    const productId = product.id || (product as any)._id || '';
+    const playStoreUrl = 'https://play.google.com/store/apps/details?id=com.anonymous.okto_app';
+    const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
+
+    const start = Date.now();
+    let appOpened = false;
+
+    const cleanup = () => {
+      appOpened = true;
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pagehide', cleanup);
+      window.removeEventListener('blur', cleanup);
+    };
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        cleanup();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', cleanup);
+    window.addEventListener('blur', cleanup);
+
+    // 1. Attempt to open installed app (using intent on Android for seamless package matching)
+    if (isAndroid) {
+      window.location.href = `intent://products/${productId}#Intent;scheme=oktopus;package=com.anonymous.okto_app;end`;
+    } else {
+      window.location.href = `oktopus://products/${productId}`;
+    }
+
+    // 2. Fallback to Google Play Store if app is not installed
+    setTimeout(() => {
+      cleanup();
+      if (!appOpened && !document.hidden && Date.now() - start < 2500) {
+        window.location.href = playStoreUrl;
+      }
+    }, 1200);
+  };
+
   const handleWishlistToggle = () => {
     if (!product) return;
     if (isInWishlist(product.id)) {
@@ -279,7 +323,7 @@ export default function ProductDetailPage() {
       toast({ title: "Removed from Wishlist" });
     } else {
       addToWishlist(product.id);
-      toast({ title: "Added to Wishlist ❤️" });
+      toast({ title: "Added to Wishlist" });
     }
   };
 
@@ -354,9 +398,15 @@ export default function ProductDetailPage() {
               </div>
 
               <div className="hidden sm:flex items-center gap-2 shrink-0">
-                <Badge variant="outline" className="text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 px-2.5 py-0.5">
-                  <Check className="h-3 w-3 mr-1" /> Authentic Drop
-                </Badge>
+                {product.isMobileExclusive ? (
+                  <Badge variant="outline" className="text-[11px] font-semibold bg-primary/10 text-primary border-primary/20 px-2.5 py-0.5">
+                    <Smartphone className="h-3 w-3 mr-1" /> Mobile App Exclusive
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 px-2.5 py-0.5">
+                    <Check className="h-3 w-3 mr-1" /> Authentic Drop
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
@@ -380,6 +430,11 @@ export default function ProductDetailPage() {
                 
                 {/* Badges */}
                 <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
+                  {product.isMobileExclusive && (
+                    <Badge className="bg-stone-950/90 text-white border border-stone-700/80 font-bold text-xs px-3 py-1 uppercase tracking-wider shadow-md flex items-center gap-1.5">
+                      <Smartphone className="h-3.5 w-3.5" /> App Exclusive Drop
+                    </Badge>
+                  )}
                   {discountPercent > 0 && (
                     <Badge variant="destructive" className="bg-red-600 text-white font-bold text-xs px-3 py-1 shadow-md">
                       <Tag className="h-3 w-3 mr-1" /> {discountPercent}% OFF
@@ -663,41 +718,103 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              {/* Primary Action Buttons (Prominent Same Row Layout) */}
-              <div className="pt-2 flex flex-row items-center gap-3 w-full">
-                {isOutOfStock ? (
-                  <Button disabled className="w-full h-14 text-sm font-bold rounded-xl" size="lg">
-                    <XCircle className="mr-2 h-5 w-5" /> Sold Out
-                  </Button>
-                ) : (
-                  <>
-                    <Button 
-                      onClick={handleBuyNow} 
-                      className="flex-1 h-14 md:h-15 text-sm sm:text-base font-black uppercase tracking-wider rounded-2xl shadow-xl transition-all duration-300 active:scale-95 bg-amber-400 hover:bg-amber-300 text-black px-4" 
-                      size="lg"
-                    >
-                      <Zap className="mr-2 h-5 w-5 fill-black shrink-0" /> Buy Now
-                    </Button>
-                    <Button 
-                      onClick={handleAddToCart} 
-                      className="flex-1 h-14 md:h-15 text-sm sm:text-base font-black uppercase tracking-wider rounded-2xl shadow-xl transition-all duration-300 active:scale-95 bg-foreground text-background hover:bg-foreground/90 px-4" 
-                      size="lg"
-                    >
-                      <ShoppingCart className="mr-2 h-5 w-5 shrink-0" /> Add to Cart
-                    </Button>
-                  </>
-                )}
+              {/* Primary Action Buttons OR Mobile App Exclusive Showcase */}
+              {product.isMobileExclusive ? (
+                <div className="p-5 rounded-2xl bg-card border border-border/80 space-y-4 shadow-sm">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs font-bold px-2.5 py-0.5 border-border bg-secondary text-foreground flex items-center gap-1">
+                        <Smartphone className="h-3.5 w-3.5 text-foreground" /> Exclusive Drop
+                      </Badge>
+                      <span className="text-xs font-semibold text-muted-foreground">Mobile App Only</span>
+                    </div>
+                    <h3 className="text-base font-bold text-foreground">Available Exclusively on the OKTOPUS App</h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      This drop is only available for purchase through our mobile app. Browse all craftsmanship details, color variants, and sizing here on the web, then open the app to complete your order.
+                    </p>
+                  </div>
 
-                <Button 
-                  onClick={handleWishlistToggle} 
-                  size="lg" 
-                  variant="outline"
-                  className="h-14 md:h-15 w-14 md:w-15 p-0 rounded-2xl border-2 border-border hover:bg-muted font-bold shrink-0 flex items-center justify-center shadow-sm"
-                  title={isWishlisted ? "Wishlisted" : "Add to Wishlist"}
-                >
-                  <Heart className={cn("h-6 w-6 transition-colors", isWishlisted && "fill-red-500 text-red-500")} />
-                </Button>
-              </div>
+                  {/* Action Buttons Row */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
+                    <Button 
+                      onClick={handleOpenInApp} 
+                      size="lg"
+                      className="flex-1 h-14 md:h-15 text-sm sm:text-base font-black uppercase tracking-wider rounded-2xl shadow-xl transition-all duration-300 active:scale-95 bg-amber-400 hover:bg-amber-300 text-black px-4 flex items-center justify-center gap-2"
+                    >
+                      <Smartphone className="h-5 w-5 fill-black shrink-0" /> Open in App to Purchase
+                    </Button>
+
+                    <Button 
+                      onClick={handleWishlistToggle} 
+                      size="lg" 
+                      variant="outline"
+                      className="h-14 md:h-15 px-4 rounded-2xl border-2 border-border hover:bg-muted font-bold shrink-0 flex items-center justify-center gap-2 shadow-sm"
+                      title={isWishlisted ? "Wishlisted" : "Add to Wishlist"}
+                    >
+                      <Heart className={cn("h-5 w-5 transition-colors", isWishlisted && "fill-red-500 text-red-500")} />
+                      <span className="text-xs font-bold sm:hidden">{isWishlisted ? "Wishlisted" : "Wishlist"}</span>
+                    </Button>
+                  </div>
+
+                  {/* Desktop QR Code helper */}
+                  <div className="hidden sm:flex items-center gap-4 p-3.5 rounded-xl bg-muted/40 border border-border/60">
+                    <div className="w-20 h-20 bg-background rounded-lg p-1.5 border border-border/70 shrink-0 flex items-center justify-center">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+                          'https://play.google.com/store/apps/details?id=com.anonymous.okto_app'
+                        )}&format=svg`}
+                        alt="Scan to open OKTOPUS App"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="space-y-0.5 text-xs">
+                      <p className="font-bold text-foreground flex items-center gap-1.5">
+                        <QrCode className="h-3.5 w-3.5 text-muted-foreground" />
+                        Scan with Phone to Open App
+                      </p>
+                      <p className="text-[11px] text-muted-foreground leading-normal">
+                        Point your phone camera at the QR code to open or install the OKTOPUS app directly.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="pt-2 flex flex-row items-center gap-3 w-full">
+                  {isOutOfStock ? (
+                    <Button disabled className="w-full h-14 text-sm font-bold rounded-xl" size="lg">
+                      <XCircle className="mr-2 h-5 w-5" /> Sold Out
+                    </Button>
+                  ) : (
+                    <>
+                      <Button 
+                        onClick={handleBuyNow} 
+                        className="flex-1 h-14 md:h-15 text-sm sm:text-base font-black uppercase tracking-wider rounded-2xl shadow-xl transition-all duration-300 active:scale-95 bg-amber-400 hover:bg-amber-300 text-black px-4" 
+                        size="lg"
+                      >
+                        <Zap className="mr-2 h-5 w-5 fill-black shrink-0" /> Buy Now
+                      </Button>
+                      <Button 
+                        onClick={handleAddToCart} 
+                        className="flex-1 h-14 md:h-15 text-sm sm:text-base font-black uppercase tracking-wider rounded-2xl shadow-xl transition-all duration-300 active:scale-95 bg-foreground text-background hover:bg-foreground/90 px-4" 
+                        size="lg"
+                      >
+                        <ShoppingCart className="mr-2 h-5 w-5 shrink-0" /> Add to Cart
+                      </Button>
+                    </>
+                  )}
+
+                  <Button 
+                    onClick={handleWishlistToggle} 
+                    size="lg" 
+                    variant="outline"
+                    className="h-14 md:h-15 w-14 md:w-15 p-0 rounded-2xl border-2 border-border hover:bg-muted font-bold shrink-0 flex items-center justify-center shadow-sm"
+                    title={isWishlisted ? "Wishlisted" : "Add to Wishlist"}
+                  >
+                    <Heart className={cn("h-6 w-6 transition-colors", isWishlisted && "fill-red-500 text-red-500")} />
+                  </Button>
+                </div>
+              )}
 
               {/* Brand Trust Badges Grid */}
               <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border/60">
@@ -772,19 +889,40 @@ export default function ProductDetailPage() {
       {/* MOBILE STICKY BOTTOM ACTION BAR */}
       {!isOutOfStock && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border/80 p-3 flex items-center gap-2.5 shadow-2xl">
-          <Button 
-            onClick={handleBuyNow}
-            className="flex-1 h-13 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl bg-amber-400 hover:bg-amber-300 text-black shadow-lg active:scale-95 flex items-center justify-center"
-          >
-            <Zap className="mr-1.5 h-4 w-4 fill-black shrink-0" /> Buy Now
-          </Button>
-          <Button 
-            onClick={handleAddToCart}
-            variant="outline"
-            className="flex-1 h-13 text-xs sm:text-sm font-extrabold uppercase tracking-wider rounded-xl border-2 border-foreground/30 bg-background text-foreground shadow-xs active:scale-95 flex items-center justify-center"
-          >
-            <ShoppingCart className="mr-1.5 h-4 w-4 shrink-0" /> Add to Cart
-          </Button>
+          {product.isMobileExclusive ? (
+            <>
+              <Button 
+                onClick={handleOpenInApp}
+                className="flex-1 h-13 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl bg-amber-400 hover:bg-amber-300 text-black shadow-lg active:scale-95 flex items-center justify-center gap-2"
+              >
+                <Smartphone className="h-4 w-4 shrink-0 fill-black" /> Open in App to Purchase
+              </Button>
+              <Button 
+                onClick={handleWishlistToggle}
+                variant="outline"
+                className="h-13 w-13 p-0 rounded-xl border-2 border-border bg-background text-foreground shadow-xs active:scale-95 flex items-center justify-center shrink-0"
+                title={isWishlisted ? "Wishlisted" : "Add to Wishlist"}
+              >
+                <Heart className={cn("h-5 w-5", isWishlisted && "fill-red-500 text-red-500")} />
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button 
+                onClick={handleBuyNow}
+                className="flex-1 h-13 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl bg-amber-400 hover:bg-amber-300 text-black shadow-lg active:scale-95 flex items-center justify-center"
+              >
+                <Zap className="mr-1.5 h-4 w-4 fill-black shrink-0" /> Buy Now
+              </Button>
+              <Button 
+                onClick={handleAddToCart}
+                variant="outline"
+                className="flex-1 h-13 text-xs sm:text-sm font-extrabold uppercase tracking-wider rounded-xl border-2 border-foreground/30 bg-background text-foreground shadow-xs active:scale-95 flex items-center justify-center"
+              >
+                <ShoppingCart className="mr-1.5 h-4 w-4 shrink-0" /> Add to Cart
+              </Button>
+            </>
+          )}
         </div>
       )}
 

@@ -77,7 +77,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Invalid email or password.' }, { status: 401 });
     }
 
-    // Login successful: reset rate limit tracking for this account and IP
+    // Account suspension check
+    if (user.status === 'suspended' || user.isBlocked === true) {
+      return NextResponse.json(
+        {
+          message: user.suspendedReason
+            ? `Your account has been suspended: ${user.suspendedReason}`
+            : 'Your account has been suspended by administration. Please contact customer support.',
+        },
+        { status: 403 }
+      );
+    }
+
+    // Login successful: update user IP telemetry
+    await db.collection('users').updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          lastLoginIp: ip,
+          lastLoginAt: new Date(),
+          updatedAt: new Date(),
+        },
+        $addToSet: { knownIps: ip },
+      }
+    );
+
+    // Reset rate limit tracking for this account and IP
     resetRateLimit(accountKey);
     resetRateLimit(`ip:login:${ip}`);
 

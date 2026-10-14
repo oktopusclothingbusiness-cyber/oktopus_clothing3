@@ -76,6 +76,12 @@ export async function POST(request: NextRequest) {
         lastName: lastName || '',
         oktocoins: 100, // Default 100 Oktocoins bonus
         role: 'user',
+        status: 'active',
+        isBlocked: false,
+        registrationIp: ip,
+        lastLoginIp: ip,
+        knownIps: [ip],
+        lastLoginAt: new Date(),
         cart: [],
         wishlist: [],
         createdAt: new Date(),
@@ -85,16 +91,35 @@ export async function POST(request: NextRequest) {
       const result = await usersCollection.insertOne(newUserDoc);
       user = { _id: result.insertedId, ...newUserDoc };
     } else {
-      const updateFields: any = {};
+      // Check suspension status
+      if (user.status === 'suspended' || user.isBlocked === true) {
+        return NextResponse.json(
+          {
+            message: user.suspendedReason
+              ? `Your account has been suspended: ${user.suspendedReason}`
+              : 'Your account has been suspended by administration. Please contact customer support.',
+          },
+          { status: 403 }
+        );
+      }
+
+      const updateFields: any = {
+        updatedAt: new Date(),
+        lastLoginIp: ip,
+        lastLoginAt: new Date(),
+      };
       if (firstName && !user.firstName) updateFields.firstName = firstName;
       if (lastName && !user.lastName) updateFields.lastName = lastName;
       if (!user.firebaseUid) updateFields.firebaseUid = firebaseUid;
 
-      if (Object.keys(updateFields).length > 0) {
-        updateFields.updatedAt = new Date();
-        await usersCollection.updateOne({ _id: user._id }, { $set: updateFields });
-        user = { ...user, ...updateFields };
-      }
+      await usersCollection.updateOne(
+        { _id: user._id },
+        {
+          $set: updateFields,
+          $addToSet: { knownIps: ip },
+        }
+      );
+      user = { ...user, ...updateFields };
     }
 
     const tokenPayload = {

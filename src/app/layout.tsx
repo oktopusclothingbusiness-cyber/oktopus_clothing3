@@ -1,7 +1,13 @@
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Archivo } from "next/font/google";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Toaster } from "@/components/ui/toaster";
 import { CartProvider } from "@/context/cart-context";

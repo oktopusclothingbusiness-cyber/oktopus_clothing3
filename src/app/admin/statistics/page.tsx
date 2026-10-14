@@ -355,7 +355,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* KPI METRIC CARDS GRID (6 STAT CARDS) */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
         {loading ? (
           Array.from({ length: 6 }).map((_, i) => (
             <Card key={i}>
@@ -582,19 +582,19 @@ export default function AnalyticsPage() {
       </div>
 
       {/* REVENUE & LOCATION CHARTS GRID */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-8">
-        <Card className="col-span-1 lg:col-span-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-8 min-w-0 max-w-full">
+        <Card className="col-span-full lg:col-span-4 min-w-0 overflow-hidden">
           <CardHeader>
             <CardTitle>Revenue & Visitors Overview</CardTitle>
             <CardDescription>For the last 30 days.</CardDescription>
           </CardHeader>
-          <CardContent className="pl-2">
-            <ChartContainer config={revenueChartConfig} className="w-full h-[300px]">
-              <BarChart data={salesChartData} accessibilityLayer>
+          <CardContent className="p-2 sm:p-6 pt-0 min-w-0 overflow-hidden">
+            <ChartContainer config={revenueChartConfig} className="w-full h-[260px] sm:h-[300px] min-w-0">
+              <BarChart data={salesChartData} accessibilityLayer margin={{ left: -15, right: -15, top: 10, bottom: 0 }}>
                 <CartesianGrid vertical={false} />
-                <XAxis dataKey="date" tickLine={false} tickMargin={10} axisLine={false} />
-                <YAxis yAxisId="left" stroke="hsl(var(--primary))" />
-                <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--muted-foreground))" />
+                <XAxis dataKey="date" tickLine={false} tickMargin={8} axisLine={false} fontSize={10} />
+                <YAxis yAxisId="left" stroke="hsl(var(--primary))" fontSize={10} width={40} />
+                <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--muted-foreground))" fontSize={10} width={30} />
                 <Tooltip
                   cursor={false}
                   content={
@@ -604,7 +604,7 @@ export default function AnalyticsPage() {
                     />
                   }
                 />
-                <Legend />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
                 <Bar dataKey="revenue" yAxisId="left" fill="var(--color-revenue)" radius={4} />
                 <Bar dataKey="visitors" yAxisId="right" fill="var(--color-visitors)" radius={4} />
               </BarChart>
@@ -612,12 +612,12 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="col-span-1 lg:col-span-3">
+        <Card className="col-span-full lg:col-span-3 min-w-0 overflow-hidden">
           <CardHeader>
             <CardTitle>Order Location Density</CardTitle>
             <CardDescription>Map of where your orders are being shipped.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px] w-full p-0 overflow-hidden rounded-b-lg">
+          <CardContent className="h-[280px] sm:h-[300px] w-full p-0 overflow-hidden rounded-b-lg min-w-0">
             {loading ? (
               <Skeleton className="w-full h-full" />
             ) : orderLocations.length > 0 ? (
@@ -632,18 +632,18 @@ export default function AnalyticsPage() {
       </div>
 
       {/* HOURLY TRAFFIC */}
-      <div className="mt-8">
-        <Card>
+      <div className="mt-8 min-w-0 max-w-full">
+        <Card className="min-w-0 overflow-hidden">
           <CardHeader>
             <CardTitle>Website Traffic by Time of Day</CardTitle>
             <CardDescription>Aggregated visitor counts by hour.</CardDescription>
           </CardHeader>
-          <CardContent className="pl-2">
-            <ChartContainer config={trafficChartConfig} className="w-full h-[300px]">
-              <BarChart data={hourlyTrafficData} accessibilityLayer>
+          <CardContent className="p-2 sm:p-6 pt-0 min-w-0 overflow-hidden">
+            <ChartContainer config={trafficChartConfig} className="w-full h-[260px] sm:h-[300px] min-w-0">
+              <BarChart data={hourlyTrafficData} accessibilityLayer margin={{ left: -15, right: 10, top: 10, bottom: 0 }}>
                 <CartesianGrid vertical={false} />
-                <XAxis dataKey="hour" tickLine={false} tickMargin={10} axisLine={false} />
-                <YAxis />
+                <XAxis dataKey="hour" tickLine={false} tickMargin={8} axisLine={false} fontSize={10} />
+                <YAxis fontSize={10} width={35} />
                 <Tooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
                 <Bar dataKey="visitors" fill="var(--color-visitors)" radius={4} />
               </BarChart>

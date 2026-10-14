@@ -2,9 +2,11 @@
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
+import { getClientIp } from '@/lib/rateLimit';
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request);
     const { firstName, lastName, email, password } = await request.json();
     
     if (!firstName || !lastName || !email || !password) {
@@ -14,7 +16,7 @@ export async function POST(request: Request) {
     const client = await clientPromise;
     const db = client.db();
 
-    const existingUser = await db.collection('users').findOne({ email });
+    const existingUser = await db.collection('users').findOne({ email: email.toLowerCase().trim() });
 
     if (existingUser) {
       return NextResponse.json({ message: 'User already exists.' }, { status: 409 });
@@ -22,15 +24,24 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    const role = email === 'rbaskeydomi2018@gmail.com' ? 'admin' : 'user';
+    const role = email.toLowerCase().trim() === 'rbaskeydomi2018@gmail.com' ? 'admin' : 'user';
 
     const result = await db.collection('users').insertOne({
       firstName,
       lastName,
-      email,
+      email: email.toLowerCase().trim(),
       password: hashedPassword,
       role,
+      status: 'active',
+      isBlocked: false,
+      registrationIp: ip,
+      lastLoginIp: ip,
+      knownIps: [ip],
+      lastLoginAt: new Date(),
+      cart: [],
+      wishlist: [],
       createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
     return NextResponse.json({ message: 'User created successfully.', userId: result.insertedId }, { status: 201 });
@@ -40,3 +51,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
   }
 }
+

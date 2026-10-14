@@ -270,19 +270,19 @@ export default function AdminBatchTasksPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8 min-w-0 max-w-full overflow-x-hidden">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-          <Layers className="h-8 w-8 text-primary" />
-          Batch Operations Engine
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2.5">
+          <Layers className="h-6 w-6 sm:h-8 sm:w-8 text-primary shrink-0" />
+          <span>Batch Operations Engine</span>
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1">
           Perform bulk pricing adjustments, add/remove size specifications, update inventory, and manage categories across products in one click.
         </p>
       </div>
 
-      <Tabs defaultValue="builder" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
+      <Tabs defaultValue="builder" className="space-y-6 min-w-0">
+        <TabsList className="grid w-full grid-cols-2 max-w-full sm:max-w-md">
           <TabsTrigger value="builder" className="flex items-center gap-2">
             <Sparkles className="h-4 w-4" />
             Batch Task Builder
@@ -811,24 +811,24 @@ export default function AdminBatchTasksPage() {
 
           {/* STEP 3: PREVIEW IMPACT TABLE */}
           {previewCount !== null && (
-            <Card className="border-primary/50 shadow-md">
-              <CardHeader className="flex flex-row items-center justify-between">
+            <Card className="border-primary/50 shadow-md min-w-0 overflow-hidden">
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                  <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
                     Impact Preview ({previewCount} Matched Products)
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs">
                     Review the first {previewProducts.length} matching products before running the batch update.
                   </CardDescription>
                 </div>
-                <Badge variant="secondary" className="text-sm px-3 py-1 font-semibold">
+                <Badge variant="secondary" className="text-xs sm:text-sm px-3 py-1 font-semibold w-fit">
                   {previewCount} Total Affected
                 </Badge>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 sm:p-6 overflow-hidden">
                 {previewProducts.length > 0 ? (
-                  <div className="border rounded-lg overflow-hidden">
+                  <div className="border rounded-lg overflow-x-auto w-full max-w-full">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -918,8 +918,8 @@ export default function AdminBatchTasksPage() {
               <CardTitle>Batch Task Audit History</CardTitle>
               <CardDescription>Logs of all previously executed bulk batch operations.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="border rounded-lg overflow-hidden">
+            <CardContent className="p-3 sm:p-6 overflow-hidden">
+              <div className="border rounded-lg overflow-x-auto w-full max-w-full">
                 <Table>
                   <TableHeader>
                     <TableRow>

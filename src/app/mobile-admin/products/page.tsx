@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Layers,
   SlidersHorizontal,
+  Smartphone,
 } from "lucide-react";
 
 export interface MobileFabricVariant {
@@ -116,6 +117,7 @@ interface Product {
   }[];
   category?: string[];
   description?: string;
+  isMobileExclusive?: boolean;
 }
 
 export default function MobileProductsManager() {
@@ -127,6 +129,7 @@ export default function MobileProductsManager() {
   // Form State
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [isMobileExclusive, setIsMobileExclusive] = useState(false);
   const [colorVariants, setColorVariants] = useState<MobileColorVariant[]>([
     {
       id: "color-black",
@@ -326,6 +329,7 @@ export default function MobileProductsManager() {
   const resetForm = () => {
     setName("");
     setDescription("");
+    setIsMobileExclusive(false);
     setColorVariants([
       {
         id: "color-black",
@@ -406,6 +410,7 @@ export default function MobileProductsManager() {
         body: JSON.stringify({
           name: name.trim(),
           description: description.trim() || "Premium graphic drop.",
+          isMobileExclusive: Boolean(isMobileExclusive),
           price: resolvedPrice,
           originalPrice: resolvedOriginalPrice,
           stock: totalStock > 0 ? totalStock : 10,
@@ -450,6 +455,27 @@ export default function MobileProductsManager() {
       }
     } catch (err) {
       console.error("Failed to update stock", err);
+    }
+  };
+
+  const toggleMobileExclusive = async (product: Product) => {
+    const nextVal = !product.isMobileExclusive;
+    try {
+      const res = await fetch(`/api/products/${product._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-App-Secret": "okto_mobile_sec_2026_prod",
+        },
+        body: JSON.stringify({ isMobileExclusive: nextVal }),
+      });
+      if (res.ok) {
+        setProducts((prev) =>
+          prev.map((p) => (p._id === product._id ? { ...p, isMobileExclusive: nextVal } : p))
+        );
+      }
+    } catch (err) {
+      console.error("Failed to toggle mobile exclusive", err);
     }
   };
 
@@ -591,11 +617,29 @@ export default function MobileProductsManager() {
                         >
                           {isOutOfStock ? "OUT OF STOCK" : `${p.stock} units`}
                         </span>
+                        {p.isMobileExclusive && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-200 border border-zinc-700 font-semibold flex items-center gap-1">
+                            <Smartphone className="w-2.5 h-2.5" /> App Only
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
 
                   <div className="flex flex-col items-end space-y-1.5 shrink-0">
+                    <button
+                      onClick={() => toggleMobileExclusive(p)}
+                      className={`px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
+                        p.isMobileExclusive
+                          ? "bg-white text-black hover:bg-zinc-200"
+                          : "bg-zinc-800 text-zinc-400 hover:text-white"
+                      }`}
+                      title="Toggle App Exclusive"
+                    >
+                      <Smartphone className="w-2.5 h-2.5" />
+                      {p.isMobileExclusive ? "APP ONLY" : "WEB+APP"}
+                    </button>
+
                     <button
                       onClick={() => toggleStockZero(p)}
                       className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
@@ -685,6 +729,30 @@ export default function MobileProductsManager() {
                       rows={2}
                       className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white"
                     />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
+                    <div>
+                      <span className="text-xs font-semibold text-white flex items-center gap-1.5">
+                        <Smartphone className="w-3.5 h-3.5 text-zinc-400" /> Mobile App Exclusive
+                      </span>
+                      <span className="text-[10px] text-zinc-400 block">
+                        Showcase on web, but restrict purchases strictly to mobile app
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsMobileExclusive(!isMobileExclusive)}
+                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        isMobileExclusive ? "bg-white" : "bg-zinc-800"
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-black shadow-lg ring-0 transition duration-200 ease-in-out ${
+                          isMobileExclusive ? "translate-x-4" : "translate-x-0 bg-zinc-400"
+                        }`}
+                      />
+                    </button>
                   </div>
                 </div>
 

@@ -109,7 +109,7 @@ export default function ProfilePage() {
                                     <item.icon className="h-5 w-5 text-muted-foreground" />
                                     <span className="font-medium">{item.label}</span>
                                 </div>
-                                {item.isThemeToggle ? <ThemeToggle /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+                                {item.isThemeToggle ? <ThemeToggle variant="switch" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
                             </div>
                         ))}
                     </div>
@@ -177,7 +177,7 @@ export default function ProfilePage() {
                                 <item.icon className="h-5 w-5 text-muted-foreground" />
                                 <span className="font-medium">{item.label}</span>
                             </Link>
-                            {item.isThemeToggle ? <ThemeToggle /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+                            {item.isThemeToggle ? <ThemeToggle variant="switch" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
                         </div>
                     ))}
                  </CardContent>

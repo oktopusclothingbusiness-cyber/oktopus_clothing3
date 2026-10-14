@@ -56,6 +56,7 @@ export async function POST(request: Request) {
       ...product,
       featured: product.featured || false, // Default featured to false
       isHero: product.isHero || false,
+      isMobileExclusive: Boolean(product.isMobileExclusive),
       rating: product.rating || 4.5,
       stock: typeof product.stock === 'number' ? product.stock : 10,
       cost: product.cost || 0,

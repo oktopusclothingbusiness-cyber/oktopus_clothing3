@@ -153,13 +153,13 @@ export default function AdminDashboardPage() {
 
   return (
     <>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-xs text-muted-foreground mt-1">Real-time overview of store revenue, sales performance, and active visitors.</p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={exportToCSV} className="h-8 text-xs gap-1.5 font-semibold">
             <Download className="h-3.5 w-3.5" />
             Export CSV
@@ -170,67 +170,68 @@ export default function AdminDashboardPage() {
           </Button>
         </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Revenue</CardTitle>
             <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {loading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">₹{totalRevenue.toFixed(2)}</div>}
-            <p className="text-xs text-muted-foreground">From all non-rejected sales</p>
+            {loading ? <Skeleton className="h-7 w-3/4" /> : <div className="text-xl sm:text-2xl font-bold">₹{totalRevenue.toFixed(2)}</div>}
+            <p className="text-[10px] sm:text-xs text-muted-foreground">From all sales</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Visitors</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Today's Visitors</CardTitle>
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-             {loading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{todaysVisitors}</div>}
-            <p className="text-xs text-muted-foreground">Unique visits for today</p>
+             {loading ? <Skeleton className="h-7 w-1/2" /> : <div className="text-xl sm:text-2xl font-bold">{todaysVisitors}</div>}
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Unique visits today</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sales</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Sales</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {loading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">+{totalSales}</div>}
-            <p className="text-xs text-muted-foreground">Total non-rejected transactions</p>
+            {loading ? <Skeleton className="h-7 w-1/2" /> : <div className="text-xl sm:text-2xl font-bold">+{totalSales}</div>}
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Total transactions</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Pending Orders</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-             {loading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{orders.filter(o => o.status === 'pending').length}</div>}
-            <p className="text-xs text-muted-foreground">Orders awaiting processing</p>
+             {loading ? <Skeleton className="h-7 w-1/2" /> : <div className="text-xl sm:text-2xl font-bold">{orders.filter(o => o.status === 'pending').length}</div>}
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Awaiting processing</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-8">
-        <Card className="col-span-4">
-          <CardHeader>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-6 sm:mt-8 min-w-0">
+        <Card className="col-span-full lg:col-span-4 min-w-0 overflow-hidden">
+          <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4">
             <CardTitle>Overview</CardTitle>
             <CardDescription>Revenue and visitors for the last 7 days.</CardDescription>
           </CardHeader>
-          <CardContent className="pl-2">
-             <ChartContainer config={chartConfig} className="w-full h-[300px]">
-              <BarChart data={salesChartData} accessibilityLayer>
+          <CardContent className="p-2 sm:p-6 pt-0 overflow-hidden min-w-0">
+             <ChartContainer config={chartConfig} className="w-full h-[240px] sm:h-[300px] min-w-0">
+              <BarChart data={salesChartData} accessibilityLayer margin={{ left: -15, right: -15, top: 10, bottom: 0 }}>
                 <CartesianGrid vertical={false} />
                 <XAxis
                   dataKey="date"
                   tickLine={false}
-                  tickMargin={10}
+                  tickMargin={8}
                   axisLine={false}
+                  fontSize={11}
                 />
-                 <YAxis yAxisId="left" stroke="hsl(var(--primary))" />
-                 <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--muted-foreground))" />
+                 <YAxis yAxisId="left" stroke="hsl(var(--primary))" fontSize={11} width={40} />
+                 <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--muted-foreground))" fontSize={11} width={30} />
                 <Tooltip
                     cursor={false}
                     content={<ChartTooltipContent 
@@ -238,19 +239,19 @@ export default function AdminDashboardPage() {
                         indicator="dot" 
                     />}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
                 <Bar dataKey="revenue" yAxisId="left" fill="var(--color-revenue)" radius={4} />
                 <Bar dataKey="visitors" yAxisId="right" fill="var(--color-visitors)" radius={4} />
               </BarChart>
             </ChartContainer>
           </CardContent>
         </Card>
-        <Card className="col-span-3">
-          <CardHeader>
+        <Card className="col-span-full lg:col-span-3 min-w-0 overflow-hidden">
+          <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4">
             <CardTitle>Recent Sales</CardTitle>
             <CardDescription>The 5 most recent orders placed.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 sm:p-6 pt-0 overflow-x-auto">
             <Table>
                 <TableBody>
                    {loading ? (

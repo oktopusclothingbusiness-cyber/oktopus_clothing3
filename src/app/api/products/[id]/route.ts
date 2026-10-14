@@ -69,6 +69,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         if (updateData.originalPrice === '') {
             updateData.originalPrice = undefined;
         }
+
+        if (typeof updateData.isMobileExclusive !== 'undefined') {
+            updateData.isMobileExclusive = Boolean(updateData.isMobileExclusive);
+        }
         
         if (updateData.category && !Array.isArray(updateData.category)) {
           updateData.category = [updateData.category];

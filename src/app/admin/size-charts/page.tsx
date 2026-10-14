@@ -113,9 +113,9 @@ export default function AdminSizeChartsPage() {
 
   return (
     <>
-      <h1 className="text-3xl font-bold mb-8">Size Chart Management</h1>
-      <div className="grid md:grid-cols-2 gap-8">
-        <div className="md:col-span-1">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Size Chart Management</h1>
+      <div className="grid md:grid-cols-2 gap-6 sm:gap-8 min-w-0 max-w-full">
+        <div className="md:col-span-1 min-w-0 w-full">
           <Card>
             <CardHeader>
               <CardTitle>{isEditing ? 'Edit Size Chart' : 'Add New Size Chart'}</CardTitle>
@@ -179,13 +179,14 @@ export default function AdminSizeChartsPage() {
                     <Label>Sizes (in {formData.unit})</Label>
                     <div className="space-y-2">
                         {formData.sizes.map((size, index) => (
-                            <div key={index} className="grid grid-cols-5 gap-2 items-center">
-                                <Input placeholder="Size" value={size.size} onChange={e => handleSizeChange(index, 'size', e.target.value)} className="col-span-1" />
-                                <Input type="number" placeholder="Chest" value={size.chest || ''} onChange={e => handleSizeChange(index, 'chest', e.target.value)} className="col-span-1" />
-                                <Input type="number" placeholder="Length" value={size.length || ''} onChange={e => handleSizeChange(index, 'length', e.target.value)} className="col-span-1" />
-                                <Input type="number" placeholder="Sleeve" value={size.sleeve || ''} onChange={e => handleSizeChange(index, 'sleeve', e.target.value)} className="col-span-1" />
-                                <Button type="button" variant="ghost" size="icon" onClick={() => removeSizeRow(index)} className="col-span-1">
-                                    <X className="h-4 w-4 text-destructive" />
+                            <div key={index} className="grid grid-cols-2 sm:grid-cols-5 gap-2 items-center p-2.5 sm:p-0 rounded-lg bg-muted/40 sm:bg-transparent border sm:border-0">
+                                <Input placeholder="Size (e.g. M)" value={size.size} onChange={e => handleSizeChange(index, 'size', e.target.value)} className="col-span-1 h-8 text-xs" />
+                                <Input type="number" placeholder="Chest" value={size.chest || ''} onChange={e => handleSizeChange(index, 'chest', e.target.value)} className="col-span-1 h-8 text-xs" />
+                                <Input type="number" placeholder="Length" value={size.length || ''} onChange={e => handleSizeChange(index, 'length', e.target.value)} className="col-span-1 h-8 text-xs" />
+                                <Input type="number" placeholder="Sleeve" value={size.sleeve || ''} onChange={e => handleSizeChange(index, 'sleeve', e.target.value)} className="col-span-1 h-8 text-xs" />
+                                <Button type="button" variant="ghost" size="sm" onClick={() => removeSizeRow(index)} className="col-span-2 sm:col-span-1 h-8 w-full sm:w-8 text-destructive text-xs justify-center">
+                                    <X className="h-4 w-4 mr-1 sm:mr-0" />
+                                    <span className="sm:hidden">Remove Size</span>
                                 </Button>
                             </div>
                         ))}
@@ -207,14 +208,14 @@ export default function AdminSizeChartsPage() {
             </CardContent>
           </Card>
         </div>
-        <div className="md:col-span-1">
-          <Card>
+        <div className="md:col-span-1 min-w-0 w-full">
+          <Card className="min-w-0 overflow-hidden">
             <CardHeader>
               <CardTitle>Manage Size Charts</CardTitle>
               <CardDescription>View, edit, or delete your existing size charts.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="border rounded-lg overflow-hidden">
+            <CardContent className="min-w-0 overflow-hidden p-3 sm:p-6">
+              <div className="border rounded-lg overflow-x-auto w-full max-w-full">
                 <Table>
                   <TableHeader>
                     <TableRow>

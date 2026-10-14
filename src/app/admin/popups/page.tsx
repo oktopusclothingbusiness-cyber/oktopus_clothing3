@@ -222,7 +222,7 @@ export default function AdminPopupsPage() {
               <CardDescription>View, edit, or delete your existing store popups.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="border rounded-lg overflow-hidden">
+              <div className="border rounded-lg overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>

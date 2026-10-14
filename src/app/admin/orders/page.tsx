@@ -271,20 +271,20 @@ export default function OrdersPage() {
   const paymentStatusOptions: PaymentStatus[] = ['pending', 'paid', 'paid externally'];
 
   return (
-    <>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div className="space-y-6 sm:space-y-8 min-w-0 max-w-full overflow-x-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Order Management</h1>
-          <p className="text-sm text-muted-foreground mt-1">View and manage all customer orders, or record in-store offline counter sales.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Order Management</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">View and manage all customer orders, or record in-store offline counter sales.</p>
         </div>
         <Button
           onClick={() => setIsOfflineModalOpen(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium flex items-center gap-2 shadow-md shrink-0"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium flex items-center gap-2 shadow-md shrink-0 w-fit"
         >
           <PlusCircle className="w-4 h-4" /> Record Offline Sale
         </Button>
       </div>
-      <Card>
+      <Card className="min-w-0 overflow-hidden">
         <CardHeader className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
@@ -350,7 +350,179 @@ export default function OrdersPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="border rounded-lg overflow-hidden">
+          {/* MOBILE ORDER CARDS VIEW (< md) */}
+          <div className="space-y-3 md:hidden">
+            {loading ? (
+              Array.from({ length: 4 }).map((_, idx) => (
+                <div key={idx} className="p-4 rounded-xl border bg-card space-y-3">
+                  <div className="flex justify-between items-center">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                  <Skeleton className="h-5 w-36" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <Skeleton className="h-9 w-full" />
+                    <Skeleton className="h-9 w-full" />
+                  </div>
+                </div>
+              ))
+            ) : sortedOrders.length > 0 ? (
+              sortedOrders.map((order) => {
+                const shortId = order.orderId
+                  ? (order.orderId.startsWith('#') ? order.orderId : `#${order.orderId}`)
+                  : order.invoiceNumber
+                  ? (order.invoiceNumber.startsWith('#') ? order.invoiceNumber : `#${order.invoiceNumber}`)
+                  : `#${order._id.slice(-6)}`;
+
+                return (
+                  <div
+                    key={order._id}
+                    className="p-4 rounded-xl border bg-card shadow-xs hover:border-primary/50 transition-all space-y-3"
+                  >
+                    {/* TOP: ORDER ID, DATE & BADGES */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-mono text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                          {shortId}
+                        </span>
+                        {(order.isOfflineSale || order.orderSource === 'offline') && (
+                          <Badge
+                            variant="outline"
+                            className="text-[9px] px-1.5 py-0 border-emerald-500/40 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                          >
+                            <Store className="w-2.5 h-2.5 mr-0.5" /> Offline
+                          </Badge>
+                        )}
+                        {order.orderSource === 'admin_invoice' && (
+                          <Badge
+                            variant="outline"
+                            className="text-[9px] px-1.5 py-0 border-purple-500/40 bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300"
+                          >
+                            <FileText className="w-2.5 h-2.5 mr-0.5" /> Invoice
+                          </Badge>
+                        )}
+                      </div>
+                      <span className="text-[11px] text-muted-foreground shrink-0">
+                        {format(new Date(order.createdAt), 'MMM d, yyyy')}
+                      </span>
+                    </div>
+
+                    {/* MIDDLE: CUSTOMER NAME & TOTAL */}
+                    <div className="flex items-center justify-between gap-2 border-b pb-2.5">
+                      <div>
+                        <div className="font-semibold text-sm leading-tight">{order.userName}</div>
+                        <div className="text-[11px] text-muted-foreground mt-0.5">
+                          {order.products?.length || 0} item(s) · {order.shippingAddress?.mobile || 'No mobile'}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-base font-black text-foreground">₹{order.total.toFixed(2)}</div>
+                        <div className="text-[10px] text-muted-foreground">Total Amount</div>
+                      </div>
+                    </div>
+
+                    {/* STATUS DROPDOWNS */}
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase">Order Status</label>
+                        <Select
+                          defaultValue={order.status}
+                          onValueChange={(value: OrderStatus) => handleStatusChange(order._id, value)}
+                        >
+                          <SelectTrigger className="h-8 text-xs w-full">
+                            <SelectValue>
+                              <Badge variant={getStatusVariant(order.status)} className="text-[10px] px-1.5 py-0">
+                                {order.status}
+                              </Badge>
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {statusOptions.map((status) => (
+                              <SelectItem key={status} value={status} className="text-xs">
+                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase">Payment</label>
+                        <Select
+                          value={order.paymentDetails?.paymentStatus || 'pending'}
+                          onValueChange={(value: PaymentStatus) => handlePaymentStatusChange(order._id, value)}
+                        >
+                          <SelectTrigger className="h-8 text-xs w-full">
+                            <SelectValue>
+                              <Badge
+                                variant={getPaymentStatusVariant(order.paymentDetails?.paymentStatus)}
+                                className="text-[10px] px-1.5 py-0"
+                              >
+                                {order.paymentDetails?.paymentStatus || 'pending'}
+                              </Badge>
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {paymentStatusOptions.map((status) => (
+                              <SelectItem key={status} value={status} disabled={status === 'paid'} className="text-xs">
+                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* ACTIONS: VIEW DETAILS & DELETE */}
+                    <div className="flex items-center justify-between pt-1 gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="flex-1 h-8 text-xs font-semibold gap-1.5"
+                        onClick={() => router.push(`/admin/orders/${order._id}`)}
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        View Order Details
+                      </Button>
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10 shrink-0">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the order.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteOrder(order._id)}>
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="p-8 text-center text-muted-foreground border rounded-xl bg-card">
+                <Search className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
+                <p className="font-semibold text-foreground text-sm">No matching orders found</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {searchQuery ? `No results found for "${searchQuery}".` : 'No orders match the selected filters.'}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* DESKTOP TABLE VIEW (>= md) */}
+          <div className="hidden md:block border rounded-lg overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -381,7 +553,7 @@ export default function OrdersPage() {
                       <TableCell><Skeleton className="h-8 w-28" /></TableCell>
                       <TableCell><Skeleton className="h-8 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                       <TableCell><Skeleton className="h-8 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-20" /></TableCell>
                     </TableRow>
                   ))
                 ) : sortedOrders.length > 0 ? (
@@ -526,6 +698,6 @@ export default function OrdersPage() {
         onOpenChange={setIsOfflineModalOpen}
         onOrderCreated={fetchOrders}
       />
-    </>
+    </div>
   );
 }

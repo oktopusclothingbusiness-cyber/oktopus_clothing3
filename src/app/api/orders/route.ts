@@ -76,6 +76,29 @@ export async function POST(request: Request) {
     
     const client = await clientPromise;
     const db = client.db();
+
+    // Verify whether any products are mobile app exclusive
+    const appSecret = request.headers.get('x-app-secret');
+    const isMobileAppReq = appSecret === 'okto_mobile_sec_2026_prod';
+    if (!isMobileAppReq && Array.isArray(products) && products.length > 0) {
+      const { ObjectId } = await import('mongodb');
+      const rawIds = products.map((p: any) => p.productId || p.id || p._id).filter(Boolean);
+      const validObjectIds = rawIds.filter((id: string) => ObjectId.isValid(id)).map((id: string) => new ObjectId(id));
+
+      const exclusiveCount = await db.collection('products').countDocuments({
+        $or: [
+          { _id: { $in: validObjectIds }, isMobileExclusive: true },
+          { id: { $in: rawIds }, isMobileExclusive: true },
+        ],
+      });
+
+      if (exclusiveCount > 0) {
+        return NextResponse.json(
+          { message: 'One or more items in your order are exclusive to the OKTOPUS mobile app and cannot be purchased via web checkout.' },
+          { status: 400 }
+        );
+      }
+    }
     
     const orderData = {
       userId,

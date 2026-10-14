@@ -10,9 +10,12 @@ import {
   Store,
   Search,
   X,
+  ArrowLeft,
+  Phone,
+  FileText,
 } from "lucide-react";
 import { OfflineSaleDialog } from "@/components/admin/offline-sale-dialog";
-import { getShortOrderId } from "@/lib/utils";
+import { getShortOrderId, cn } from "@/lib/utils";
 
 interface OrderItem {
   name: string;
@@ -177,8 +180,8 @@ export default function MobileOrdersManager() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Orders List */}
-        <div className="lg:col-span-5 space-y-4">
+        {/* Left Column: Orders List (Hidden on mobile when order is selected) */}
+        <div className={cn("lg:col-span-5 space-y-4", selectedOrder ? "hidden lg:block" : "block")}>
           <div className="bg-[#161616] border border-zinc-800 rounded-2xl p-5 space-y-3">
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <h3 className="text-sm font-bold text-white">Database Orders ({filteredOrders.length})</h3>
@@ -285,10 +288,21 @@ export default function MobileOrdersManager() {
           </div>
         </div>
 
-        {/* Right Column: Selected Order Fulfillment Details */}
-        <div className="lg:col-span-7">
+        {/* Right Column: Selected Order Fulfillment Details (Hidden on mobile when no order is selected) */}
+        <div className={cn("lg:col-span-7", !selectedOrder ? "hidden lg:block" : "block")}>
           {selectedOrder ? (
-            <div className="bg-[#161616] border border-zinc-800 rounded-2xl p-6 space-y-6 sticky top-20">
+            <div className="bg-[#161616] border border-zinc-800 rounded-2xl p-4 sm:p-6 space-y-5 sticky top-20">
+              {/* Mobile Back Button */}
+              <div className="lg:hidden">
+                <button
+                  type="button"
+                  onClick={() => setSelectedOrder(null)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-800 text-xs font-bold text-zinc-300 hover:text-white transition"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" /> Back to Orders List
+                </button>
+              </div>
+
               {/* Top Banner */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-4">
                 <div>
@@ -300,13 +314,20 @@ export default function MobileOrdersManager() {
                   </h3>
                 </div>
 
-                {/* Status Pipeline Dropdown */}
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs text-zinc-400 font-medium">Pipeline Status:</span>
+                {/* Actions: Invoice & Status Pipeline */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <a
+                    href={`/invoice/${selectedOrder._id}`}
+                    target="_blank"
+                    className="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-bold text-zinc-300 hover:text-white flex items-center gap-1.5 transition"
+                  >
+                    <FileText className="w-3.5 h-3.5" /> Invoice
+                  </a>
+
                   <select
                     value={selectedOrder.status}
                     onChange={(e) => updateOrderStatus(selectedOrder._id, e.target.value)}
-                    className="bg-zinc-900 border border-zinc-700 text-xs font-bold text-white rounded-xl px-3 py-1.5 focus:outline-none"
+                    className="bg-zinc-900 border border-zinc-700 text-xs font-bold text-white rounded-xl px-3 py-1.5 focus:outline-none cursor-pointer"
                   >
                     <option value="pending">Pending (Blue)</option>
                     <option value="processing">Processing (Purple)</option>
@@ -354,7 +375,17 @@ export default function MobileOrdersManager() {
                   {selectedOrder.shippingAddress?.address || "Address not specified"}
                 </p>
                 <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-2 border-t border-zinc-800">
-                  <span>Mobile: {selectedOrder.shippingAddress?.mobile || "N/A"}</span>
+                  <div className="flex items-center gap-1">
+                    <span>Mobile:</span>
+                    {selectedOrder.shippingAddress?.mobile ? (
+                      <a href={`tel:${selectedOrder.shippingAddress.mobile}`} className="text-white hover:underline font-bold flex items-center gap-1">
+                        <Phone className="w-2.5 h-2.5 text-zinc-400" />
+                        {selectedOrder.shippingAddress.mobile}
+                      </a>
+                    ) : (
+                      <span>N/A</span>
+                    )}
+                  </div>
                   {selectedOrder.shippingAddress?.latitude && (
                     <span className="text-emerald-400 font-mono">
                       GPS: {selectedOrder.shippingAddress.latitude.toFixed(4)},{" "}
