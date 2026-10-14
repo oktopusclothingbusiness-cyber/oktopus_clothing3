@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,11 +13,16 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
 import { useAuth } from "@/context/auth-context";
 import { MobileHeader } from "@/components/mobile-header";
 import { MobileFooter } from "@/components/mobile-footer";
-import { AnimatedMailIcon, AnimatedLockIcon, AnimatedEyeIcon, AnimatedGoogleIcon, AnimatedArrowIcon } from "@/components/icons/animated-icons";
+import {
+  AnimatedMailIcon,
+  AnimatedLockIcon,
+  AnimatedEyeIcon,
+  AnimatedGoogleIcon,
+  AnimatedArrowIcon,
+} from "@/components/icons/animated-icons";
 import { motion } from "framer-motion";
 
 const formSchema = z.object({
@@ -81,7 +85,7 @@ function LoginForm() {
         login(data.user);
         toast({
           title: "Login Successful",
-          description: "You have been successfully logged in.",
+          description: `Welcome back, ${data.user?.firstName || 'Collector'}!`,
         });
         if (data.user.role === 'admin') {
           router.push('/admin');
@@ -101,14 +105,14 @@ function LoginForm() {
           });
         } else {
           toast({
-            title: "Error",
-            description: data.message || "An error occurred during login.",
+            title: "Login Error",
+            description: data.message || "Invalid email or password.",
             variant: "destructive",
           });
         }
       }
     } catch (error) {
-      console.error(error);
+      console.error('Login error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
@@ -123,11 +127,11 @@ function LoginForm() {
       <div className="hidden md:flex flex-col min-h-screen bg-secondary/30">
         <Header />
         <main className="flex-grow flex items-center justify-center py-16 px-4">
-          <Card className="w-full max-w-md shadow-xl border border-border/60 backdrop-blur-sm bg-card/95 rounded-2xl">
+          <Card className="w-full max-w-md shadow-xl border border-border/60 backdrop-blur-sm bg-card/95 rounded-2xl overflow-hidden">
             <CardHeader className="space-y-1 text-center pt-8 pb-4">
               <CardTitle className="text-2xl font-bold tracking-tight">Login to Oktopus</CardTitle>
               <CardDescription className="text-sm text-muted-foreground">
-                Enter your email below to login to your account
+                Enter your email and password below to login to your account
               </CardDescription>
             </CardHeader>
             
@@ -260,7 +264,7 @@ function LoginForm() {
             transition={{ duration: 0.35, ease: "easeOut" }}
             className="w-full max-w-sm"
           >
-            <Card className="w-full shadow-sm border border-border/60 rounded-2xl bg-card">
+            <Card className="w-full shadow-sm border border-border/60 rounded-2xl bg-card overflow-hidden">
               <CardHeader className="text-center pt-6 pb-2">
                 <CardTitle className="text-2xl font-bold">Welcome Back!</CardTitle>
                 <CardDescription className="text-xs text-muted-foreground">
@@ -352,7 +356,7 @@ function LoginForm() {
 
                     {cooldownSeconds > 0 && (
                       <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive text-xs rounded-xl flex items-center gap-2">
-                        <span>⚠️ Rate limit active. Please wait <strong>{formatTime(cooldownSeconds)}</strong> before retrying.</span>
+                        <span>⚠️ Rate limit active. Please wait <strong>{formatTime(cooldownSeconds)}</strong>.</span>
                       </div>
                     )}
 
