@@ -30,7 +30,8 @@ import {
   Tag,
   Zap,
   Smartphone,
-  QrCode
+  QrCode,
+  ArrowRight
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -279,6 +280,18 @@ export default function ProductDetailPage() {
     const productId = product.id || (product as any)._id || '';
     const playStoreUrl = 'https://play.google.com/store/apps/details?id=com.anonymous.okto_app';
     const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
+    const isIOS = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isMobileDevice = isAndroid || isIOS;
+
+    // Desktop handling: Direct user to Google Play in a new tab + show guidance
+    if (!isMobileDevice) {
+      window.open(playStoreUrl, '_blank', 'noopener,noreferrer');
+      toast({
+        title: "Redirecting to Google Play",
+        description: "Install or open the OKTOPUS mobile app to unlock this exclusive drop.",
+      });
+      return;
+    }
 
     const start = Date.now();
     let appOpened = false;
@@ -300,20 +313,24 @@ export default function ProductDetailPage() {
     window.addEventListener('pagehide', cleanup);
     window.addEventListener('blur', cleanup);
 
-    // 1. Attempt to open installed app (using intent on Android for seamless package matching)
+    // 1. Attempt to launch installed app directly into this product
     if (isAndroid) {
-      window.location.href = `intent://products/${productId}#Intent;scheme=oktopus;package=com.anonymous.okto_app;end`;
-    } else {
+      // Android Intent with S.browser_fallback_url natively redirects to Google Play if app is not installed!
+      const intentUrl = `intent://products/${productId}#Intent;scheme=oktopus;package=com.anonymous.okto_app;S.browser_fallback_url=${encodeURIComponent(playStoreUrl)};end;`;
+      window.location.href = intentUrl;
+    } else if (isIOS) {
       window.location.href = `oktopus://products/${productId}`;
+    } else {
+      window.location.href = playStoreUrl;
     }
 
-    // 2. Fallback to Google Play Store if app is not installed
+    // 2. Safety fallback timer for non-Chrome Android browsers or iOS Safari if app is not installed
     setTimeout(() => {
       cleanup();
-      if (!appOpened && !document.hidden && Date.now() - start < 2500) {
+      if (!appOpened && !document.hidden && Date.now() - start < 3000) {
         window.location.href = playStoreUrl;
       }
-    }, 1200);
+    }, 1500);
   };
 
   const handleWishlistToggle = () => {
@@ -399,8 +416,8 @@ export default function ProductDetailPage() {
 
               <div className="hidden sm:flex items-center gap-2 shrink-0">
                 {product.isMobileExclusive ? (
-                  <Badge variant="outline" className="text-[11px] font-semibold bg-primary/10 text-primary border-primary/20 px-2.5 py-0.5">
-                    <Smartphone className="h-3 w-3 mr-1" /> Mobile App Exclusive
+                  <Badge className="text-xs font-bold tracking-wider bg-gradient-to-r from-stone-950 via-stone-900 to-stone-950 text-amber-400 border border-amber-500/40 px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5 uppercase">
+                    <Smartphone className="h-3.5 w-3.5 text-amber-400" /> App Exclusive Showcase
                   </Badge>
                 ) : (
                   <Badge variant="outline" className="text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 px-2.5 py-0.5">
@@ -431,8 +448,8 @@ export default function ProductDetailPage() {
                 {/* Badges */}
                 <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
                   {product.isMobileExclusive && (
-                    <Badge className="bg-stone-950/90 text-white border border-stone-700/80 font-bold text-xs px-3 py-1 uppercase tracking-wider shadow-md flex items-center gap-1.5">
-                      <Smartphone className="h-3.5 w-3.5" /> App Exclusive Drop
+                    <Badge className="bg-gradient-to-r from-stone-950 via-stone-900 to-stone-950 text-amber-400 border border-amber-500/40 font-bold text-xs px-3 py-1 uppercase tracking-wider shadow-lg rounded-full flex items-center gap-1.5 backdrop-blur-md">
+                      <Smartphone className="h-3.5 w-3.5 text-amber-400" /> App Exclusive Drop
                     </Badge>
                   )}
                   {discountPercent > 0 && (
@@ -544,7 +561,7 @@ export default function ProductDetailPage() {
                       Save ₹{(currentOriginalPrice! - currentPrice).toFixed(0)} ({discountPercent}% OFF)
                     </span>
                   )}
-                  {selectedFabric && (
+                  {!product.isMobileExclusive && selectedFabric && (
                     <Badge variant="outline" className="text-xs font-bold bg-primary/10 text-primary border-primary/20 px-2.5 py-0.5 ml-auto">
                       {selectedFabric.name}
                     </Badge>
@@ -563,8 +580,14 @@ export default function ProductDetailPage() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-xs font-medium">
                     <span className="font-bold text-foreground">
-                      1. Select Color: <span className="text-primary font-bold">{selectedColor || 'Default'}</span>
+                      {product.isMobileExclusive ? "Available Colorways:" : "1. Select Color:"}{" "}
+                      <span className="text-primary font-bold">{selectedColor || 'Default'}</span>
                     </span>
+                    {product.isMobileExclusive && (
+                      <span className="text-[11px] text-amber-500 font-semibold flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" /> Tap to preview shade
+                      </span>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {(product.colorVariants && product.colorVariants.length > 0
@@ -598,8 +621,8 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              {/* Step 2: Fabric Quality / Garment Category Selector (NEW) */}
-              {availableFabrics.length > 0 && (
+              {/* Step 2: Fabric Quality / Garment Category Selector (HIDDEN FOR APP EXCLUSIVE) */}
+              {!product.isMobileExclusive && availableFabrics.length > 0 && (
                 <div className="space-y-3 pt-1">
                   <div className="flex justify-between items-center text-xs font-medium">
                     <span className="font-bold text-foreground">
@@ -654,8 +677,8 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              {/* Step 3: Size Variant Selector (Pills) & Size Chart Link */}
-              {availableSizes.length > 0 && (
+              {/* Step 3: Size Variant Selector (Pills) & Size Chart Link (HIDDEN FOR APP EXCLUSIVE) */}
+              {!product.isMobileExclusive && availableSizes.length > 0 && (
                 <div className="space-y-3 pt-1">
                   <div className="flex justify-between items-center text-xs font-medium">
                     <span className="font-bold text-foreground">
@@ -720,62 +743,94 @@ export default function ProductDetailPage() {
 
               {/* Primary Action Buttons OR Mobile App Exclusive Showcase */}
               {product.isMobileExclusive ? (
-                <div className="p-5 rounded-2xl bg-card border border-border/80 space-y-4 shadow-sm">
-                  <div className="space-y-1.5">
+                <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-b from-card via-card to-secondary/30 border border-amber-500/30 space-y-5 shadow-lg relative overflow-hidden">
+                  {/* Subtle ambient gold glow */}
+                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+
+                  <div className="space-y-2 relative">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs font-bold px-2.5 py-0.5 border-border bg-secondary text-foreground flex items-center gap-1">
-                        <Smartphone className="h-3.5 w-3.5 text-foreground" /> Exclusive Drop
+                      <Badge className="text-xs font-bold px-2.5 py-0.5 bg-gradient-to-r from-stone-950 to-stone-900 text-amber-400 border border-amber-500/40 flex items-center gap-1 shadow-sm">
+                        <Smartphone className="h-3.5 w-3.5 text-amber-400" /> Mobile Showcase Edition
                       </Badge>
-                      <span className="text-xs font-semibold text-muted-foreground">Mobile App Only</span>
+                      <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" /> Exclusive App Access
+                      </span>
                     </div>
-                    <h3 className="text-base font-bold text-foreground">Available Exclusively on the OKTOPUS App</h3>
+                    <h3 className="text-lg font-black tracking-tight text-foreground font-serif">
+                      Exclusive to the OKTOPUS Mobile App
+                    </h3>
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      This drop is only available for purchase through our mobile app. Browse all craftsmanship details, color variants, and sizing here on the web, then open the app to complete your order.
+                      This limited drop is accessible exclusively through our mobile app. You can preview all colorways, gallery cuts, and craftsmanship here on the web. To choose sizing, customize fabric fits, and place your order, open the drop directly in our mobile app.
                     </p>
                   </div>
 
-                  {/* Action Buttons Row */}
+                  {/* Highlights row */}
+                  <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground pt-1">
+                    <div className="flex items-center gap-1.5 p-2 rounded-lg bg-background/60 border border-border/50">
+                      <Zap className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                      <span className="font-medium text-foreground">Direct App Deep Link</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 p-2 rounded-lg bg-background/60 border border-border/50">
+                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                      <span className="font-medium text-foreground">Member-Only Access</span>
+                    </div>
+                  </div>
+
+                  {/* Primary Action Button Row */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
                     <Button 
                       onClick={handleOpenInApp} 
                       size="lg"
-                      className="flex-1 h-14 md:h-15 text-sm sm:text-base font-black uppercase tracking-wider rounded-2xl shadow-xl transition-all duration-300 active:scale-95 bg-amber-400 hover:bg-amber-300 text-black px-4 flex items-center justify-center gap-2"
+                      className="flex-1 h-14 sm:h-15 text-sm sm:text-base font-black uppercase tracking-wider rounded-2xl shadow-xl transition-all duration-300 active:scale-95 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black px-4 flex items-center justify-center gap-2 group border-0"
                     >
-                      <Smartphone className="h-5 w-5 fill-black shrink-0" /> Open in App to Purchase
+                      <Smartphone className="h-5 w-5 fill-black shrink-0 transition-transform group-hover:scale-110" />
+                      <span>Open in OKTOPUS App</span>
+                      <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
                     </Button>
 
                     <Button 
                       onClick={handleWishlistToggle} 
                       size="lg" 
                       variant="outline"
-                      className="h-14 md:h-15 px-4 rounded-2xl border-2 border-border hover:bg-muted font-bold shrink-0 flex items-center justify-center gap-2 shadow-sm"
+                      className="h-14 sm:h-15 px-4 rounded-2xl border-2 border-border hover:bg-muted font-bold shrink-0 flex items-center justify-center gap-2 shadow-sm"
                       title={isWishlisted ? "Wishlisted" : "Add to Wishlist"}
                     >
                       <Heart className={cn("h-5 w-5 transition-colors", isWishlisted && "fill-red-500 text-red-500")} />
                       <span className="text-xs font-bold sm:hidden">{isWishlisted ? "Wishlisted" : "Wishlist"}</span>
                     </Button>
                   </div>
+                  <p className="text-[11px] text-center text-muted-foreground">
+                    Opens product directly in app if installed • Automatically redirects to Google Play Store otherwise
+                  </p>
 
                   {/* Desktop QR Code helper */}
-                  <div className="hidden sm:flex items-center gap-4 p-3.5 rounded-xl bg-muted/40 border border-border/60">
-                    <div className="w-20 h-20 bg-background rounded-lg p-1.5 border border-border/70 shrink-0 flex items-center justify-center">
+                  <div className="hidden sm:flex items-center gap-4 p-3.5 rounded-xl bg-background/80 border border-border/70 backdrop-blur-xs">
+                    <div className="w-20 h-20 bg-white rounded-lg p-1.5 border border-border/80 shrink-0 flex items-center justify-center shadow-xs">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
-                          'https://play.google.com/store/apps/details?id=com.anonymous.okto_app'
+                          `https://www.oktopusclothing.in/products/${product.id || (product as any)._id}`
                         )}&format=svg`}
-                        alt="Scan to open OKTOPUS App"
+                        alt="Scan to open on phone"
                         className="w-full h-full object-contain"
                       />
                     </div>
-                    <div className="space-y-0.5 text-xs">
+                    <div className="space-y-1 text-xs">
                       <p className="font-bold text-foreground flex items-center gap-1.5">
-                        <QrCode className="h-3.5 w-3.5 text-muted-foreground" />
-                        Scan with Phone to Open App
+                        <QrCode className="h-3.5 w-3.5 text-amber-500" />
+                        Scan with Smartphone Camera
                       </p>
                       <p className="text-[11px] text-muted-foreground leading-normal">
-                        Point your phone camera at the QR code to open or install the OKTOPUS app directly.
+                        Point your camera at this QR code to view this drop on your mobile phone and launch the app.
                       </p>
+                      <a
+                        href="https://play.google.com/store/apps/details?id=com.anonymous.okto_app"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-500 hover:underline pt-0.5"
+                      >
+                        View on Google Play Store →
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -893,9 +948,10 @@ export default function ProductDetailPage() {
             <>
               <Button 
                 onClick={handleOpenInApp}
-                className="flex-1 h-13 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl bg-amber-400 hover:bg-amber-300 text-black shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                className="flex-1 h-13 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black shadow-lg active:scale-95 flex items-center justify-center gap-2 border-0"
               >
-                <Smartphone className="h-4 w-4 shrink-0 fill-black" /> Open in App to Purchase
+                <Smartphone className="h-4 w-4 shrink-0 fill-black" /> Open in OKTOPUS App
+                <ArrowRight className="h-3.5 w-3.5 shrink-0" />
               </Button>
               <Button 
                 onClick={handleWishlistToggle}

@@ -63,15 +63,15 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
     const productId = product?.id || (product as any)?._id?.toString() || '';
     const productHref = productId ? `/products/${productId}` : '/products';
 
-    if (isMobile) {
+     if (isMobile) {
         return (
              <Card className="overflow-hidden group rounded-lg card-glass">
               <Link href={productHref}>
                 <div className="relative aspect-[3/4]">
                     <ProductImageSlider imageUrls={product.imageUrls} alt={product.name || 'Product'} isMobile={isMobile} />
                      {product.isMobileExclusive ? (
-                        <Badge className="absolute top-2 left-2 bg-stone-950/90 text-white border border-stone-700/80 text-[10px] font-semibold flex items-center gap-1 shadow-sm">
-                            <Smartphone className="h-3 w-3" /> App Exclusive
+                        <Badge className="absolute top-2 left-2 bg-gradient-to-r from-stone-950 via-stone-900 to-stone-950 text-amber-400 border border-amber-500/40 text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full shadow-lg backdrop-blur-md flex items-center gap-1">
+                            <Smartphone className="h-3 w-3 text-amber-400 shrink-0" /> App Exclusive
                         </Badge>
                      ) : isNew ? (
                         <Badge variant="destructive" className="absolute top-2 left-2">Fresh</Badge>
@@ -90,7 +90,13 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
                         <p className="text-xs text-muted-foreground line-through">₹{originalPriceFormatted}</p>
                     )}
                   </div>
-                   <p className="text-xs text-green-600">Get it by {deliveryDate}</p>
+                  {product.isMobileExclusive ? (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
+                      <Smartphone className="h-3 w-3" /> In Mobile App Only
+                    </p>
+                  ) : (
+                    <p className="text-xs text-green-600">Get it by {deliveryDate}</p>
+                  )}
                 </div>
               </Link>
             </Card>
@@ -103,8 +109,8 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
                 <div className="relative aspect-[3/4] bg-gray-100">
                     <ProductImageSlider imageUrls={product.imageUrls} alt={product.name || 'Product'} isMobile={isMobile} />
                      {product.isMobileExclusive ? (
-                        <Badge className="absolute top-3 left-3 bg-stone-950/90 text-white border border-stone-700/80 text-[11px] font-semibold flex items-center gap-1 shadow-sm">
-                            <Smartphone className="h-3.5 w-3.5" /> App Exclusive
+                        <Badge className="absolute top-3 left-3 bg-gradient-to-r from-stone-950 via-stone-900 to-stone-950 text-amber-400 border border-amber-500/40 text-[11px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full shadow-lg backdrop-blur-md flex items-center gap-1.5">
+                            <Smartphone className="h-3.5 w-3.5 text-amber-400 shrink-0" /> App Exclusive
                         </Badge>
                      ) : isNew ? (
                         <Badge variant="default" className="absolute top-3 left-3 bg-stone-900 text-white">New</Badge>
@@ -124,6 +130,11 @@ export function ProductCard({ product, isMobile = false }: { product: Product, i
                             <p className="text-md text-muted-foreground line-through">₹{originalPriceFormatted}</p>
                         )}
                     </div>
+                    {product.isMobileExclusive && (
+                      <p className="text-xs text-amber-600 dark:text-amber-400 font-bold mt-1.5 flex items-center justify-center gap-1">
+                        <Smartphone className="h-3.5 w-3.5" /> Mobile App Exclusive
+                      </p>
+                    )}
                 </CardContent>
             </Link>
         </Card>
