@@ -6,7 +6,7 @@ import { sendInvoiceEmail } from '@/lib/mail';
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = authenticateRequest(request, { requiredRole: 'admin', allowAppSecret: true });
+    const auth = authenticateRequest(request, { requiredPermission: 'invoices:view', allowAppSecret: true });
     if (!auth.authenticated) {
       return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
     }
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = authenticateRequest(request, { requiredRole: 'admin', allowAppSecret: true });
+    const auth = authenticateRequest(request, { requiredPermission: 'invoices:create', allowAppSecret: true });
     if (!auth.authenticated) {
       return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
     }

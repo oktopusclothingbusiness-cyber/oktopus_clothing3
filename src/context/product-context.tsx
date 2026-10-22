@@ -126,18 +126,19 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         method: 'DELETE',
       });
       if (!response.ok) {
-        throw new Error('Failed to delete product');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || (response.status === 403 ? 'Access denied: Your role does not permit deleting products.' : 'Failed to delete product'));
       }
       setProducts(prev => prev.filter(p => p.id !== productId));
       toast({
         title: "Product Deleted",
         description: "The product has been successfully deleted.",
       });
-    } catch (error) {
+    } catch (error: any) {
        console.error(error);
        toast({
-        title: 'Error',
-        description: 'Failed to delete the product.',
+        title: error?.message?.toLowerCase().includes('denied') || error?.message?.toLowerCase().includes('permission') || error?.message?.toLowerCase().includes('lacks') ? 'Permission Denied' : 'Error',
+        description: error?.message || 'Failed to delete the product.',
         variant: 'destructive',
       });
     }

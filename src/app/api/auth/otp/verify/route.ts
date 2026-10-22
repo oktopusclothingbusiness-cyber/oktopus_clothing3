@@ -106,7 +106,7 @@ export async function POST(request: Request) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const role = normalizedEmail === 'rbaskeydomi2018@gmail.com' ? 'admin' : 'user';
+    const role = normalizedEmail === 'rbaskeydomi2018@gmail.com' ? 'alpha_admin' : 'user';
 
     const insertResult = await db.collection('users').insertOne({
       firstName: String(firstName).trim(),
@@ -137,10 +137,16 @@ export async function POST(request: Request) {
       _id: userWithoutPassword._id.toString(),
     };
 
+    const finalRole =
+      userPayload.email?.toLowerCase().trim() === 'rbaskeydomi2018@gmail.com'
+        ? 'alpha_admin'
+        : userPayload.role || 'user';
+    userPayload.role = finalRole;
+
     const token = generateJWT({
       userId: userPayload.id,
       email: userPayload.email,
-      role: userPayload.role || 'user',
+      role: finalRole,
     });
 
     const response = NextResponse.json(

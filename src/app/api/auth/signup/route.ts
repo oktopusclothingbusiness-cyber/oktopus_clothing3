@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    const role = email.toLowerCase().trim() === 'rbaskeydomi2018@gmail.com' ? 'admin' : 'user';
+    const role = email.toLowerCase().trim() === 'rbaskeydomi2018@gmail.com' ? 'alpha_admin' : 'user';
 
     const result = await db.collection('users').insertOne({
       firstName,

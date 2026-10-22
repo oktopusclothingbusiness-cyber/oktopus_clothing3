@@ -1,11 +1,18 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import { triggerUserEventPushNotification } from '@/lib/pushNotifications';
+import { ALL_ROLES, ALPHA_ADMIN_EMAIL } from '@/lib/rbac';
+import { authenticateRequestAsync } from '@/lib/auth';
 
 // DELETE a user by ID
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await authenticateRequestAsync(request, { requiredPermission: 'users:delete' });
+    if (!auth.authenticated) {
+      return NextResponse.json({ message: auth.error || 'Forbidden' }, { status: auth.statusCode || 403 });
+    }
+
     const { id } = await params;
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ message: 'Invalid user ID.' }, { status: 400 });
@@ -13,6 +20,22 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
     const client = await clientPromise;
     const db = client.db();
+
+    const targetUser = await db.collection('users').findOne({ _id: new ObjectId(id) });
+    if (!targetUser) {
+      return NextResponse.json({ message: 'User not found.' }, { status: 404 });
+    }
+
+    // Protect Master Alpha Admin from deletion
+    if (
+      targetUser.email?.toLowerCase().trim() === ALPHA_ADMIN_EMAIL ||
+      targetUser.role === 'alpha_admin'
+    ) {
+      return NextResponse.json(
+        { message: 'The Master Alpha Admin account is protected and cannot be deleted.' },
+        { status: 403 }
+      );
+    }
 
     const result = await db.collection('users').deleteOne({ _id: new ObjectId(id) });
 
@@ -28,7 +51,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 }
 
 // PUT (update) a user by ID
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     if (!ObjectId.isValid(id)) {
@@ -59,12 +82,61 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ message: 'User not found.' }, { status: 404 });
     }
 
+    const isMasterUser =
+      existingUser.email?.toLowerCase().trim() === ALPHA_ADMIN_EMAIL;
+
+    // Protect Master Alpha Admin from demotion or suspension
+    if (isMasterUser) {
+      if (role && role !== 'alpha_admin') {
+        return NextResponse.json(
+          { message: 'The Master Alpha Admin role is permanently protected and cannot be modified.' },
+          { status: 403 }
+        );
+      }
+      if (status === 'suspended' || isBlocked === true) {
+        return NextResponse.json(
+          { message: 'The Master Alpha Admin account cannot be suspended or blocked.' },
+          { status: 403 }
+        );
+      }
+    }
+
     const updateData: { [key: string]: any } = { updatedAt: new Date() };
 
     if (role) {
-      if (!['user', 'admin'].includes(role)) {
-        return NextResponse.json({ message: 'Invalid role specified.' }, { status: 400 });
+      let isValidRole = ALL_ROLES.includes(role as any);
+      if (!isValidRole) {
+        // Check if role is an active custom role in MongoDB
+        const customRoleDoc = await db.collection('custom_roles').findOne({ id: role });
+        if (customRoleDoc) {
+          isValidRole = true;
+        }
       }
+
+      if (!isValidRole) {
+        return NextResponse.json(
+          { message: `Invalid role specified: '${role}'.` },
+          { status: 400 }
+        );
+      }
+
+      // Check permission to manage roles
+      const auth = await authenticateRequestAsync(request, { requiredPermission: 'users:manage_roles' });
+      if (!auth.authenticated) {
+        return NextResponse.json(
+          { message: auth.error || 'Forbidden: Insufficient privileges to change user roles.' },
+          { status: auth.statusCode || 403 }
+        );
+      }
+
+      // Only Alpha Admin can assign the alpha_admin role
+      if (role === 'alpha_admin' && auth.user?.role !== 'alpha_admin') {
+        return NextResponse.json(
+          { message: 'Forbidden: Only the Master Alpha Admin can grant Alpha Admin privileges.' },
+          { status: 403 }
+        );
+      }
+
       updateData.role = role;
     }
 
@@ -73,6 +145,16 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (mobile !== undefined) updateData.mobile = mobile;
     if (address !== undefined) updateData.address = address;
     if (profilePictureUrl !== undefined) updateData.profilePictureUrl = profilePictureUrl;
+
+    if (status !== undefined || isBlocked !== undefined) {
+      const auth = await authenticateRequestAsync(request, { requiredPermission: 'users:edit' });
+      if (!auth.authenticated) {
+        return NextResponse.json(
+          { message: auth.error || 'Forbidden: Insufficient privileges to modify user account status.' },
+          { status: auth.statusCode || 403 }
+        );
+      }
+    }
 
     if (status !== undefined) {
       if (!['active', 'suspended'].includes(status)) {

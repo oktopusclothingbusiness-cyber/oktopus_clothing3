@@ -35,9 +35,19 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST a new product
-export async function POST(request: Request) {
+import { authenticateRequestAsync } from '@/lib/auth';
+
+// POST a new product (Requires products:edit permission)
+export async function POST(request: NextRequest) {
   try {
+    const auth = await authenticateRequestAsync(request, { requiredPermission: 'products:edit', allowAppSecret: true });
+    if (!auth.authenticated) {
+      return NextResponse.json(
+        { message: auth.error || 'Access denied: products:edit permission required.' },
+        { status: auth.statusCode || 403 }
+      );
+    }
+
     const product = await request.json();
     
     // Basic validation

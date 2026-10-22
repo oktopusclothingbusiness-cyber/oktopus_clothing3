@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 // POST create a new mobile-exclusive coupon (Admin)
 export async function POST(request: NextRequest) {
   try {
-    const auth = authenticateRequest(request, { requiredRole: 'admin', allowAppSecret: true });
+    const auth = authenticateRequest(request, { requiredPermission: 'coupons:edit', allowAppSecret: true });
     if (!auth.authenticated) {
       return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
     }

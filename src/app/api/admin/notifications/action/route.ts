@@ -5,7 +5,7 @@ import { authenticateRequest } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = authenticateRequest(request, { requiredRole: 'admin', allowAppSecret: true });
+    const auth = authenticateRequest(request, { requiredPermission: 'manage_products', allowAppSecret: true });
     if (!auth.authenticated) {
       return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
     }

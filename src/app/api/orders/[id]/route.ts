@@ -58,7 +58,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 // PUT (update) an order by ID (Requires Admin Privileges)
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const auth = authenticateRequest(request, { requiredRole: 'admin', allowAppSecret: true });
+    const auth = authenticateRequest(request, { requiredPermission: 'orders:edit', allowAppSecret: true });
     if (!auth.authenticated) {
       return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
     }
@@ -163,7 +163,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 // DELETE an order by ID (Requires Admin Privileges)
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const auth = authenticateRequest(request, { requiredRole: 'admin', allowAppSecret: true });
+        const auth = authenticateRequest(request, { requiredPermission: 'orders:delete', allowAppSecret: true });
         if (!auth.authenticated) {
           return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
         }

@@ -48,6 +48,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useProduct, Product } from '@/context/product-context';
+import { useAuth } from '@/context/auth-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { useCategory } from '@/context/category-context';
@@ -182,6 +183,9 @@ const emptyProduct: ProductFormData = {
 };
 
 export default function AdminProductsPage() {
+  const { hasPermission, isAlphaAdmin } = useAuth();
+  const canDeleteProduct = isAlphaAdmin || hasPermission('products:delete');
+  const canEditProduct = isAlphaAdmin || hasPermission('products:edit');
   const { products, addProduct, deleteProduct, updateProduct, setHeroProduct, loading, fetchProducts } = useProduct();
   const { categories, loading: categoriesLoading } = useCategory();
   const [formData, setFormData] = React.useState<ProductFormData>(emptyProduct);
@@ -195,6 +199,23 @@ export default function AdminProductsPage() {
   const [viewMode, setViewMode] = React.useState<'table' | 'grid'>('table');
   const { toast } = useToast();
   const [openCategorySelector, setOpenCategorySelector] = React.useState(false);
+
+  const handleDeleteProduct = async (productId: string, productName?: string) => {
+    if (!canDeleteProduct) {
+      toast({
+        title: 'Action Prohibited',
+        description: 'You do not have permission to delete products (requires products:delete privilege).',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to permanently delete ${productName ? `"${productName}"` : 'this product'}? This action cannot be undone.`)) {
+      return;
+    }
+
+    await deleteProduct(productId);
+  };
 
   // Automatically default to grid cards view on mobile screens
   React.useEffect(() => {
@@ -1820,12 +1841,16 @@ export default function AdminProductsPage() {
                             />
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditClick(product)}>
-                              <Edit className="h-3.5 w-3.5 text-foreground" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteProduct(product.id)}>
-                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                            </Button>
+                            {canEditProduct && (
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditClick(product)} title="Edit Product">
+                                <Edit className="h-3.5 w-3.5 text-foreground" />
+                              </Button>
+                            )}
+                            {canDeleteProduct && (
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteProduct(product.id, product.name)} title="Delete Product">
+                                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       );
@@ -1931,12 +1956,16 @@ export default function AdminProductsPage() {
                           </Button>
 
                           <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditClick(product)}>
-                              <Edit className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteProduct(product.id)}>
-                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                            </Button>
+                            {canEditProduct && (
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditClick(product)} title="Edit Product">
+                                <Edit className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                            {canDeleteProduct && (
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteProduct(product.id, product.name)} title="Delete Product">
+                                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </CardContent>

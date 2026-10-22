@@ -93,10 +93,16 @@ export async function POST(request: Request) {
 
       const { password, ...userWithoutPassword } = (user as any) || {};
 
+      const effectiveRole =
+        (user as any).email?.toLowerCase().trim() === 'rbaskeydomi2018@gmail.com'
+          ? 'alpha_admin'
+          : (user as any).role || 'user';
+      userWithoutPassword.role = effectiveRole;
+
       const token = generateJWT({
         userId: (user as any)._id.toString(),
         email: (user as any).email,
-        role: (user as any).role || 'user',
+        role: effectiveRole,
       });
 
       const response = NextResponse.json(
@@ -129,7 +135,7 @@ export async function POST(request: Request) {
         profilePictureUrl: effectivePhoto,
         authProvider: authProvider || 'google',
         oktocoins: 100, // 100 Welcome Oktocoins
-        role: userEmail === 'rbaskeydomi2018@gmail.com' ? 'admin' : 'user',
+        role: userEmail === 'rbaskeydomi2018@gmail.com' ? 'alpha_admin' : 'user',
         status: 'active',
         isBlocked: false,
         registrationIp: ip,
@@ -146,10 +152,16 @@ export async function POST(request: Request) {
       const insertedUser = await usersCollection.findOne({ _id: result.insertedId });
       const { password, ...userWithoutPassword } = (insertedUser as any) || {};
 
+      const finalRole =
+        insertedUser!.email?.toLowerCase().trim() === 'rbaskeydomi2018@gmail.com'
+          ? 'alpha_admin'
+          : insertedUser!.role || 'user';
+      userWithoutPassword.role = finalRole;
+
       const token = generateJWT({
         userId: insertedUser!._id.toString(),
         email: insertedUser!.email,
-        role: insertedUser!.role || 'user',
+        role: finalRole,
       });
 
       const response = NextResponse.json(

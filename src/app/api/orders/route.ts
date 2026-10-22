@@ -28,7 +28,7 @@ const geocodeAddress = async (address: string) => {
 // GET all orders (for admin - requires Admin Auth)
 export async function GET(request: NextRequest) {
   try {
-    const auth = authenticateRequest(request, { requiredRole: 'admin', allowAppSecret: true });
+    const auth = authenticateRequest(request, { requiredPermission: 'orders:view', allowAppSecret: true });
     if (!auth.authenticated) {
       return NextResponse.json({ message: auth.error || 'Unauthorized access to orders.' }, { status: auth.statusCode || 401 });
     }

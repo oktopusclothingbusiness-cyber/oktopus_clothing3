@@ -13,6 +13,7 @@ import { ThemeToggle } from "./theme-toggle";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import BaskeyAttribution from "./baskey-attribution";
+import { isStaffRole } from "@/lib/rbac";
 
 export function Header() {
   const { cart } = useCart();
@@ -115,7 +116,7 @@ export function Header() {
               </Link>
             </Button>
           )}
-          {user?.role === 'admin' && (
+          {isStaffRole(user?.role) && (
             <Button asChild variant="ghost" size="icon">
               <Link href="/admin">
                 <Shield className="h-5 w-5" />

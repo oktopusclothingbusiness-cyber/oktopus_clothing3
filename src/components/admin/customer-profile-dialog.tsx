@@ -44,8 +44,11 @@ import {
   Clock,
   Download,
   Package,
+  Crown,
+  Lock,
 } from 'lucide-react';
 import { IssueInvoiceDialog } from '@/components/admin/issue-invoice-dialog';
+import { ROLE_METADATA, isAlphaAdmin, getRoleMetadata } from '@/lib/rbac';
 
 interface CustomerProfileDialogProps {
   user: User | null;
@@ -273,9 +276,16 @@ export function CustomerProfileDialog({
                   >
                     {isSuspended ? 'Suspended' : 'Active'}
                   </Badge>
-                  <Badge variant="secondary" className="text-[10px] uppercase px-1.5 py-0">
-                    {user.role}
-                  </Badge>
+                  {isAlphaAdmin(user.email, user.role) ? (
+                    <Badge className="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] gap-1 px-2 py-0.5 shadow-xs">
+                      <Crown className="w-3 h-3 text-amber-400 fill-amber-400" />
+                      <span>Alpha Admin</span>
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className={`text-[10px] font-medium border ${getRoleMetadata(user.role).color}`}>
+                      {getRoleMetadata(user.role).title}
+                    </Badge>
+                  )}
                 </div>
                 <DialogDescription className="text-xs text-muted-foreground truncate font-mono mt-0.5">
                   {user.email}
@@ -300,28 +310,41 @@ export function CustomerProfileDialog({
                 </Button>
               )}
 
-              <Button
-                size="sm"
-                variant={isSuspended ? 'default' : 'destructive'}
-                className="h-8 text-xs gap-1.5 font-semibold"
-                disabled={isSubmitting}
-                onClick={() => {
-                  if (isSuspended) {
-                    handleToggleSuspension();
-                  } else {
-                    setShowSuspendInput(!showSuspendInput);
-                  }
-                }}
-              >
-                {isSubmitting ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : isSuspended ? (
-                  <UserCheck className="w-3.5 h-3.5" />
-                ) : (
-                  <UserX className="w-3.5 h-3.5" />
-                )}
-                <span>{isSuspended ? 'Reactivate' : 'Suspend'}</span>
-              </Button>
+              {isAlphaAdmin(user.email, user.role) ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled
+                  className="h-8 text-xs gap-1.5 opacity-50 cursor-not-allowed"
+                  title="Master Alpha Admin account is permanently active"
+                >
+                  <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span>Permanent Active</span>
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant={isSuspended ? 'default' : 'destructive'}
+                  className="h-8 text-xs gap-1.5 font-semibold"
+                  disabled={isSubmitting}
+                  onClick={() => {
+                    if (isSuspended) {
+                      handleToggleSuspension();
+                    } else {
+                      setShowSuspendInput(!showSuspendInput);
+                    }
+                  }}
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : isSuspended ? (
+                    <UserCheck className="w-3.5 h-3.5" />
+                  ) : (
+                    <UserX className="w-3.5 h-3.5" />
+                  )}
+                  <span>{isSuspended ? 'Reactivate' : 'Suspend'}</span>
+                </Button>
+              )}
             </div>
           </div>
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 import clientPromise from '@/lib/mongodb';
+import { authenticateRequest } from '@/lib/auth';
 
 // GET single poster
 export async function GET(
@@ -34,6 +35,11 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = authenticateRequest(request, { requiredPermission: 'content:edit', allowAppSecret: true });
+    if (!auth.authenticated) {
+      return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
+    }
+
     const { id } = await params;
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ message: 'Invalid poster ID.' }, { status: 400 });
@@ -88,6 +94,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = authenticateRequest(request, { requiredPermission: 'content:edit', allowAppSecret: true });
+    if (!auth.authenticated) {
+      return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
+    }
+
     const { id } = await params;
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ message: 'Invalid poster ID.' }, { status: 400 });

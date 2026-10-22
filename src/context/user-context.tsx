@@ -4,6 +4,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
+import { UserRole, isStaffRole } from '@/lib/rbac';
 
 export type User = {
   _id: string;
@@ -11,7 +12,7 @@ export type User = {
   firstName: string;
   lastName: string;
   email: string;
-  role: 'user' | 'admin';
+  role: UserRole;
   createdAt: string;
   mobile?: string;
   phone?: string;
@@ -43,7 +44,7 @@ type UserContextType = {
   users: User[];
   loading: boolean;
   deleteUser: (userId: string) => Promise<void>;
-  updateUserRole: (userId: string, role: 'user' | 'admin') => Promise<void>;
+  updateUserRole: (userId: string, role: UserRole) => Promise<void>;
   updateUserOktocoins: (userId: string, oktocoins: number) => Promise<void>;
   toggleUserSuspension: (userId: string, suspend: boolean, reason?: string) => Promise<boolean>;
   blockIpAddress: (ip: string, reason?: string) => Promise<boolean>;
@@ -61,7 +62,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchUsers = useCallback(async () => {
     if (authLoading) return;
-    if (user?.role !== 'admin') {
+    if (!isStaffRole(user?.role)) {
       setLoading(false);
       setUsers([]);
       return;
@@ -72,7 +73,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const response = await fetch('/api/users');
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
-          throw new Error('Admin session expired or unauthorized. Please re-login.');
+          throw new Error('Staff session expired or unauthorized. Please re-login.');
         }
         throw new Error('Failed to fetch users');
       }
@@ -84,8 +85,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     } catch (error: any) {
       console.error(error);
       toast({
-        title: 'Admin Authorization Needed',
-        description: error?.message || 'Could not load users from the database. Please log out and log back in as Admin.',
+        title: 'Authorization Needed',
+        description: error?.message || 'Could not load users from the database. Please log out and log back in.',
         variant: 'destructive',
       });
     } finally {
@@ -103,24 +104,25 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         method: 'DELETE',
       });
       if (!response.ok) {
-        throw new Error('Failed to delete user');
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to delete user');
       }
       setUsers(prev => prev.filter(u => u.id !== userId));
       toast({
         title: "User Deleted",
         description: "The user has been successfully deleted.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       toast({
         title: 'Error',
-        description: 'Failed to delete the user.',
+        description: error?.message || 'Failed to delete the user.',
         variant: 'destructive',
       });
     }
   };
   
-  const updateUserRole = async (userId: string, role: 'user' | 'admin') => {
+  const updateUserRole = async (userId: string, role: UserRole) => {
     try {
       const response = await fetch(`/api/users/${userId}`, {
         method: 'PUT',
@@ -128,22 +130,24 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         body: JSON.stringify({ role }),
       });
       if (!response.ok) {
-        throw new Error('Failed to update user role');
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to update user role');
       }
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, role } : u));
       toast({
         title: "User Role Updated",
-        description: `The user role has been updated to ${role}.`,
+        description: `User role has been changed to ${role}.`,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       toast({
-        title: 'Error',
-        description: 'Failed to update the user role.',
+        title: 'Role Update Error',
+        description: error?.message || 'Failed to update user role.',
         variant: 'destructive',
       });
     }
   };
+
 
   const updateUserOktocoins = async (userId: string, oktocoins: number) => {
     try {

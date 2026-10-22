@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
+import { authenticateRequest } from '@/lib/auth';
 
 // GET all posters or filter active for current page
 export async function GET(request: NextRequest) {
@@ -77,6 +78,11 @@ export async function GET(request: NextRequest) {
 // POST create a new poster
 export async function POST(request: NextRequest) {
   try {
+    const auth = authenticateRequest(request, { requiredPermission: 'content:edit', allowAppSecret: true });
+    if (!auth.authenticated) {
+      return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
+    }
+
     const data = await request.json();
 
     if (!data.title || !data.desktopImageUrl) {

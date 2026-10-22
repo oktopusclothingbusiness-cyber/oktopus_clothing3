@@ -1,11 +1,20 @@
 
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
+import { authenticateRequestAsync } from '@/lib/auth';
 
 // DELETE a size chart by ID
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await authenticateRequestAsync(request, { requiredPermission: 'manage_categories', allowAppSecret: true });
+    if (!auth.authenticated) {
+      return NextResponse.json(
+        { message: auth.error || 'Access denied: manage_categories permission required.' },
+        { status: auth.statusCode || 403 }
+      );
+    }
+
     const { id } = await params;
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ message: 'Invalid size chart ID.' }, { status: 400 });
@@ -28,8 +37,16 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 }
 
 // PUT (update) a size chart by ID
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const auth = await authenticateRequestAsync(request, { requiredPermission: 'manage_categories', allowAppSecret: true });
+        if (!auth.authenticated) {
+          return NextResponse.json(
+            { message: auth.error || 'Access denied: manage_categories permission required.' },
+            { status: auth.statusCode || 403 }
+          );
+        }
+
         const { id } = await params;
         if (!ObjectId.isValid(id)) {
             return NextResponse.json({ message: 'Invalid size chart ID.' }, { status: 400 });

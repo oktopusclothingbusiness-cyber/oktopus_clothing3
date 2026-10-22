@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
-import { authenticateRequest } from '@/lib/auth';
+import { authenticateRequestAsync } from '@/lib/auth';
 
 // GET all users (Requires Admin Auth)
 export async function GET(request: NextRequest) {
   try {
-    const auth = authenticateRequest(request, { requiredRole: 'admin', allowAppSecret: true });
+    const auth = await authenticateRequestAsync(request, { requiredPermission: 'users:view', allowAppSecret: true });
     if (!auth.authenticated) {
       return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
     }

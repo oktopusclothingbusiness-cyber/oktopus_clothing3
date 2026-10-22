@@ -15,14 +15,22 @@ import {
   signInWithPhoneNumber,
   ConfirmationResult
 } from "firebase/auth";
+import {
+  UserRole,
+  Permission,
+  isStaffRole,
+  isAlphaAdmin,
+  hasPermission,
+  ALPHA_ADMIN_EMAIL,
+} from "@/lib/rbac";
 
-type User = {
+export type User = {
     _id: string;
     id: string;
     firstName: string;
     lastName: string;
     email: string;
-    role: 'user' | 'admin';
+    role: UserRole;
     mobile?: string;
     address?: string;
     profilePictureUrl?: string;
@@ -42,6 +50,9 @@ type AuthContextType = {
   removeFromWishlist: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
   refreshUser: () => Promise<void>;
+  isStaff: boolean;
+  isAlphaAdmin: boolean;
+  hasPermission: (permission: Permission) => boolean;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,17 +64,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   
   const refreshUser = useCallback(async () => {
-    if (!user?._id) return;
     try {
-      const response = await fetch(`/api/users/by-id/${user._id}`);
+      const response = await fetch('/api/auth/me');
       if (response.ok) {
-        const updatedUser = await response.json();
-        login(updatedUser);
+        const data = await response.json();
+        if (data.authenticated && data.user) {
+          login(data.user);
+          return data.user;
+        }
+      } else if (user?._id || user?.id) {
+        const uid = user._id || user.id;
+        const res = await fetch(`/api/users/by-id/${uid}`);
+        if (res.ok) {
+          const updatedUser = await res.json();
+          login(updatedUser);
+          return updatedUser;
+        }
       }
     } catch (error) {
       console.error("Failed to refresh user data", error);
     }
-  }, [user?._id]);
+    return null;
+  }, [user?._id, user?.id]);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -75,24 +97,51 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
-          setUser(JSON.parse(storedUser));
+          try {
+            setUser(JSON.parse(storedUser));
+          } catch (e) {}
+        }
+
+        // Live sync with server database to get real-time assigned role
+        try {
+          const res = await fetch('/api/auth/me');
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.authenticated && data?.user) {
+              login(data.user);
+            }
+          }
+        } catch (e) {
+          // Keep storedUser as fallback if network fails
         }
       } catch (error) {
-        console.error("Failed to set auth persistence or parse user from local storage", error);
+        console.error("Failed to initialize auth", error);
       } finally {
-          setLoading(false);
+        setLoading(false);
       }
     };
     initializeAuth();
   }, []);
 
   const login = (userData: User) => {
-    const userToStore = { ...userData, id: userData._id, wishlist: userData.wishlist || [], oktocoins: userData.oktocoins || 0 };
+    let assignedRole = userData.role || 'user';
+    if (userData.email && userData.email.toLowerCase().trim() === ALPHA_ADMIN_EMAIL) {
+      assignedRole = 'alpha_admin';
+    }
+    const resolvedId = userData._id || userData.id;
+    const userToStore = {
+      ...userData,
+      _id: resolvedId,
+      id: resolvedId,
+      role: assignedRole,
+      wishlist: userData.wishlist || [],
+      oktocoins: userData.oktocoins || 0,
+    };
     setUser(userToStore);
     try {
       localStorage.setItem('user', JSON.stringify(userToStore));
     } catch (error) {
-        console.error("Failed to save user to local storage", error);
+      console.error("Failed to save user to local storage", error);
     }
   };
 
@@ -151,7 +200,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             title: "Sign-In Successful",
             description: "Welcome back!",
           });
-          if (data.user.role === 'admin') {
+          if (isStaffRole(data.user.role)) {
             router.push('/admin');
           } else {
             router.push('/store');
@@ -225,7 +274,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           title: data.isNewUser ? "Welcome to Oktopus!" : "Login Successful",
           description: data.isNewUser ? "You earned 100 Oktocoins welcome bonus!" : "Welcome back!",
         });
-        if (data.user.role === 'admin') {
+        if (isStaffRole(data.user.role)) {
           router.push('/admin');
         } else {
           router.push('/store');
@@ -307,6 +356,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         removeFromWishlist,
         isInWishlist,
         refreshUser,
+        isStaff: isStaffRole(user?.role),
+        isAlphaAdmin: isAlphaAdmin(user),
+        hasPermission: (permission: Permission) => hasPermission(user?.role, permission, user?.email),
       }}
     >
       {children}

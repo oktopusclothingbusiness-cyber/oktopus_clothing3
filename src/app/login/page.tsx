@@ -24,6 +24,7 @@ import {
   AnimatedArrowIcon,
 } from "@/components/icons/animated-icons";
 import { motion } from "framer-motion";
+import { isStaffRole } from "@/lib/rbac";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -87,7 +88,7 @@ function LoginForm() {
           title: "Login Successful",
           description: `Welcome back, ${data.user?.firstName || 'Collector'}!`,
         });
-        if (data.user.role === 'admin') {
+        if (isStaffRole(data.user.role)) {
           router.push('/admin');
         } else if (redirectPath) {
           router.push(redirectPath);

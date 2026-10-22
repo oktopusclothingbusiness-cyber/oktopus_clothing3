@@ -29,11 +29,13 @@ import {
   ChevronRight,
   Loader2,
   ShieldAlert,
+  ShieldCheck,
   Bell,
   Receipt,
   Menu,
   X,
   Sparkles,
+  Crown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -44,6 +46,14 @@ import { AdminCommandPalette } from '@/components/admin/admin-command-palette';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Badge } from '@/components/ui/badge';
 import { AdminViewSwitcherButton, AdminViewSwitcherSidebar } from '@/components/admin/admin-view-switcher';
+import {
+  UserRole,
+  ROLE_METADATA,
+  isStaffRole,
+  canAccessAdminRoute,
+  isAlphaAdmin,
+  getRoleMetadata,
+} from '@/lib/rbac';
 
 type NavGroup = {
   title: string;
@@ -54,12 +64,89 @@ type NavGroup = {
   }[];
 };
 
+const RAW_NAV_GROUPS: NavGroup[] = [
+  {
+    title: 'Overview',
+    items: [
+      { href: '/admin', label: 'Dashboard', icon: Home },
+      { href: '/admin/statistics', label: 'Analytics', icon: BarChart },
+    ],
+  },
+  {
+    title: 'Catalog & Inventory',
+    items: [
+      { href: '/admin/products', label: 'Products', icon: Shirt },
+      { href: '/admin/batch-tasks', label: 'Batch Tasks', icon: Layers },
+      { href: '/admin/categories', label: 'Categories', icon: Shapes },
+      { href: '/admin/size-charts', label: 'Size Charts', icon: Ruler },
+    ],
+  },
+  {
+    title: 'Sales & Customers',
+    items: [
+      { href: '/admin/orders', label: 'Orders', icon: Package },
+      { href: '/admin/invoices', label: 'Invoices', icon: Receipt },
+      { href: '/admin/users', label: 'Team & Access Control', icon: ShieldCheck },
+      { href: '/admin/custom-designs', label: 'Custom Designs', icon: Palette },
+      { href: '/admin/shipping', label: 'Shipping', icon: Truck },
+    ],
+  },
+  {
+    title: 'Marketing & Loyalty',
+    items: [
+      { href: '/admin/promotions', label: 'Promotions', icon: Megaphone },
+      { href: '/admin/coupons', label: 'Coupons', icon: Ticket },
+      { href: '/admin/rewards', label: 'Rewards', icon: Gift },
+      { href: '/admin/posters', label: 'Exclusive Posters', icon: Sparkles },
+      { href: '/admin/popups', label: 'Popups', icon: MessageSquare },
+      { href: '/admin/emails', label: 'Promotional Emails', icon: Mail },
+      { href: '/admin/notifications', label: 'Push Notifications', icon: Bell },
+      { href: '/admin/trends', label: 'Trends', icon: TrendingUp },
+    ],
+  },
+  {
+    title: 'System & Theme',
+    items: [
+      { href: '/admin/palette', label: 'Palette', icon: Palette },
+      { href: '/admin/users?tab=permissions', label: 'Roles & Permissions Matrix', icon: ShieldCheck },
+      { href: '/admin/settings', label: 'Settings', icon: Settings },
+    ],
+  },
+];
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { user, logout, loading: authLoading } = useAuth();
+  const { user, logout, loading: authLoading, refreshUser } = useAuth();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = React.useState(false);
+  const [isVerifyingStaff, setIsVerifyingStaff] = React.useState(!isStaffRole(user?.role));
+
+  // Live verification with server DB in case user role was recently updated
+  React.useEffect(() => {
+    if (isStaffRole(user?.role)) {
+      setIsVerifyingStaff(false);
+      return;
+    }
+
+    let isMounted = true;
+    fetch('/api/auth/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!isMounted) return;
+        if (data?.authenticated && data?.user) {
+          refreshUser();
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (isMounted) setIsVerifyingStaff(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.role, refreshUser]);
 
   // Close mobile drawer whenever route changes
   React.useEffect(() => {
@@ -96,7 +183,48 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
   }, []);
 
-  if (authLoading) {
+  // Dynamically filter navigation groups based on the active user's permissions
+  const navGroups: NavGroup[] = React.useMemo(() => {
+    return RAW_NAV_GROUPS
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) =>
+          canAccessAdminRoute(user?.role, item.href, user?.email)
+        ),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [user?.role, user?.email]);
+
+  // Auto-route staff with specialized roles (like products_manager) to their primary authorized section
+  React.useEffect(() => {
+    if (authLoading || isVerifyingStaff) return;
+    if (
+      pathname === '/admin' &&
+      isStaffRole(user?.role) &&
+      !isAlphaAdmin(user) &&
+      user?.role !== 'admin'
+    ) {
+      const isOverviewRole = user?.role === 'customer_support';
+      if (!isOverviewRole) {
+        const availableItems = navGroups.flatMap((g) => g.items);
+        const primaryTarget = availableItems.find((item) => item.href !== '/admin');
+        if (primaryTarget) {
+          router.replace(primaryTarget.href);
+        }
+      }
+    }
+  }, [pathname, user?.role, navGroups, router, user, authLoading, isVerifyingStaff]);
+
+  // Derive current page title for breadcrumb
+  const allNavItems = RAW_NAV_GROUPS.flatMap((g) => g.items);
+  const activeNavItem = allNavItems.find((item) => item.href === pathname);
+  const currentPageTitle = activeNavItem ? activeNavItem.label : 'Admin';
+
+  // Check if current user has permission to access the active pathname
+  const hasRouteAccess = canAccessAdminRoute(user?.role, pathname, user?.email);
+
+  // Loading state
+  if (authLoading || isVerifyingStaff) {
     return (
       <div className="flex flex-col min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -105,7 +233,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  if (user?.role !== 'admin') {
+  // Deny access if user is not staff (e.g. regular customer or guest)
+  if (!isStaffRole(user?.role)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
         <Card className="w-full max-w-md text-center shadow-lg">
@@ -116,7 +245,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            You do not have administrative privileges to access this area. Please log in with an admin account.
+            You do not have staff or administrative privileges to access the Oktopus Admin Workspace. Please sign in with an authorized staff account.
           </CardContent>
           <CardFooter>
             <Button className="w-full" onClick={() => router.push('/login')}>
@@ -127,60 +256,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
     );
   }
-
-  const navGroups: NavGroup[] = [
-    {
-      title: 'Overview',
-      items: [
-        { href: '/admin', label: 'Dashboard', icon: Home },
-        { href: '/admin/statistics', label: 'Analytics', icon: BarChart },
-      ],
-    },
-    {
-      title: 'Catalog & Inventory',
-      items: [
-        { href: '/admin/products', label: 'Products', icon: Shirt },
-        { href: '/admin/batch-tasks', label: 'Batch Tasks', icon: Layers },
-        { href: '/admin/categories', label: 'Categories', icon: Shapes },
-        { href: '/admin/size-charts', label: 'Size Charts', icon: Ruler },
-      ],
-    },
-    {
-      title: 'Sales & Customers',
-      items: [
-        { href: '/admin/orders', label: 'Orders', icon: Package },
-        { href: '/admin/invoices', label: 'Invoices', icon: Receipt },
-        { href: '/admin/users', label: 'Users', icon: Users },
-        { href: '/admin/custom-designs', label: 'Custom Designs', icon: Palette },
-        { href: '/admin/shipping', label: 'Shipping', icon: Truck },
-      ],
-    },
-    {
-      title: 'Marketing & Loyalty',
-      items: [
-        { href: '/admin/promotions', label: 'Promotions', icon: Megaphone },
-        { href: '/admin/coupons', label: 'Coupons', icon: Ticket },
-        { href: '/admin/rewards', label: 'Rewards', icon: Gift },
-        { href: '/admin/posters', label: 'Exclusive Posters', icon: Sparkles },
-        { href: '/admin/popups', label: 'Popups', icon: MessageSquare },
-        { href: '/admin/emails', label: 'Promotional Emails', icon: Mail },
-        { href: '/admin/notifications', label: 'Push Notifications', icon: Bell },
-        { href: '/admin/trends', label: 'Trends', icon: TrendingUp },
-      ],
-    },
-    {
-      title: 'System & Theme',
-      items: [
-        { href: '/admin/palette', label: 'Palette', icon: Palette },
-        { href: '/admin/settings', label: 'Settings', icon: Settings },
-      ],
-    },
-  ];
-
-  // Derive current page title for breadcrumb
-  const allNavItems = navGroups.flatMap((g) => g.items);
-  const activeNavItem = allNavItems.find((item) => item.href === pathname);
-  const currentPageTitle = activeNavItem ? activeNavItem.label : 'Admin';
 
   return (
     <div className="admin-workspace flex min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-muted/20 text-foreground">
@@ -280,9 +355,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
               <div className="flex flex-col truncate">
                 <span className="text-xs font-bold truncate leading-tight">
-                  {user?.firstName || 'Admin User'}
+                  {user?.firstName || 'Staff Member'}
                 </span>
                 <span className="text-[10px] text-muted-foreground truncate">{user?.email}</span>
+                {user?.role && (
+                  <div className="mt-1 flex items-center gap-1">
+                    {isAlphaAdmin(user) ? (
+                      <Badge className="text-[9px] px-1.5 py-0 bg-gradient-to-r from-amber-500 to-yellow-400 text-stone-950 font-bold border-amber-300 flex items-center gap-1 shadow-xs">
+                        <Crown className="h-2.5 w-2.5 text-stone-950" />
+                        Alpha Admin
+                      </Badge>
+                    ) : (
+                      <Badge className={cn('text-[9px] px-1.5 py-0', getRoleMetadata(user.role).badgeClassName)}>
+                        {getRoleMetadata(user.role).label}
+                      </Badge>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -373,9 +462,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {isSidebarOpen && (
                 <div className="flex flex-col truncate">
                   <span className="text-xs font-bold truncate leading-tight">
-                    {user?.firstName || 'Admin User'}
+                    {user?.firstName || 'Staff Member'}
                   </span>
                   <span className="text-[10px] text-muted-foreground truncate">{user?.email}</span>
+                  {user?.role && (
+                    <div className="mt-1 flex items-center gap-1">
+                      {isAlphaAdmin(user) ? (
+                        <Badge className="text-[9px] px-1.5 py-0 bg-gradient-to-r from-amber-500 to-yellow-400 text-stone-950 font-bold border-amber-300 flex items-center gap-1 shadow-xs">
+                          <Crown className="h-2.5 w-2.5 text-stone-950" />
+                          Alpha Admin
+                        </Badge>
+                      ) : (
+                        <Badge className={cn('text-[9px] px-1.5 py-0', getRoleMetadata(user.role).badgeClassName)}>
+                          {getRoleMetadata(user.role).label}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -461,7 +564,33 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* MAIN ADMIN WORKSPACE PAGE CONTENT */}
         <main className="flex-1 p-3 sm:p-5 md:p-8 max-w-7xl w-full mx-auto pb-24 lg:pb-8 min-w-0 max-w-full overflow-x-hidden">
-          {children}
+          {hasRouteAccess ? (
+            children
+          ) : (
+            <div className="flex min-h-[50vh] flex-col items-center justify-center p-4">
+              <Card className="w-full max-w-md text-center shadow-lg border-destructive/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-center gap-2 text-destructive">
+                    <ShieldAlert className="h-6 w-6" />
+                    Section Restricted
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm text-muted-foreground">
+                  <p>
+                    Your role (<strong className="text-foreground">{getRoleMetadata(user?.role).label}</strong>) does not have access permissions for this section.
+                  </p>
+                  <p className="text-xs">
+                    Please contact the Master Alpha Admin for additional authorization.
+                  </p>
+                </CardContent>
+                <CardFooter className="flex justify-center">
+                  <Button asChild size="sm">
+                    <Link href="/admin">Return to Dashboard</Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          )}
         </main>
 
         {/* MOBILE BOTTOM QUICK NAVIGATION BAR */}
@@ -476,36 +605,42 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Home className="h-4 w-4 mb-0.5" />
             <span>Home</span>
           </Link>
-          <Link
-            href="/admin/orders"
-            className={cn(
-              'flex flex-col items-center justify-center py-1 px-2.5 rounded-lg text-[10px] font-medium transition-colors',
-              pathname.startsWith('/admin/orders') ? 'text-primary font-bold' : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            <Package className="h-4 w-4 mb-0.5" />
-            <span>Orders</span>
-          </Link>
-          <Link
-            href="/admin/products"
-            className={cn(
-              'flex flex-col items-center justify-center py-1 px-2.5 rounded-lg text-[10px] font-medium transition-colors',
-              pathname.startsWith('/admin/products') ? 'text-primary font-bold' : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            <Shirt className="h-4 w-4 mb-0.5" />
-            <span>Products</span>
-          </Link>
-          <Link
-            href="/admin/invoices"
-            className={cn(
-              'flex flex-col items-center justify-center py-1 px-2.5 rounded-lg text-[10px] font-medium transition-colors',
-              pathname.startsWith('/admin/invoices') ? 'text-primary font-bold' : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            <Receipt className="h-4 w-4 mb-0.5" />
-            <span>Invoices</span>
-          </Link>
+          {canAccessAdminRoute(user?.role, '/admin/orders', user?.email) && (
+            <Link
+              href="/admin/orders"
+              className={cn(
+                'flex flex-col items-center justify-center py-1 px-2.5 rounded-lg text-[10px] font-medium transition-colors',
+                pathname.startsWith('/admin/orders') ? 'text-primary font-bold' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <Package className="h-4 w-4 mb-0.5" />
+              <span>Orders</span>
+            </Link>
+          )}
+          {canAccessAdminRoute(user?.role, '/admin/products', user?.email) && (
+            <Link
+              href="/admin/products"
+              className={cn(
+                'flex flex-col items-center justify-center py-1 px-2.5 rounded-lg text-[10px] font-medium transition-colors',
+                pathname.startsWith('/admin/products') ? 'text-primary font-bold' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <Shirt className="h-4 w-4 mb-0.5" />
+              <span>Products</span>
+            </Link>
+          )}
+          {canAccessAdminRoute(user?.role, '/admin/invoices', user?.email) && (
+            <Link
+              href="/admin/invoices"
+              className={cn(
+                'flex flex-col items-center justify-center py-1 px-2.5 rounded-lg text-[10px] font-medium transition-colors',
+                pathname.startsWith('/admin/invoices') ? 'text-primary font-bold' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <Receipt className="h-4 w-4 mb-0.5" />
+              <span>Invoices</span>
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => setIsMobileDrawerOpen(true)}

@@ -6,7 +6,7 @@ import { triggerUserEventPushNotification } from '@/lib/pushNotifications';
 // GET mobile orders pipeline
 export async function GET(request: NextRequest) {
   try {
-    const auth = authenticateRequest(request, { requiredRole: 'admin', allowAppSecret: true });
+    const auth = authenticateRequest(request, { requiredPermission: 'orders:view', allowAppSecret: true });
     if (!auth.authenticated) {
       return NextResponse.json({ message: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 });
     }

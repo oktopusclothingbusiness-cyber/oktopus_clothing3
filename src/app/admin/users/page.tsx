@@ -2,6 +2,16 @@
 
 import * as React from 'react';
 import { useUser, User } from '@/context/user-context';
+import { useAuth } from '@/context/auth-context';
+import {
+  UserRole,
+  ROLE_METADATA,
+  isAlphaAdmin,
+  isStaffRole,
+  ALPHA_ADMIN_EMAIL,
+  CustomRole,
+  getRoleMetadata,
+} from '@/lib/rbac';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -19,9 +29,13 @@ import {
   ExternalLink,
   RefreshCw,
   MapPin,
-  Phone,
-  Mail,
-  ShieldAlert,
+  Crown,
+  Lock,
+  Shield,
+  Users,
+  ShieldCheck,
+  Plus,
+  Sparkles,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -41,10 +55,13 @@ import {
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { IssueInvoiceDialog } from '@/components/admin/issue-invoice-dialog';
 import { CustomerProfileDialog } from '@/components/admin/customer-profile-dialog';
+import { RolePermissionsMatrix } from '@/components/admin/role-permissions-matrix';
+import { CustomRoleDialog } from '@/components/admin/custom-role-dialog';
 
-export default function UsersPage() {
+function UsersPageContent() {
   const {
     users,
     loading,
@@ -55,13 +72,55 @@ export default function UsersPage() {
     refetchUsers,
   } = useUser();
 
+  const {
+    user: currentUser,
+    isAlphaAdmin: currentIsAlphaAdmin,
+    hasPermission,
+  } = useAuth();
+
+  const canManageRoles = currentIsAlphaAdmin || hasPermission('users:manage_roles');
+  const canDeleteUsers = currentIsAlphaAdmin || hasPermission('users:delete');
+  const canEditUsers = currentIsAlphaAdmin || hasPermission('users:edit');
+  const canManageTeam = currentIsAlphaAdmin || hasPermission('manage_team');
+
+  const searchParams = useSearchParams();
+  const [mainTab, setMainTab] = React.useState<'users' | 'permissions'>('users');
+
+  React.useEffect(() => {
+    if (searchParams?.get('tab') === 'permissions' && canManageTeam) {
+      setMainTab('permissions');
+    }
+  }, [searchParams, canManageTeam]);
+
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [coinBalances, setCoinBalances] = React.useState<{ [key: string]: string }>({});
   const [activeInput, setActiveInput] = React.useState<string | null>(null);
 
+  // Custom Roles State
+  const [customRoles, setCustomRoles] = React.useState<CustomRole[]>([]);
+  const [isCreateRoleOpen, setIsCreateRoleOpen] = React.useState(false);
+
+  const fetchCustomRoles = React.useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/roles/custom');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.roles)) {
+          setCustomRoles(data.roles);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load custom roles', e);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchCustomRoles();
+  }, [fetchCustomRoles]);
+
   // Search & Filtering State
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [statusFilter, setStatusFilter] = React.useState<'all' | 'active' | 'suspended' | 'admin'>('all');
+  const [statusFilter, setStatusFilter] = React.useState<'all' | 'customers' | 'staff' | 'active' | 'suspended'>('all');
 
   // Customer 360 Dialog State
   const [selectedUserForProfile, setSelectedUserForProfile] = React.useState<User | null>(null);
@@ -117,7 +176,7 @@ export default function UsersPage() {
     setActiveInput(null);
   };
 
-  const handleRoleChange = async (userId: string, role: 'user' | 'admin') => {
+  const handleRoleChange = async (userId: string, role: UserRole) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     setActiveInput(userId);
@@ -152,13 +211,14 @@ export default function UsersPage() {
   // Filtered Users computation
   const filteredUsers = React.useMemo(() => {
     return users.filter((user) => {
-      // 1. Status Filter
+      // 1. Status / Role Filter
       const isSuspended = user.status === 'suspended' || user.isBlocked === true;
       if (statusFilter === 'active' && isSuspended) return false;
       if (statusFilter === 'suspended' && !isSuspended) return false;
-      if (statusFilter === 'admin' && user.role !== 'admin') return false;
+      if (statusFilter === 'customers' && user.role !== 'user') return false;
+      if (statusFilter === 'staff' && !isStaffRole(user.role)) return false;
 
-      // 2. Search Query (Name, Email, Mobile, IP, Order ID)
+      // 2. Search Query (Name, Email, Mobile, IP, Order ID, Role)
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim();
         const fullName = `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase();
@@ -166,41 +226,169 @@ export default function UsersPage() {
         const mobile = (user.mobile || user.phone || '').toLowerCase();
         const ip = (user.lastLoginIp || '').toLowerCase();
         const orderId = (user.lastOrder?._id || '').toLowerCase();
+        const role = (user.role || '').toLowerCase();
+        const roleTitle = (getRoleMetadata(user.role, customRoles)?.title || '').toLowerCase();
 
         return (
           fullName.includes(query) ||
           email.includes(query) ||
           mobile.includes(query) ||
           ip.includes(query) ||
-          orderId.includes(query)
+          orderId.includes(query) ||
+          role.includes(query) ||
+          roleTitle.includes(query)
         );
       }
 
       return true;
     });
-  }, [users, statusFilter, searchQuery]);
+  }, [users, statusFilter, searchQuery, customRoles]);
 
+  const totalCount = users.length;
   const activeCount = users.filter((u) => u.status !== 'suspended' && !u.isBlocked).length;
   const suspendedCount = users.filter((u) => u.status === 'suspended' || u.isBlocked).length;
-  const adminCount = users.filter((u) => u.role === 'admin').length;
+  const staffCount = users.filter((u) => isStaffRole(u.role)).length;
+  const customerCount = users.filter((u) => u.role === 'user').length;
+
+  const renderRoleControl = (targetUser: User, isMobile: boolean = false) => {
+    const isMaster = isAlphaAdmin(targetUser.email, targetUser.role);
+    const meta = getRoleMetadata(targetUser.role, customRoles);
+
+    // Master Alpha Admin is permanently locked
+    if (isMaster) {
+      return (
+        <Badge className="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-semibold gap-1 px-2 py-0.5 shadow-xs shrink-0">
+          <Crown className="w-3 h-3 text-amber-400 fill-amber-400 shrink-0" />
+          <span>Alpha Admin</span>
+        </Badge>
+      );
+    }
+
+    // Read-only badge if user lacks role management permission
+    if (!canManageRoles) {
+      return (
+        <Badge variant="outline" className={`text-[10px] font-medium border shrink-0 ${meta.color}`}>
+          {meta.title}
+        </Badge>
+      );
+    }
+
+    return (
+      <Select
+        defaultValue={targetUser.role}
+        value={targetUser.role}
+        onValueChange={(val: UserRole) => handleRoleChange(targetUser.id, val)}
+        disabled={isSubmitting && activeInput === targetUser.id}
+      >
+        <SelectTrigger className={`h-7 text-[10px] shrink-0 ${isMobile ? 'w-28' : 'w-[130px]'}`}>
+          <SelectValue>
+            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${meta.color}`}>
+              {meta.title}
+            </span>
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent align="end" className="w-60">
+          <SelectItem value="user" className="text-xs">
+            <div className="flex flex-col py-0.5">
+              <span className="font-semibold text-xs">Customer</span>
+              <span className="text-[10px] text-muted-foreground">Storefront & mobile app user</span>
+            </div>
+          </SelectItem>
+          <SelectItem value="products_manager" className="text-xs">
+            <div className="flex flex-col py-0.5">
+              <span className="font-semibold text-xs text-indigo-400">Products Manager</span>
+              <span className="text-[10px] text-muted-foreground">Catalog, inventory, size charts</span>
+            </div>
+          </SelectItem>
+          <SelectItem value="content_manager" className="text-xs">
+            <div className="flex flex-col py-0.5">
+              <span className="font-semibold text-xs text-pink-400">Content Manager</span>
+              <span className="text-[10px] text-muted-foreground">Banners, posters & popups</span>
+            </div>
+          </SelectItem>
+          <SelectItem value="marketing_associate" className="text-xs">
+            <div className="flex flex-col py-0.5">
+              <span className="font-semibold text-xs text-amber-400">Marketing Associate</span>
+              <span className="text-[10px] text-muted-foreground">Coupons, oktocoins, notifications</span>
+            </div>
+          </SelectItem>
+          <SelectItem value="customer_support" className="text-xs">
+            <div className="flex flex-col py-0.5">
+              <span className="font-semibold text-xs text-cyan-400">Customer Support</span>
+              <span className="text-[10px] text-muted-foreground">Orders, invoices & customer 360</span>
+            </div>
+          </SelectItem>
+          <SelectItem value="admin" className="text-xs">
+            <div className="flex flex-col py-0.5">
+              <span className="font-semibold text-xs text-rose-400">Admin</span>
+              <span className="text-[10px] text-muted-foreground">Full operations administrator</span>
+            </div>
+          </SelectItem>
+
+          {/* CUSTOM ROLES DEFINED BY ALPHA ADMIN */}
+          {customRoles.map((cr) => (
+            <SelectItem key={cr.id} value={cr.id} className="text-xs">
+              <div className="flex flex-col py-0.5">
+                <span className="font-semibold text-xs flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
+                  <span>{cr.name}</span>
+                  <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-[9px] px-1 py-0">
+                    Custom
+                  </Badge>
+                </span>
+                <span className="text-[10px] text-muted-foreground truncate max-w-[200px]">
+                  {cr.description || 'Custom staff role'}
+                </span>
+              </div>
+            </SelectItem>
+          ))}
+
+          {currentIsAlphaAdmin && (
+            <SelectItem value="alpha_admin" className="text-xs">
+              <div className="flex flex-col py-0.5">
+                <span className="font-semibold text-xs text-amber-300 flex items-center gap-1">
+                  <Crown className="w-3 h-3 text-amber-400 fill-amber-400" />
+                  Alpha Admin
+                </span>
+                <span className="text-[10px] text-muted-foreground">Master control authority</span>
+              </div>
+            </SelectItem>
+          )}
+        </SelectContent>
+      </Select>
+    );
+  };
 
   return (
     <div className="space-y-6 sm:space-y-8 min-w-0 max-w-full overflow-x-hidden">
       {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Customer Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Team & User Management</h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Enterprise customer database, IP tracking, fraud moderation, and live cart inspection.
+            Enterprise RBAC access control, staff roles, customer profiles, and security governance.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
+          {currentIsAlphaAdmin && (
+            <Button
+              size="sm"
+              className="h-8 text-xs gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-stone-950 font-bold hover:brightness-110 shadow-xs"
+              onClick={() => setIsCreateRoleOpen(true)}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Create Custom Role</span>
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
             className="h-8 text-xs gap-1.5"
-            onClick={() => refetchUsers()}
+            onClick={() => {
+              refetchUsers();
+              fetchCustomRoles();
+            }}
             disabled={loading}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -209,22 +397,58 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* STATS OVERVIEW CARDS */}
+      {/* MAIN VIEW SWITCHER TABS (Restricted to Alpha Admin & Team Managers) */}
+      {canManageTeam && (
+        <div className="flex items-center gap-1.5 p-1 bg-muted/60 rounded-xl border border-border/70 self-start w-fit">
+          <Button
+            size="sm"
+            variant={mainTab === 'users' ? 'default' : 'ghost'}
+            className="h-8 text-xs gap-1.5 px-3.5 font-semibold"
+            onClick={() => setMainTab('users')}
+          >
+            <Users className="w-3.5 h-3.5" />
+            <span>Staff & User Accounts ({users.length})</span>
+          </Button>
+          <Button
+            size="sm"
+            variant={mainTab === 'permissions' ? 'default' : 'ghost'}
+            className="h-8 text-xs gap-1.5 px-3.5 font-semibold"
+            onClick={() => setMainTab('permissions')}
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+            <span>Role Permissions Matrix</span>
+          </Button>
+        </div>
+      )}
+
+      {mainTab === 'permissions' && canManageTeam ? (
+        <RolePermissionsMatrix />
+      ) : (
+        <>
+          {/* STATS OVERVIEW CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card className="p-3 sm:p-4 bg-card/70 border-border/70">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs text-muted-foreground uppercase font-semibold">Total Users</span>
-            <Badge variant="outline" className="text-[10px] font-mono">{users.length}</Badge>
+            <span className="text-[11px] sm:text-xs text-muted-foreground uppercase font-semibold">Total Accounts</span>
+            <Badge variant="outline" className="text-[10px] font-mono">{totalCount}</Badge>
           </div>
-          <p className="text-xl sm:text-2xl font-bold mt-1">{users.length}</p>
+          <p className="text-xl sm:text-2xl font-bold mt-1">{totalCount}</p>
         </Card>
 
         <Card className="p-3 sm:p-4 bg-card/70 border-border/70">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs text-muted-foreground uppercase font-semibold">Active Customers</span>
+            <span className="text-[11px] sm:text-xs text-muted-foreground uppercase font-semibold">Customers</span>
             <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
           </div>
-          <p className="text-xl sm:text-2xl font-bold mt-1 text-emerald-400">{activeCount}</p>
+          <p className="text-xl sm:text-2xl font-bold mt-1 text-emerald-400">{customerCount}</p>
+        </Card>
+
+        <Card className="p-3 sm:p-4 bg-card/70 border-border/70">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] sm:text-xs text-muted-foreground uppercase font-semibold">Team & Staff</span>
+            <Badge variant="secondary" className="text-[10px] font-mono">{staffCount}</Badge>
+          </div>
+          <p className="text-xl sm:text-2xl font-bold mt-1 text-indigo-400">{staffCount}</p>
         </Card>
 
         <Card className="p-3 sm:p-4 bg-card/70 border-border/70">
@@ -233,14 +457,6 @@ export default function UsersPage() {
             <span className="h-2 w-2 rounded-full bg-rose-500"></span>
           </div>
           <p className="text-xl sm:text-2xl font-bold mt-1 text-rose-400">{suspendedCount}</p>
-        </Card>
-
-        <Card className="p-3 sm:p-4 bg-card/70 border-border/70">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs text-muted-foreground uppercase font-semibold">Admins</span>
-            <Badge variant="secondary" className="text-[10px] font-mono">{adminCount}</Badge>
-          </div>
-          <p className="text-xl sm:text-2xl font-bold mt-1 text-primary">{adminCount}</p>
         </Card>
       </div>
 
@@ -251,7 +467,7 @@ export default function UsersPage() {
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name, email, phone, IP, or order ID..."
+                placeholder="Search by name, email, role, phone, IP, or order ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 h-9 text-xs sm:text-sm bg-background/60"
@@ -270,8 +486,24 @@ export default function UsersPage() {
               </Button>
               <Button
                 size="sm"
-                variant={statusFilter === 'active' ? 'default' : 'outline'}
+                variant={statusFilter === 'customers' ? 'default' : 'outline'}
                 className="h-8 text-xs px-3 text-emerald-400 border-emerald-500/30"
+                onClick={() => setStatusFilter('customers')}
+              >
+                Customers ({customerCount})
+              </Button>
+              <Button
+                size="sm"
+                variant={statusFilter === 'staff' ? 'default' : 'outline'}
+                className="h-8 text-xs px-3 text-indigo-400 border-indigo-500/30"
+                onClick={() => setStatusFilter('staff')}
+              >
+                Team & Staff ({staffCount})
+              </Button>
+              <Button
+                size="sm"
+                variant={statusFilter === 'active' ? 'default' : 'outline'}
+                className="h-8 text-xs px-3"
                 onClick={() => setStatusFilter('active')}
               >
                 Active ({activeCount})
@@ -283,14 +515,6 @@ export default function UsersPage() {
                 onClick={() => setStatusFilter('suspended')}
               >
                 Suspended ({suspendedCount})
-              </Button>
-              <Button
-                size="sm"
-                variant={statusFilter === 'admin' ? 'default' : 'outline'}
-                className="h-8 text-xs px-3"
-                onClick={() => setStatusFilter('admin')}
-              >
-                Admins ({adminCount})
               </Button>
             </div>
           </div>
@@ -360,23 +584,7 @@ export default function UsersPage() {
                         </div>
                       </div>
 
-                      <Select
-                        defaultValue={user.role}
-                        onValueChange={(value: 'user' | 'admin') => handleRoleChange(user.id, value)}
-                        disabled={isSubmitting && activeInput === user.id}
-                      >
-                        <SelectTrigger className="h-7 text-[10px] w-20 shrink-0">
-                          <SelectValue>
-                            <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="text-[9px] px-1.5 py-0">
-                              {user.role}
-                            </Badge>
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="user" className="text-xs">User</SelectItem>
-                          <SelectItem value="admin" className="text-xs">Admin</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      {renderRoleControl(user, true)}
                     </div>
 
                     {/* METRICS ROW (IP, Cart, Orders) */}
@@ -444,45 +652,70 @@ export default function UsersPage() {
                           <span>Profile</span>
                         </Button>
 
-                        <Button
-                          variant={isSuspended ? 'outline' : 'ghost'}
-                          size="sm"
-                          className={`h-7 text-[10px] px-2 gap-1 ${
-                            isSuspended ? 'text-emerald-400 border-emerald-500/30' : 'text-rose-400 hover:bg-rose-500/10'
-                          }`}
-                          onClick={() => handleToggleSuspend(user.id, isSuspended)}
-                          disabled={isSubmitting && activeInput === user.id}
-                        >
-                          {isSuspended ? <UserCheck className="w-3 h-3" /> : <UserX className="w-3 h-3" />}
-                          <span>{isSuspended ? 'Reactivate' : 'Suspend'}</span>
-                        </Button>
+                        {isAlphaAdmin(user.email, user.role) ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled
+                            className="h-7 text-[10px] px-2 gap-1 opacity-50 cursor-not-allowed"
+                            title="Alpha Admin account is permanently active"
+                          >
+                            <Lock className="w-3 h-3 text-muted-foreground" />
+                            <span>Master</span>
+                          </Button>
+                        ) : canEditUsers ? (
+                          <Button
+                            variant={isSuspended ? 'outline' : 'ghost'}
+                            size="sm"
+                            className={`h-7 text-[10px] px-2 gap-1 ${
+                              isSuspended ? 'text-emerald-400 border-emerald-500/30' : 'text-rose-400 hover:bg-rose-500/10'
+                            }`}
+                            onClick={() => handleToggleSuspend(user.id, isSuspended)}
+                            disabled={isSubmitting && activeInput === user.id}
+                          >
+                            {isSuspended ? <UserCheck className="w-3 h-3" /> : <UserX className="w-3 h-3" />}
+                            <span>{isSuspended ? 'Reactivate' : 'Suspend'}</span>
+                          </Button>
+                        ) : null}
 
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-destructive hover:bg-destructive/10"
-                              disabled={isSubmitting && activeInput === user.id}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete User Account?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the user account.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeleteUser(user.id)}>
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        {isAlphaAdmin(user.email, user.role) ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled
+                            className="h-7 w-7 opacity-40 cursor-not-allowed"
+                            title="Alpha Admin account cannot be deleted"
+                          >
+                            <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                          </Button>
+                        ) : canDeleteUsers ? (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                                disabled={isSubmitting && activeInput === user.id}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete User Account?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently delete the user account.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteUser(user.id)}>
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        ) : null}
                       </div>
                     </div>
                   </div>
@@ -619,23 +852,7 @@ export default function UsersPage() {
 
                         {/* ROLE SELECT */}
                         <TableCell>
-                          <Select
-                            defaultValue={user.role}
-                            onValueChange={(value: 'user' | 'admin') => handleRoleChange(user.id, value)}
-                            disabled={isSubmitting && activeInput === user.id}
-                          >
-                            <SelectTrigger className="w-[95px] h-8 text-xs">
-                              <SelectValue>
-                                <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="text-[10px]">
-                                  {user.role}
-                                </Badge>
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="user" className="text-xs">User</SelectItem>
-                              <SelectItem value="admin" className="text-xs">Admin</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          {renderRoleControl(user, false)}
                         </TableCell>
 
                         {/* OKTOCOINS */}
@@ -683,24 +900,36 @@ export default function UsersPage() {
                             </Button>
 
                             {/* QUICK SUSPEND / REACTIVATE */}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className={`h-8 w-8 ${
-                                isSuspended
-                                  ? 'text-emerald-400 hover:bg-emerald-500/10'
-                                  : 'text-rose-400 hover:bg-rose-500/10'
-                              }`}
-                              onClick={() => handleToggleSuspend(user.id, isSuspended)}
-                              disabled={isSubmitting && activeInput === user.id}
-                              title={isSuspended ? 'Reactivate User Account' : 'Suspend User Account'}
-                            >
-                              {isSuspended ? (
-                                <UserCheck className="h-4 w-4" />
-                              ) : (
-                                <UserX className="h-4 w-4" />
-                              )}
-                            </Button>
+                            {isAlphaAdmin(user.email, user.role) ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                disabled
+                                className="h-8 w-8 opacity-40 cursor-not-allowed"
+                                title="Alpha Admin account cannot be suspended"
+                              >
+                                <Lock className="h-4 w-4 text-muted-foreground" />
+                              </Button>
+                            ) : canEditUsers ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className={`h-8 w-8 ${
+                                  isSuspended
+                                    ? 'text-emerald-400 hover:bg-emerald-500/10'
+                                    : 'text-rose-400 hover:bg-rose-500/10'
+                                }`}
+                                onClick={() => handleToggleSuspend(user.id, isSuspended)}
+                                disabled={isSubmitting && activeInput === user.id}
+                                title={isSuspended ? 'Reactivate User Account' : 'Suspend User Account'}
+                              >
+                                {isSuspended ? (
+                                  <UserCheck className="h-4 w-4" />
+                                ) : (
+                                  <UserX className="h-4 w-4" />
+                                )}
+                              </Button>
+                            ) : null}
 
                             {/* ISSUE INVOICE */}
                             <Button
@@ -717,33 +946,45 @@ export default function UsersPage() {
                             </Button>
 
                             {/* DELETE ACCOUNT */}
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                                  disabled={isSubmitting && activeInput === user.id}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete User Account?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete the user
-                                    and remove their data from our servers.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeleteUser(user.id)}>
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                            {isAlphaAdmin(user.email, user.role) ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                disabled
+                                className="h-8 w-8 opacity-40 cursor-not-allowed"
+                                title="Alpha Admin account cannot be deleted"
+                              >
+                                <Lock className="h-4 w-4 text-muted-foreground" />
+                              </Button>
+                            ) : canDeleteUsers ? (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                                    disabled={isSubmitting && activeInput === user.id}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete User Account?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This action cannot be undone. This will permanently delete the user
+                                      and remove their data from our servers.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteUser(user.id)}>
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            ) : null}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -783,6 +1024,32 @@ export default function UsersPage() {
           refetchUsers();
         }}
       />
+
+      {/* CREATE CUSTOM ROLE DIALOG (ALPHA ADMIN ONLY) */}
+      <CustomRoleDialog
+        open={isCreateRoleOpen}
+        onOpenChange={setIsCreateRoleOpen}
+        onRoleSaved={(newRole) => {
+          setCustomRoles((prev) => [newRole, ...prev.filter((r) => r.id !== newRole.id)]);
+        }}
+      />
+        </>
+      )}
     </div>
+  );
+}
+
+export default function UsersPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="p-12 flex flex-col items-center justify-center gap-3">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          <p className="text-xs text-muted-foreground">Loading Team & Access Control...</p>
+        </div>
+      }
+    >
+      <UsersPageContent />
+    </React.Suspense>
   );
 }
