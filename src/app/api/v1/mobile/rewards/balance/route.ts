@@ -52,9 +52,21 @@ export async function GET(request: NextRequest) {
       ];
     }
 
+    let coinIcon = 'https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png';
+    try {
+      const settings = await db.collection('settings').findOne({ _id: 'global' as any });
+      if (settings?.oktocoinIconUrl) {
+        coinIcon = settings.oktocoinIconUrl;
+      }
+    } catch (e) {
+      // Fallback to default coin icon
+    }
+
     return NextResponse.json(
       {
         balance,
+        coinIcon,
+        oktocoinIconUrl: coinIcon,
         history,
         vouchers,
       },

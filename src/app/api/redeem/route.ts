@@ -24,7 +24,17 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: 'User not found.' }, { status: 404 });
     }
     
-    if ((user.oktocoins || 0) < REWARD_COST) {
+    let cost = REWARD_COST;
+    try {
+      const settings = await db.collection('settings').findOne({ _id: 'global' as any });
+      if (typeof settings?.rewardCost === 'number' && settings.rewardCost > 0) {
+        cost = settings.rewardCost;
+      }
+    } catch (e) {
+      // Fallback to default REWARD_COST
+    }
+
+    if ((user.oktocoins || 0) < cost) {
         return NextResponse.json({ message: 'Not enough Oktocoins.' }, { status: 403 });
     }
 
@@ -36,7 +46,7 @@ export async function POST(request: Request) {
     // Decrement user's points
     const updateUserResult = await db.collection('users').updateOne(
         { _id: new ObjectId(userId) },
-        { $inc: { oktocoins: -REWARD_COST } }
+        { $inc: { oktocoins: -cost } }
     );
     
     if (updateUserResult.modifiedCount === 0) {
@@ -64,7 +74,7 @@ export async function POST(request: Request) {
       createdAt: new Date(),
       paymentDetails: {
           paymentStatus: 'paid externally',
-          notes: `Redeemed with ${REWARD_COST} Oktocoins`
+          notes: `Redeemed with ${cost} Oktocoins`
       },
       isRedemption: true,
     };

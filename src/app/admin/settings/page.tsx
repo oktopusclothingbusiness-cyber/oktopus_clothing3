@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { Loader2, Coins, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -133,6 +134,29 @@ export default function AdminSettingsPage() {
                             </Button>
                         </form>
                     )}
+                </CardContent>
+            </Card>
+
+            <Card className="max-w-2xl mt-6 border-amber-500/20 bg-amber-500/5">
+                <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                            <Coins className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-semibold text-foreground">Oktocoin & Loyalty Branding</h4>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                                Set the official coin icon, currency token naming, and redemption rules.
+                            </p>
+                        </div>
+                    </div>
+                    <Link
+                        href="/admin/rewards"
+                        className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white transition shrink-0"
+                    >
+                        <span>Manage Coin Icon</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
                 </CardContent>
             </Card>
         </>

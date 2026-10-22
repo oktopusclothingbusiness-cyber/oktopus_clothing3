@@ -53,6 +53,7 @@ interface CustomerProfileDialogProps {
   onOpenChange: (open: boolean) => void;
   onIssueInvoice?: (userId: string) => void;
   onEditInvoice?: (invoice: any) => void;
+  coinIconUrl?: string;
 }
 
 export function CustomerProfileDialog({
@@ -61,6 +62,7 @@ export function CustomerProfileDialog({
   onOpenChange,
   onIssueInvoice,
   onEditInvoice,
+  coinIconUrl = 'https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png',
 }: CustomerProfileDialogProps) {
   const { toggleUserSuspension, blockIpAddress, unblockIpAddress, updateUserOktocoins } = useUser();
   const { toast } = useToast();
@@ -969,10 +971,11 @@ export function CustomerProfileDialog({
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                     <Image
-                      src="https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png"
+                      src={coinIconUrl || "https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png"}
                       alt="Oktocoin"
                       width={16}
                       height={16}
+                      unoptimized
                     />
                     Oktocoin Rewards Balance
                   </h4>

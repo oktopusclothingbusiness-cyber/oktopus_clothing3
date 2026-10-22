@@ -29,6 +29,8 @@ import { SizeChartProvider } from "@/context/size-chart-context";
 import { FramerMotionWrapper } from "./framer-motion-wrapper";
 import { Analytics } from "@vercel/analytics/next";
 import { RewardProvider } from "@/context/reward-context";
+import { PosterProvider } from "@/context/poster-context";
+import { StorefrontPosterPopup } from "@/components/storefront-poster-popup";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const archivo = Archivo({ 
@@ -108,6 +110,7 @@ export default async function RootLayout({
                       <RewardProvider>
                         <ProductProvider>
                         <PromotionProvider>
+                          <PosterProvider>
                             <PopupProvider>
                                 <CouponProvider>
                                     <TrendProvider>
@@ -118,11 +121,13 @@ export default async function RootLayout({
                                             </FramerMotionWrapper>
                                             <PageLoader faviconUrl={settings.faviconUrl} />
                                             <FloatingCartButton />
+                                            <StorefrontPosterPopup />
                                         </PageTransitionProvider>
                                         </CartProvider>
                                     </TrendProvider>
                                 </CouponProvider>
                             </PopupProvider>
+                          </PosterProvider>
                         </PromotionProvider>
                         </ProductProvider>
                       </RewardProvider>

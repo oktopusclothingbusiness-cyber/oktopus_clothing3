@@ -33,6 +33,7 @@ import {
   Receipt,
   Menu,
   X,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -160,6 +161,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { href: '/admin/promotions', label: 'Promotions', icon: Megaphone },
         { href: '/admin/coupons', label: 'Coupons', icon: Ticket },
         { href: '/admin/rewards', label: 'Rewards', icon: Gift },
+        { href: '/admin/posters', label: 'Exclusive Posters', icon: Sparkles },
         { href: '/admin/popups', label: 'Popups', icon: MessageSquare },
         { href: '/admin/emails', label: 'Promotional Emails', icon: Mail },
         { href: '/admin/notifications', label: 'Push Notifications', icon: Bell },

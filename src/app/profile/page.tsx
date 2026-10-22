@@ -18,6 +18,25 @@ export default function ProfilePage() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
 
+  const [coinBranding, setCoinBranding] = React.useState({
+    iconUrl: 'https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png',
+    name: 'Oktocoins',
+  });
+
+  React.useEffect(() => {
+    fetch('/api/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.oktocoinIconUrl || data?.coinName) {
+          setCoinBranding({
+            iconUrl: data.oktocoinIconUrl || 'https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png',
+            name: data.coinName || 'Oktocoins',
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   React.useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
@@ -83,9 +102,9 @@ export default function ProfilePage() {
                     <h1 className="text-2xl font-bold">{user.firstName} {user.lastName}</h1>
                     <p className="text-muted-foreground text-sm mb-4">{user.email}</p>
                     <div className="flex items-center gap-2 mb-6 bg-yellow-400/20 text-yellow-700 px-3 py-1 rounded-full text-sm">
-                        <Image src="https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png" alt="Oktocoin" width={20} height={20} />
+                        <Image src={coinBranding.iconUrl || "https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png"} alt="Oktocoin" width={20} height={20} unoptimized />
                         <span className="font-bold">{user.oktocoins || 0}</span>
-                        <span>Oktocoins</span>
+                        <span>{coinBranding.name}</span>
                     </div>
                     <Button variant="outline" className="w-full mb-4" onClick={() => router.push('/profile/edit')}>
                         <Edit className="mr-2 h-4 w-4"/>
@@ -146,9 +165,9 @@ export default function ProfilePage() {
                  <h1 className="text-2xl font-bold">{user.firstName} {user.lastName}</h1>
                  <p className="text-muted-foreground text-sm mb-2">{user.email}</p>
                  <div className="flex items-center justify-center gap-2 mt-2 bg-yellow-400/20 text-yellow-700 px-3 py-1 rounded-full text-sm">
-                    <Image src="https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png" alt="Oktocoin" width={20} height={20} />
+                    <Image src={coinBranding.iconUrl || "https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png"} alt="Oktocoin" width={20} height={20} unoptimized />
                     <span className="font-bold">{user.oktocoins || 0}</span>
-                    <span>Oktocoins</span>
+                    <span>{coinBranding.name}</span>
                  </div>
                </div>
             </div>

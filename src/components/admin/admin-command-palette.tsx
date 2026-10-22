@@ -34,6 +34,7 @@ import {
   PlusCircle,
   ExternalLink,
   Smartphone,
+  Sparkles,
 } from 'lucide-react';
 
 export function AdminCommandPalette() {
@@ -138,6 +139,10 @@ export function AdminCommandPalette() {
             <CommandItem onSelect={() => runCommand(() => router.push('/admin/rewards'))}>
               <Gift className="mr-2 h-4 w-4" />
               <span>Rewards & Oktocoins</span>
+            </CommandItem>
+            <CommandItem onSelect={() => runCommand(() => router.push('/admin/posters'))}>
+              <Sparkles className="mr-2 h-4 w-4 text-amber-500" />
+              <span>Exclusive Posters & Popups</span>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => router.push('/admin/popups'))}>
               <MessageSquare className="mr-2 h-4 w-4" />

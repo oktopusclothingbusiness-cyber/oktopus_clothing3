@@ -45,9 +45,21 @@ export async function GET(request: NextRequest) {
       { id: 'bengali', title: 'Bengali Drop', imageUrl: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=500' },
     ];
 
+    let coinIcon = 'https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png';
+    try {
+      const settings = await db.collection('settings').findOne({ _id: 'global' as any });
+      if (settings?.oktocoinIconUrl) {
+        coinIcon = settings.oktocoinIconUrl;
+      }
+    } catch (e) {
+      // Fallback
+    }
+
     return NextResponse.json(
       {
         oktocoins,
+        coinIcon,
+        oktocoinIconUrl: coinIcon,
         bubbles,
         heroBanners,
         designThemes,

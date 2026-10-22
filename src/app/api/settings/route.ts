@@ -11,7 +11,17 @@ export async function GET() {
     // There should only ever be one settings document.
     const settings = await db.collection('settings').findOne({ _id: 'global' as any });
     
-    return NextResponse.json(settings || {}, { status: 200 });
+    const defaults = {
+      oktocoinIconUrl: 'https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png',
+      coinName: 'Oktocoin',
+      rewardCost: 500,
+      welcomeBonus: 100,
+      orderThreshold: 499,
+      orderBonusCoins: 100,
+      exchangeRateText: '1 Oktocoin = ₹1 Value',
+    };
+
+    return NextResponse.json({ ...defaults, ...(settings || {}) }, { status: 200 });
   } catch (error) {
     console.error('Failed to fetch settings:', error);
     return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });

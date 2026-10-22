@@ -70,6 +70,16 @@ export default function UsersPage() {
   // Invoice Dialog State
   const [selectedUserForInvoice, setSelectedUserForInvoice] = React.useState<string | null>(null);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = React.useState(false);
+  const [coinIconUrl, setCoinIconUrl] = React.useState('https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png');
+
+  React.useEffect(() => {
+    fetch('/api/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.oktocoinIconUrl) setCoinIconUrl(data.oktocoinIconUrl);
+      })
+      .catch(() => {});
+  }, []);
 
   React.useEffect(() => {
     if (users.length > 0) {
@@ -394,7 +404,7 @@ export default function UsersPage() {
                     {/* COINS ROW */}
                     <div className="flex items-center justify-between gap-2 bg-secondary/30 p-2.5 rounded-lg">
                       <div className="flex items-center gap-1.5 text-xs font-medium">
-                        <Image src="https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png" alt="Oktocoin" width={16} height={16} />
+                        <Image src={coinIconUrl || "https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png"} alt="Oktocoin" width={16} height={16} unoptimized />
                         <span>Oktocoins:</span>
                       </div>
                       <div className="flex items-center gap-1.5">
@@ -632,10 +642,11 @@ export default function UsersPage() {
                         <TableCell>
                           <div className="flex items-center gap-1.5">
                             <Image
-                              src="https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png"
+                              src={coinIconUrl || "https://i.ibb.co/6RXzvrS6/oktocoin-v1-80x80.png"}
                               alt="Oktocoin"
                               width={16}
                               height={16}
+                              unoptimized
                             />
                             <Input
                               type="number"
@@ -756,6 +767,7 @@ export default function UsersPage() {
         open={isProfileModalOpen}
         onOpenChange={setIsProfileModalOpen}
         user={selectedUserForProfile}
+        coinIconUrl={coinIconUrl}
         onIssueInvoice={(userId) => {
           setSelectedUserForInvoice(userId);
           setIsInvoiceModalOpen(true);
