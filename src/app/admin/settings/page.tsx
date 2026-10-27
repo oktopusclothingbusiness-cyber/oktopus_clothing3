@@ -7,14 +7,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from 'next/link';
-import { Loader2, Coins, ArrowRight } from 'lucide-react';
+import { Loader2, Coins, ArrowRight, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useProduct } from '@/context/product-context';
 
 export default function AdminSettingsPage() {
+    const { products } = useProduct();
     const [settings, setSettings] = React.useState({
         logoUrl: '',
-        faviconUrl: ''
+        faviconUrl: '',
+        heroLook1Id: '',
+        heroLook2Id: '',
+        heroLook3Id: '',
     });
     const [loading, setLoading] = React.useState(true);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -28,7 +33,10 @@ export default function AdminSettingsPage() {
                 const data = await response.json();
                 setSettings({
                     logoUrl: data.logoUrl || '',
-                    faviconUrl: data.faviconUrl || ''
+                    faviconUrl: data.faviconUrl || '',
+                    heroLook1Id: data.heroLook1Id || '',
+                    heroLook2Id: data.heroLook2Id || '',
+                    heroLook3Id: data.heroLook3Id || '',
                 });
             }
         } catch (error) {
@@ -134,6 +142,88 @@ export default function AdminSettingsPage() {
                             </Button>
                         </form>
                     )}
+                </CardContent>
+            </Card>
+
+            {/* HOMEPAGE HERO SECTION (3 LOOKS) CARD */}
+            <Card className="max-w-2xl mt-6 border-primary/20">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
+                        Homepage Hero Section Drops (3 Looks)
+                    </CardTitle>
+                    <CardDescription>
+                        Select which products are showcased in the 3 interactive panels of the homepage hero section.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleFormSubmit} className="space-y-4">
+                        <div className="space-y-1.5">
+                            <Label htmlFor="heroLook1Id" className="text-xs font-semibold">
+                                Look 01 (Primary Hero Drop)
+                            </Label>
+                            <select
+                                id="heroLook1Id"
+                                name="heroLook1Id"
+                                value={settings.heroLook1Id}
+                                onChange={(e) => setSettings(prev => ({ ...prev, heroLook1Id: e.target.value }))}
+                                className="w-full h-10 px-3 text-xs bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                            >
+                                <option value="">Default (First Active Hero Product)</option>
+                                {products.map((p) => (
+                                    <option key={p.id} value={p.id}>
+                                        {p.name} — ₹{p.price}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <Label htmlFor="heroLook2Id" className="text-xs font-semibold">
+                                Look 02 (Secondary Drop)
+                            </Label>
+                            <select
+                                id="heroLook2Id"
+                                name="heroLook2Id"
+                                value={settings.heroLook2Id}
+                                onChange={(e) => setSettings(prev => ({ ...prev, heroLook2Id: e.target.value }))}
+                                className="w-full h-10 px-3 text-xs bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                            >
+                                <option value="">Default (Second Product in Catalog)</option>
+                                {products.map((p) => (
+                                    <option key={p.id} value={p.id}>
+                                        {p.name} — ₹{p.price}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <Label htmlFor="heroLook3Id" className="text-xs font-semibold">
+                                Look 03 (Third Drop)
+                            </Label>
+                            <select
+                                id="heroLook3Id"
+                                name="heroLook3Id"
+                                value={settings.heroLook3Id}
+                                onChange={(e) => setSettings(prev => ({ ...prev, heroLook3Id: e.target.value }))}
+                                className="w-full h-10 px-3 text-xs bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                            >
+                                <option value="">Default (Third Product in Catalog)</option>
+                                {products.map((p) => (
+                                    <option key={p.id} value={p.id}>
+                                        {p.name} — ₹{p.price}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="pt-2">
+                            <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Hero Drops'}
+                            </Button>
+                        </div>
+                    </form>
                 </CardContent>
             </Card>
 

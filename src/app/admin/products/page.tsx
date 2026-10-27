@@ -57,7 +57,7 @@ import * as XLSX from 'xlsx';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { cn } from '@/lib/utils';
+import { cn, getProductImage } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export type AdminFabricVariant = {
@@ -228,6 +228,55 @@ export default function AdminProductsPage() {
   type SortOrder = 'asc' | 'desc';
   const [sortField, setSortField] = React.useState<SortField>('createdAt');
   const [sortOrder, setSortOrder] = React.useState<SortOrder>('desc');
+
+  // Hero Section (3 Looks) Configuration State
+  const [showHeroManager, setShowHeroManager] = React.useState(false);
+  const [heroLook1, setHeroLook1] = React.useState('');
+  const [heroLook2, setHeroLook2] = React.useState('');
+  const [heroLook3, setHeroLook3] = React.useState('');
+  const [isSavingHero, setIsSavingHero] = React.useState(false);
+
+  React.useEffect(() => {
+    fetch('/api/settings')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) {
+          setHeroLook1(data.heroLook1Id || '');
+          setHeroLook2(data.heroLook2Id || '');
+          setHeroLook3(data.heroLook3Id || '');
+        }
+      })
+      .catch((err) => console.error('Failed to load hero settings in admin:', err));
+  }, []);
+
+  const handleSaveHeroLooks = async () => {
+    setIsSavingHero(true);
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          heroLook1Id: heroLook1,
+          heroLook2Id: heroLook2,
+          heroLook3Id: heroLook3,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to save hero drops');
+      toast({
+        title: 'Hero Drops Saved',
+        description: 'The 3 products for the homepage hero section have been updated successfully.',
+      });
+      setShowHeroManager(false);
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err.message || 'Could not update hero drops.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSavingHero(false);
+    }
+  };
 
   const formRef = React.useRef<HTMLDivElement>(null);
 
@@ -855,6 +904,16 @@ export default function AdminProductsPage() {
 
         <div className="flex items-center gap-2">
           <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowHeroManager(true)}
+            className="h-9 text-xs font-semibold gap-1.5 border-amber-500/40 text-amber-500 hover:bg-amber-500/10"
+          >
+            <Star className="h-4 w-4 fill-amber-500" />
+            Set Hero Drops (3 Looks)
+          </Button>
+
+          <Button
             size="sm"
             onClick={() => {
               resetForm();
@@ -912,7 +971,16 @@ export default function AdminProductsPage() {
             ) : (
               <span className="text-xs text-muted-foreground font-medium">No Hero item</span>
             )}
-            <p className="text-[10px] text-muted-foreground mt-1">Featured on home</p>
+            <div className="flex items-center justify-between mt-2 pt-1 border-t border-border/40">
+              <span className="text-[10px] text-muted-foreground">3 interactive looks</span>
+              <button
+                type="button"
+                onClick={() => setShowHeroManager(true)}
+                className="text-[10px] font-semibold text-primary hover:underline"
+              >
+                Configure 3 Looks →
+              </button>
+            </div>
           </CardContent>
         </Card>
 
@@ -1592,6 +1660,171 @@ export default function AdminProductsPage() {
               </div>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* HERO SECTION (3 LOOKS) CONFIGURATION DIALOG */}
+      <Dialog open={showHeroManager} onOpenChange={setShowHeroManager}>
+        <DialogContent className="max-w-2xl bg-card border-border shadow-2xl">
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
+              Configure Homepage Hero Drops (3 Looks)
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground mt-1">
+              Select the 3 products to showcase in the interactive hero section on your storefront.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-5 py-4 max-h-[60vh] overflow-y-auto pr-1">
+            {/* LOOK 1 */}
+            <div className="space-y-2 p-4 rounded-xl border border-border/60 bg-muted/30">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-mono font-bold uppercase tracking-wider text-primary">
+                  Look 01 (Primary Hero Drop)
+                </Label>
+                <span className="text-[10px] text-muted-foreground font-mono">Main Default View</span>
+              </div>
+              <select
+                value={heroLook1}
+                onChange={(e) => setHeroLook1(e.target.value)}
+                className="w-full h-10 px-3 text-xs bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="">Default (First Active Hero Product)</option>
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} — ₹{p.price} ({p.id})
+                  </option>
+                ))}
+              </select>
+              {heroLook1 && (
+                <div className="flex items-center gap-3 pt-2">
+                  {(() => {
+                    const sel = products.find((p) => p.id === heroLook1);
+                    if (!sel) return null;
+                    return (
+                      <>
+                        <div className="relative h-12 w-12 rounded overflow-hidden bg-zinc-900 border shrink-0">
+                          <Image
+                            src={getProductImage(sel.imageUrls, 'https://placehold.co/100x100.png', 100)}
+                            alt={sel.name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="text-xs">
+                          <p className="font-semibold">{sel.name}</p>
+                          <p className="text-[10px] text-muted-foreground font-mono">₹{sel.price} • {sel.category}</p>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+
+            {/* LOOK 2 */}
+            <div className="space-y-2 p-4 rounded-xl border border-border/60 bg-muted/30">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-mono font-bold uppercase tracking-wider text-primary">
+                  Look 02 (Secondary Drop)
+                </Label>
+                <span className="text-[10px] text-muted-foreground font-mono">Middle Panel</span>
+              </div>
+              <select
+                value={heroLook2}
+                onChange={(e) => setHeroLook2(e.target.value)}
+                className="w-full h-10 px-3 text-xs bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="">Default (Second Product in Catalog)</option>
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} — ₹{p.price} ({p.id})
+                  </option>
+                ))}
+              </select>
+              {heroLook2 && (
+                <div className="flex items-center gap-3 pt-2">
+                  {(() => {
+                    const sel = products.find((p) => p.id === heroLook2);
+                    if (!sel) return null;
+                    return (
+                      <>
+                        <div className="relative h-12 w-12 rounded overflow-hidden bg-zinc-900 border shrink-0">
+                          <Image
+                            src={getProductImage(sel.imageUrls, 'https://placehold.co/100x100.png', 100)}
+                            alt={sel.name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="text-xs">
+                          <p className="font-semibold">{sel.name}</p>
+                          <p className="text-[10px] text-muted-foreground font-mono">₹{sel.price} • {sel.category}</p>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+
+            {/* LOOK 3 */}
+            <div className="space-y-2 p-4 rounded-xl border border-border/60 bg-muted/30">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-mono font-bold uppercase tracking-wider text-primary">
+                  Look 03 (Third Drop)
+                </Label>
+                <span className="text-[10px] text-muted-foreground font-mono">Right Panel</span>
+              </div>
+              <select
+                value={heroLook3}
+                onChange={(e) => setHeroLook3(e.target.value)}
+                className="w-full h-10 px-3 text-xs bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="">Default (Third Product in Catalog)</option>
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} — ₹{p.price} ({p.id})
+                  </option>
+                ))}
+              </select>
+              {heroLook3 && (
+                <div className="flex items-center gap-3 pt-2">
+                  {(() => {
+                    const sel = products.find((p) => p.id === heroLook3);
+                    if (!sel) return null;
+                    return (
+                      <>
+                        <div className="relative h-12 w-12 rounded overflow-hidden bg-zinc-900 border shrink-0">
+                          <Image
+                            src={getProductImage(sel.imageUrls, 'https://placehold.co/100x100.png', 100)}
+                            alt={sel.name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="text-xs">
+                          <p className="font-semibold">{sel.name}</p>
+                          <p className="text-[10px] text-muted-foreground font-mono">₹{sel.price} • {sel.category}</p>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="border-t pt-4 flex items-center justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowHeroManager(false)} disabled={isSavingHero}>
+              Cancel
+            </Button>
+            <Button size="sm" onClick={handleSaveHeroLooks} disabled={isSavingHero} className="gap-1.5">
+              {isSavingHero && <Loader2 className="h-4 w-4 animate-spin" />}
+              Save Hero Selection
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

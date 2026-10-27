@@ -26,6 +26,17 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { DesktopAnnouncementStrip } from "@/components/storefront/desktop-announcement-strip";
+import { DesktopCampaignHero } from "@/components/storefront/desktop-campaign-hero";
+import { DesktopCategoryGrid } from "@/components/storefront/desktop-category-grid";
+import { DesktopBrandInterlude } from "@/components/storefront/desktop-brand-interlude";
+import { DesktopFeaturedProducts } from "@/components/storefront/desktop-featured-products";
+import { DesktopQualityStory } from "@/components/storefront/desktop-quality-story";
+import { DesktopQuickPicks } from "@/components/storefront/desktop-quick-picks";
+import { DesktopEditorialMarquee } from "@/components/storefront/desktop-editorial-marquee";
+import { DesktopSecondaryCampaign } from "@/components/storefront/desktop-secondary-campaign";
+import { DesktopFaqAccordion } from "@/components/storefront/desktop-faq-accordion";
+import { DesktopShoppingPerks } from "@/components/storefront/desktop-shopping-perks";
 
 // Doodle SVG components
 const Doodle1 = () => (
@@ -316,315 +327,104 @@ export default function StreetifyStorePage() {
     });
   };
 
+  const [heroSettings, setHeroSettings] = React.useState<{
+    heroLook1Id?: string;
+    heroLook2Id?: string;
+    heroLook3Id?: string;
+  }>({});
+
+  React.useEffect(() => {
+    fetch('/api/settings')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) {
+          setHeroSettings({
+            heroLook1Id: data.heroLook1Id,
+            heroLook2Id: data.heroLook2Id,
+            heroLook3Id: data.heroLook3Id,
+          });
+        }
+      })
+      .catch((err) => console.error('Failed to load hero settings:', err));
+  }, []);
+
   const safeProducts = products || [];
-  const heroProduct = safeProducts.find(p => p && p.isHero) || safeProducts[0];
-  const collection1Product = safeProducts.length > 1 ? safeProducts[1] : heroProduct;
-  const collection2Product = safeProducts.length > 2 ? safeProducts[2] : heroProduct;
+  const heroProduct =
+    (heroSettings.heroLook1Id && safeProducts.find((p) => p && p.id === heroSettings.heroLook1Id)) ||
+    safeProducts.find((p) => p && p.isHero) ||
+    safeProducts[0];
+
+  const collection1Product =
+    (heroSettings.heroLook2Id && safeProducts.find((p) => p && p.id === heroSettings.heroLook2Id)) ||
+    safeProducts.find((p) => p && p.id !== heroProduct?.id) ||
+    heroProduct;
+
+  const collection2Product =
+    (heroSettings.heroLook3Id && safeProducts.find((p) => p && p.id === heroSettings.heroLook3Id)) ||
+    safeProducts.find((p) => p && p.id !== heroProduct?.id && p.id !== collection1Product?.id) ||
+    heroProduct;
 
   const bestSellers = safeProducts.slice(0, 8);
 
   return (
     <>
-      {/* DESKTOP VIEW (REDESIGNED LUXURY STOREFRONT EXPERIENCE) */}
-      <div className="hidden md:block bg-background text-foreground font-sans overflow-hidden min-h-screen">
+      {/* DESKTOP VIEW (12-STAGE YAWI-ADAPTED LUXURY STOREFRONT EXPERIENCE) */}
+      <div className="hidden md:block bg-background text-foreground font-sans min-h-screen">
+        {/* Module 1: Promotional Announcement Strip */}
+        <DesktopAnnouncementStrip />
+
+        {/* Module 2: Main Desktop Navigation */}
         <Header />
         <PromoPopup />
+
         <main>
-          {/* SECTION 1: HERO PARALLAX BILLBOARD */}
-          <section className="bg-background relative overflow-hidden border-b border-white/5 py-16 lg:py-24" ref={heroRef} onMouseMove={handleMouseMove}>
-            <div className="absolute inset-0 opacity-10 dark:opacity-5 pointer-events-none">
-              <div data-layer data-speed="0.3" className="absolute top-[10%] left-[5%] w-24 h-24 animate-float"><Doodle1 /></div>
-              <div data-layer data-speed="-0.2" className="absolute top-[20%] right-[10%] w-32 h-32 animate-float-delay-1"><Doodle2 /></div>
-              <div data-layer data-speed="0.4" className="absolute bottom-[15%] left-[15%] w-20 h-20 animate-float-delay-2"><Doodle3 /></div>
-              <div data-layer data-speed="-0.3" className="absolute bottom-[20%] right-[25%] w-28 h-28 animate-float"><Doodle1 /></div>
-              <div data-layer data-speed="0.2" className="absolute top-[50%] left-[20%] w-16 h-16 animate-float-delay-1"><Doodle2 /></div>
-            </div>
+          {/* Module 3: Primary Desktop Campaign Hero (Garment & Model Focused) */}
+          <DesktopCampaignHero
+            heroProduct={heroProduct}
+            secondaryProduct={collection1Product}
+            thirdProduct={collection2Product}
+            products={products}
+            bannerImageUrl={activePromotions[0]?.imageUrl}
+          />
 
-            <div className="container mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center min-h-[75vh] relative z-10">
-              {/* Left Column: Typographic Billboard */}
-              <motion.div
-                initial="hidden"
-                animate="visible"
-                variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
-                className="lg:col-span-6 text-left space-y-6 flex flex-col justify-center"
-              >
-                <div data-layer data-speed="0.1" className="space-y-4">
-                  <motion.h1
-                    variants={fadeUpVariants}
-                    className="text-6xl lg:text-8xl font-black uppercase tracking-tighter font-bebas leading-[0.95] bg-gradient-to-b from-white via-white to-gray-400 bg-clip-text text-transparent select-none"
-                  >
-                    OKTOPUS<br />CLOTHING
-                  </motion.h1>
-                  
-                  <motion.p
-                    variants={fadeUpVariants}
-                    className="text-muted-foreground text-base lg:text-lg max-w-lg leading-relaxed pt-2"
-                  >
-                    Functional streetwear designed for expression and built for utility. Heavyweight tees, limited custom drops, and high-craft apparel.
-                  </motion.p>
-                </div>
+          {/* Module 4: Category Discovery (6 Real Apparel Tiles) */}
+          <DesktopCategoryGrid
+            categories={categories}
+            loading={categoriesLoading}
+          />
 
-                <motion.div variants={fadeUpVariants} data-layer data-speed="-0.1" className="pt-4 flex flex-wrap items-center gap-4">
-                  <Button asChild variant="default" size="lg" className="rounded-full h-14 px-8 text-sm font-bold shadow-xl hover:scale-105 transition-transform bg-white text-black hover:bg-gray-200">
-                    <Link href="/products" className="flex items-center gap-2">
-                      EXPLORE CATALOG <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" size="lg" className="rounded-full h-14 px-8 text-sm font-bold hover:scale-105 transition-transform border-white/20">
-                    <Link href="/custom-design">CUSTOM DESIGNS</Link>
-                  </Button>
-                </motion.div>
-              </motion.div>
+          {/* Module 5: Brand / Lifestyle Interlude */}
+          <DesktopBrandInterlude />
 
-              {/* Right Column: Fanned Showcase Collage */}
-              <div className="lg:col-span-6 relative w-full h-[440px] flex items-center justify-center select-none" data-layer data-speed="0.15">
-                {/* Fanned product card 1 */}
-                <motion.div
-                  variants={cardVariants(-15)}
-                  initial="hidden"
-                  animate="visible"
-                  whileHover="hover"
-                  className="absolute left-[calc(50%-190px)] rounded-2xl w-[150px] h-[210px] lg:w-[190px] lg:h-[260px] overflow-hidden shadow-2xl origin-bottom cursor-pointer border border-white/10 bg-card aspect-[3/4]"
-                >
-                  <Image src={getOptimizedImageUrl("https://i.ibb.co/3yN11ZtH/mrvl-model-1.png", 800)} alt="Featured card 1" layout="fill" objectFit="cover" loading="lazy" />
-                </motion.div>
+          {/* Module 6: Featured Products Grid (4-Column Merchandising) */}
+          <DesktopFeaturedProducts
+            products={products}
+            loading={productsLoading}
+          />
 
-                {/* Fanned product card 2 (center focus) */}
-                <motion.div
-                  variants={cardVariants(0)}
-                  initial="hidden"
-                  animate="visible"
-                  whileHover="hover"
-                  className="absolute z-20 rounded-2xl w-[170px] h-[230px] lg:w-[220px] lg:h-[300px] overflow-hidden shadow-2xl origin-bottom cursor-pointer border-2 border-white/20 bg-card aspect-[3/4]"
-                >
-                  <Image src={getOptimizedImageUrl("https://i.ibb.co/23vrv2sM/Gemini-Generated-Image-4ytc2a4ytc2a4ytc.png", 800)} alt="Featured card 2" layout="fill" objectFit="cover" priority />
-                </motion.div>
+          {/* Module 7: Product-Quality Story (3 Authentic Benefit Modules) */}
+          <DesktopQualityStory />
 
-                {/* Fanned product card 3 */}
-                <motion.div
-                  variants={cardVariants(15)}
-                  initial="hidden"
-                  animate="visible"
-                  whileHover="hover"
-                  className="absolute right-[calc(50%-190px)] rounded-2xl w-[150px] h-[210px] lg:w-[190px] lg:h-[260px] overflow-hidden shadow-2xl origin-bottom cursor-pointer border border-white/10 bg-card aspect-[3/4]"
-                >
-                  <Image src={getOptimizedImageUrl("https://i.ibb.co/LdxSvMMd/mrvl-model-5.png", 800)} alt="Featured card 3" layout="fill" objectFit="cover" loading="lazy" />
-                </motion.div>
-              </div>
-            </div>
-          </section>
+          {/* Module 8: Compact Direct-Purchase Row (3 Quick-Add Verified Essentials) */}
+          <DesktopQuickPicks products={products} />
 
-          {/* SECTION 2: CATEGORIES CATALOG */}
-          <section className="bg-background py-16 border-b border-white/5">
-            <div className="container mx-auto px-6 lg:px-12">
-              <div className="flex items-center justify-between mb-10">
-                <div>
-                  <h2 className="text-4xl font-black font-bebas tracking-tight">CATEGORIES</h2>
-                  <p className="text-xs text-muted-foreground mt-1">Browse active store apparel categories</p>
-                </div>
-                <Link href="/products" className="text-xs font-bold text-amber-400 hover:underline flex items-center gap-1">
-                  View All Apparel <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
+          {/* Module 9: Text-Led Interstitial Marquee Strip */}
+          <DesktopEditorialMarquee />
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {categoriesLoading ? Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="h-32 rounded-2xl" />
-                )) : categories.slice(0, 4).map(category => (
-                  <Link href={category?.id ? `/products?category=${category.id}` : '/products'} key={category?.id || category?._id} className="block group">
-                    <motion.div
-                      whileHover={{ scale: 1.03, borderColor: "rgba(252, 195, 36, 0.4)" }}
-                      className="relative h-32 rounded-2xl overflow-hidden border border-white/10 bg-card/60 backdrop-blur-md flex items-center p-6 gap-5 transition-all duration-300 shadow-sm"
-                    >
-                      <div className="w-16 h-16 rounded-full overflow-hidden bg-secondary border border-white/10 flex-shrink-0">
-                        <Image src={getOptimizedImageUrl(category.imageUrl, 500)} alt={category.name} width={64} height={64} className="object-cover w-full h-full" />
-                      </div>
-                      <div>
-                        <p className="text-xl font-bold uppercase font-bebas tracking-wider text-foreground group-hover:text-amber-400 transition-colors">{category.name}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Explore Drops →</p>
-                      </div>
-                    </motion.div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </section>
+          {/* Module 10: Secondary Campaign + Curated Drops */}
+          <DesktopSecondaryCampaign
+            products={products}
+            bannerUrl={activePromotions[1]?.imageUrl}
+          />
 
-          {/* SECTION 3: CURATED COLLECTIONS */}
-          <section className="bg-background py-16 border-b border-white/5">
-            <div className="container mx-auto px-6 lg:px-12">
-              <div className="flex items-center justify-between mb-10">
-                <div>
-                  <h2 className="text-4xl font-black font-bebas tracking-tight">CURATED COLLECTIONS</h2>
-                  <p className="text-xs text-muted-foreground mt-1">Exclusive streetwear drops and limited editions</p>
-                </div>
-              </div>
+          {/* Module 11: Customer FAQ Accordion */}
+          <DesktopFaqAccordion />
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left block: Double width (col-span-2) */}
-                <motion.div
-                  initial="initial"
-                  whileHover="hover"
-                  variants={hoverCollectionVariants}
-                  className="lg:col-span-2 relative h-[56vh] min-h-[380px] rounded-2xl overflow-hidden cursor-pointer group border border-white/10"
-                >
-                  {collection1Product && (
-                    <Image src={getProductImage(collection1Product.imageUrls, "https://placehold.co/600x800.png", 1920)} alt={collection1Product.name} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" />
-                  )}
-                  <div className="absolute inset-0 flex flex-col justify-between p-8 text-white bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-colors duration-500 group-hover:bg-black/60">
-                    <motion.ul
-                      variants={listContainerVariants}
-                      className="space-y-1"
-                    >
-                      {['HEAVYWEIGHT TEES', 'HOODIES', 'ZIP HOODIES', 'SWEATSHIRTS', 'BOMBERS'].map(item => (
-                        <motion.li key={item} variants={listItemVariants} className="text-xs font-bold tracking-widest text-amber-400">{item}</motion.li>
-                      ))}
-                    </motion.ul>
-                    <div>
-                      <h2 className="text-5xl font-black font-bebas tracking-tighter">AUTUMN DROPS</h2>
-                      <p className="mt-2 font-mono text-xs tracking-widest text-amber-400">LIMITED STOCKS • 2026</p>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Right block: Single width (col-span-1) */}
-                <div className="lg:col-span-1 flex flex-col gap-6">
-                  {/* Upper card */}
-                  <motion.div
-                    initial="initial"
-                    whileHover="hover"
-                    variants={hoverCollectionVariants}
-                    className="relative h-[26vh] min-h-[180px] rounded-2xl overflow-hidden cursor-pointer group border border-white/10"
-                  >
-                    {collection2Product && (
-                      <Image src={getProductImage(collection2Product.imageUrls, "https://placehold.co/600x800.png", 800)} alt={collection2Product.name} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" />
-                    )}
-                    <div className="absolute inset-0 flex flex-col justify-between p-6 text-white bg-gradient-to-t from-black/90 via-black/30 to-transparent">
-                      <div />
-                      <div>
-                        <h2 className="text-3xl font-black font-bebas tracking-tighter">ESSENTIALS</h2>
-                        <p className="mt-1 font-mono text-[10px] tracking-widest text-amber-400">CORE BASICS</p>
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* Lower card */}
-                  <motion.div
-                    initial="initial"
-                    whileHover="hover"
-                    variants={hoverCollectionVariants}
-                    className="relative h-[26vh] min-h-[180px] rounded-2xl overflow-hidden cursor-pointer group border border-white/10"
-                  >
-                    {heroProduct && (
-                      <Image src={getProductImage(heroProduct.imageUrls, "https://placehold.co/600x800.png", 800)} alt={heroProduct.name} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-105" />
-                    )}
-                    <div className="absolute inset-0 flex flex-col justify-between p-6 text-white bg-gradient-to-t from-black/90 via-black/30 to-transparent">
-                      <div />
-                      <div>
-                        <h2 className="text-3xl font-black font-bebas tracking-tighter">LIMITED RUNS</h2>
-                        <p className="mt-1 font-mono text-[10px] tracking-widest text-amber-400">EXCLUSIVE RELEASES</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* SECTION 4: BESTSELLERS CAROUSEL */}
-          <section className="py-20 bg-background">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
-              variants={sectionVariants}
-              className="container mx-auto px-6 lg:px-12"
-            >
-              <div className="flex justify-between items-center mb-12">
-                <div>
-                  <h2 className="text-5xl font-black font-bebas tracking-tight">BESTSELLERS</h2>
-                  <p className="text-xs text-muted-foreground mt-1">High demand customer favorites</p>
-                </div>
-
-                <Button asChild variant="outline" className="rounded-full h-12 px-8 font-bold border-white/20">
-                  <Link href="/products">VIEW CATALOG</Link>
-                </Button>
-              </div>
-
-              <Carousel
-                opts={{
-                  align: "start",
-                  loop: true,
-                }}
-                plugins={[autoplayPlugin.current]}
-                className="w-full"
-              >
-                <CarouselContent>
-                  {loading ?
-                    Array.from({ length: 4 }).map((_, i) => (
-                      <CarouselItem key={i} className="md:basis-1/3 lg:basis-1/4">
-                        <Skeleton className="aspect-[3/4] rounded-xl" />
-                      </CarouselItem>
-                    ))
-                    : bestSellers.map((product) => (
-                      <CarouselItem key={product.id} className="md:basis-1/3 lg:basis-1/4">
-                        <ProductCard product={product} />
-                      </CarouselItem>
-                    ))}
-                </CarouselContent>
-                <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6" />
-                <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-6" />
-              </Carousel>
-            </motion.div>
-          </section>
-
-          {/* SECTION 5: SHOPPING PERKS STRIP */}
-          <section className="border-t border-white/10 bg-card/60 py-10">
-            <div className="container mx-auto px-6 lg:px-12">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-full bg-primary/10 text-primary shrink-0">
-                    <Truck className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold">Free Express Delivery</h4>
-                    <p className="text-[10px] text-muted-foreground">On all orders above ₹999</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-full bg-emerald-500/10 text-emerald-600 shrink-0">
-                    <ShieldCheck className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold">Premium Quality Fabric</h4>
-                    <p className="text-[10px] text-muted-foreground">100% Heavyweight Cotton</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-full bg-blue-500/10 text-blue-600 shrink-0">
-                    <ShieldCheck className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold">100% Authentic Drop</h4>
-                    <p className="text-[10px] text-muted-foreground">Guaranteed quality craft</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-full bg-amber-500/10 text-amber-500 shrink-0">
-                    <Gift className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold">Oktocoin Loyalty Rewards</h4>
-                    <p className="text-[10px] text-muted-foreground">Earn points on every buy</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
+          {/* Module 12 Prelude: Reassurance & Shopping Perks */}
+          <DesktopShoppingPerks />
         </main>
+
+        {/* Module 12: Grouped Footer */}
         <Footer />
       </div>
 
