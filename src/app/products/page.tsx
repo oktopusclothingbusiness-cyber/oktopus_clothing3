@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { MobileFooter } from '@/components/mobile-footer';
@@ -36,23 +36,40 @@ function ProductListComponent() {
   const { products, loading: productsLoading } = useProduct();
   const { categories, loading: categoriesLoading } = useCategory();
   const { promotions } = usePromotion();
+  const router = useRouter();
   const searchParams = useSearchParams();
+
+  const searchQuery = searchParams.get('q') || searchParams.get('search') || '';
+  const categoryIdParam = searchParams.get('category');
 
   const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
   const [priceFilter, setPriceFilter] = React.useState<'all' | 'under999' | '1000to1999' | 'above2000'>('all');
   const [sortOption, setSortOption] = React.useState<'newest' | 'price_asc' | 'price_desc' | 'rating'>('newest');
-  const [localSearch, setLocalSearch] = React.useState('');
-
-  const searchQuery = searchParams.get('q');
-  const categoryIdParam = searchParams.get('category');
+  const [localSearch, setLocalSearch] = React.useState(searchQuery);
 
   const loading = productsLoading || categoriesLoading;
+
+  // Keep local search input synced with URL query
+  React.useEffect(() => {
+    setLocalSearch(searchQuery);
+  }, [searchQuery]);
 
   React.useEffect(() => {
     if (categoryIdParam) {
       setSelectedCategory(categoryIdParam);
     }
   }, [categoryIdParam]);
+
+  const handleClearSearch = () => {
+    setLocalSearch('');
+    if (searchQuery) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('q');
+      params.delete('search');
+      const newQuery = params.toString() ? `?${params.toString()}` : '';
+      router.replace(`/products${newQuery}`);
+    }
+  };
 
   const activeCategoryName = React.useMemo(() => {
     if (!selectedCategory) return null;
@@ -63,8 +80,8 @@ function ProductListComponent() {
   const filteredProducts = React.useMemo(() => {
     let result = products.filter((p) => typeof p.stock === 'number' && p.stock > 0);
 
-    // Search Query (URL parameter or Local search input)
-    const effectiveSearch = localSearch.trim() || searchQuery || '';
+    // Search Query (local search input or URL parameter)
+    const effectiveSearch = localSearch.trim();
     if (effectiveSearch) {
       const q = effectiveSearch.toLowerCase();
       result = result.filter(
@@ -104,7 +121,8 @@ function ProductListComponent() {
   }, [products]);
 
   const getPageTitle = () => {
-    if (searchQuery) return `Search results for "${searchQuery}"`;
+    const effectiveSearch = localSearch.trim();
+    if (effectiveSearch) return `Search results for "${effectiveSearch}"`;
     if (activeCategoryName) return `${activeCategoryName} Collection`;
     return 'Premium Collections';
   };
@@ -208,10 +226,10 @@ function ProductListComponent() {
                   placeholder="Search apparel..."
                   value={localSearch}
                   onChange={(e) => setLocalSearch(e.target.value)}
-                  className="pl-9 h-9 text-xs rounded-lg"
+                  className="pl-9 pr-8 h-9 text-xs rounded-lg"
                 />
                 {localSearch && (
-                  <button onClick={() => setLocalSearch('')} className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground">
+                  <button onClick={handleClearSearch} className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground">
                     <X className="h-3.5 w-3.5" />
                   </button>
                 )}

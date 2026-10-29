@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const db = client.db();
 
     const searchParams = request.nextUrl.searchParams;
-    const searchQuery = searchParams.get('q');
+    const searchQuery = searchParams.get('q') || searchParams.get('search');
     const categoryId = searchParams.get('category');
 
 

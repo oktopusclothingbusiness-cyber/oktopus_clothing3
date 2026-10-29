@@ -53,11 +53,22 @@ export function Header() {
     return `${(firstName || '').charAt(0)}${(lastName || '').charAt(0)}`.toUpperCase() || 'U';
   };
 
+  // Sync search input if already on /products page with a query
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && pathname === '/products') {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('q') || params.get('search');
+      if (q) {
+        setSearchQuery(q);
+        setIsSearchActive(true);
+      }
+    }
+  }, [pathname]);
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
-      setIsSearchActive(false);
+      router.push(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
@@ -137,24 +148,37 @@ export function Header() {
           {/* Search Trigger / Input */}
           {isSearchActive ? (
             <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+              <button
+                type="submit"
+                className="absolute left-2.5 text-muted-foreground hover:text-foreground p-0.5 rounded-full z-10"
+                aria-label="Submit search"
+              >
+                <Search className="w-3.5 h-3.5" />
+              </button>
               <input
                 ref={searchInputRef}
                 type="text"
                 placeholder="SEARCH APPAREL..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onBlur={() => {
-                  if (!searchQuery) setIsSearchActive(false);
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    setIsSearchActive(false);
+                  }
                 }}
-                className="h-9 w-36 sm:w-56 bg-muted/70 border border-input px-3.5 pr-8 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring rounded-full transition-all"
+                enterKeyHint="search"
+                className="h-9 w-40 sm:w-60 bg-muted/70 border border-input pl-8 pr-8 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring rounded-full transition-all"
               />
               <button
                 type="button"
                 onClick={() => {
                   setIsSearchActive(false);
                   setSearchQuery('');
+                  if (pathname === '/products') {
+                    router.push('/products');
+                  }
                 }}
-                className="absolute right-2.5 text-muted-foreground hover:text-foreground p-0.5 rounded-full"
+                className="absolute right-2.5 text-muted-foreground hover:text-foreground p-0.5 rounded-full z-10"
                 aria-label="Close search"
               >
                 <X className="w-3.5 h-3.5" />

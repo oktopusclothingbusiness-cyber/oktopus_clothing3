@@ -4,7 +4,7 @@
 import Link from "next/link";
 import * as React from 'react';
 import { Button } from "@/components/ui/button";
-import { Search, SlidersHorizontal, ShoppingCart, ArrowLeft } from "lucide-react";
+import { Search, SlidersHorizontal, ShoppingCart, ArrowLeft, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/context/auth-context";
@@ -34,11 +34,12 @@ export const MobileHeader = ({ showCart = true, title, rightAction }: MobileHead
     const { categories, loading: categoriesLoading } = useCategory();
     const [searchQuery, setSearchQuery] = React.useState('');
 
-    const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter' && searchQuery.trim() !== '') {
-            router.push(`/products?q=${encodeURIComponent(searchQuery)}`);
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim() !== '') {
+            router.push(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
         }
-    }
+    };
     
     const headerClasses = "md:hidden sticky top-0 z-50 p-4 bg-background/80 backdrop-blur-lg border-b";
 
@@ -103,16 +104,32 @@ export const MobileHeader = ({ showCart = true, title, rightAction }: MobileHead
                 <BaskeyAttribution className="text-[7.5px] tracking-[0.2em] opacity-80" />
             </div>
             <div className="flex items-center gap-2">
-                <div className="relative flex-grow">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <form onSubmit={handleSearchSubmit} className="relative flex-grow">
+                    <button
+                        type="submit"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 z-10"
+                        aria-label="Submit Search"
+                    >
+                        <Search className="h-4 w-4" />
+                    </button>
                     <Input 
                         placeholder="What's on your list?" 
-                        className="w-full rounded-full pl-10 bg-secondary border-none" 
+                        className="w-full rounded-full pl-9 pr-8 bg-secondary border-none text-xs" 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        onKeyDown={handleSearch}
+                        enterKeyHint="search"
                     />
-                </div>
+                    {searchQuery && (
+                        <button
+                            type="button"
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 z-10"
+                            aria-label="Clear Search"
+                        >
+                            <X className="h-3.5 w-3.5" />
+                        </button>
+                    )}
+                </form>
                 <Sheet>
                     <SheetTrigger asChild>
                          <Button variant="outline" size="icon" className="bg-secondary border-none">
