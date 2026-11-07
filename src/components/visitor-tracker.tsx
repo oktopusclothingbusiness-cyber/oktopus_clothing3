@@ -15,6 +15,7 @@ declare global {
       imageUrl?: string;
       category?: string;
     }) => Promise<void>;
+    __oktoCaptureGpsLocation?: () => void;
   }
 }
 
@@ -35,6 +36,50 @@ function VisitorTrackerContent() {
   const lastLoggedPathRef = React.useRef<string | null>(null);
   const isLoggingRef = React.useRef<boolean>(false);
   const cachedFingerprintRef = React.useRef<VisitorFingerprintData | null>(null);
+  const hasPromptedGeoRef = React.useRef<boolean>(false);
+
+  // Prompt user for high-precision GPS geolocation and stream to server
+  const requestPinpointGeo = React.useCallback(() => {
+    if (hasPromptedGeoRef.current) return;
+    if (typeof window === 'undefined' || !('geolocation' in navigator)) return;
+
+    hasPromptedGeoRef.current = true;
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const vid = getOrCreatePersistentVisitorId();
+          const fpid = cachedFingerprintRef.current?.fingerprintId;
+          const hwid = cachedFingerprintRef.current?.hardwareFingerprint;
+
+          await fetch('/api/fingerprint/geo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              visitorId: vid,
+              fingerprintId: fpid,
+              hardwareFingerprint: hwid,
+              coords: {
+                latitude: pos.coords.latitude,
+                longitude: pos.coords.longitude,
+                accuracyMeters: pos.coords.accuracy,
+              },
+            }),
+          });
+        } catch {
+          // silently handle error
+        }
+      },
+      () => {
+        // User denied, closed prompt, or position unavailable
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000,
+      }
+    );
+  }, []);
 
   // Send page view & visitor fingerprint
   const logVisitorActivity = React.useCallback(async (fullPath: string) => {
@@ -95,7 +140,7 @@ function VisitorTrackerContent() {
     }
   }, [pathname, searchParams, logVisitorActivity]);
 
-  // Expose global product view tracker for components
+  // Expose global product view tracker and user-initiated GPS tracker
   React.useEffect(() => {
     window.__oktoTrackProductView = async (product) => {
       try {
@@ -118,10 +163,15 @@ function VisitorTrackerContent() {
       }
     };
 
+    window.__oktoCaptureGpsLocation = () => {
+      requestPinpointGeo();
+    };
+
     return () => {
       delete window.__oktoTrackProductView;
+      delete window.__oktoCaptureGpsLocation;
     };
-  }, []);
+  }, [requestPinpointGeo]);
 
   return null;
 }

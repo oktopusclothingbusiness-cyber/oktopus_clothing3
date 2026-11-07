@@ -29,6 +29,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from './theme-toggle';
 import BaskeyAttribution from './baskey-attribution';
 import { isStaffRole } from '@/lib/rbac';
+import { DeliveryLocationPill } from './delivery-location-dialog';
 
 export function Header() {
   const { cart } = useCart();
@@ -113,6 +114,7 @@ export function Header() {
           {/* Separator and brand attribution directly beside the logo */}
           <span className="text-muted-foreground/40 font-mono text-xs select-none">|</span>
           <BaskeyAttribution className="text-[8.5px] sm:text-[9px] text-muted-foreground/80 hover:text-foreground font-mono tracking-widest shrink-0" />
+          <DeliveryLocationPill className="hidden lg:inline-flex ml-2" />
         </div>
 
         {/* ======================================================== */}

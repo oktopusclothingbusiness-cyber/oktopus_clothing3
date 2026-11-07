@@ -32,6 +32,7 @@ import { RewardProvider } from "@/context/reward-context";
 import { PosterProvider } from "@/context/poster-context";
 import { StorefrontPosterPopup } from "@/components/storefront-poster-popup";
 import { VisitorTracker } from "@/components/visitor-tracker";
+import { DeliveryLocationDialog } from "@/components/delivery-location-dialog";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const archivo = Archivo({ 
@@ -219,6 +220,7 @@ export default async function RootLayout({
                                             <FloatingCartButton />
                                             <StorefrontPosterPopup />
                                             <VisitorTracker />
+                                            <DeliveryLocationDialog />
                                         </PageTransitionProvider>
                                         </CartProvider>
                                     </TrendProvider>

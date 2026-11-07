@@ -4,9 +4,9 @@ import clientPromise from '@/lib/mongodb';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { visitorId, fingerprintId, coords } = body;
+    const { visitorId, fingerprintId, hardwareFingerprint, coords } = body;
 
-    if ((!visitorId && !fingerprintId) || !coords?.latitude || !coords?.longitude) {
+    if ((!visitorId && !fingerprintId && !hardwareFingerprint) || !coords?.latitude || !coords?.longitude) {
       return NextResponse.json({ message: 'Invalid payload: missing visitor identifier or coordinates' }, { status: 400 });
     }
 
@@ -42,10 +42,11 @@ export async function POST(request: NextRequest) {
     const collection = db.collection('visitor_fingerprints');
     const now = new Date();
 
-    const query = {
+    const query: any = {
       $or: [
         ...(visitorId ? [{ visitorId }, { knownVisitorIds: visitorId }] : []),
         ...(fingerprintId ? [{ fingerprintId }, { knownFingerprintIds: fingerprintId }] : []),
+        ...(hardwareFingerprint ? [{ hardwareFingerprint }, { knownHardwareFingerprints: hardwareFingerprint }] : []),
       ],
     };
 
@@ -59,6 +60,9 @@ export async function POST(request: NextRequest) {
           source: 'gps',
           capturedAt: now,
         },
+        'geo.latitude': lat,
+        'geo.longitude': lon,
+        'geo.pinpointAddress': streetAddress,
         'analytics.lastSeenAt': now,
         updatedAt: now,
       },

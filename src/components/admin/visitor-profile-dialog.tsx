@@ -53,6 +53,14 @@ export interface VisitorRecord {
   knownVisitorIds?: string[];
   knownFingerprintIds?: string[];
   ip: string;
+  pinpointGeo?: {
+    latitude: number;
+    longitude: number;
+    accuracyMeters?: number;
+    streetAddress?: string;
+    source?: string;
+    capturedAt?: string | Date;
+  };
   geo?: {
     country?: string;
     countryCode?: string;
@@ -185,8 +193,9 @@ export function VisitorProfileDialog({
   const isRepeatVisitor = totalVisits >= 2;
   const viewedCount = visitor.viewedProducts?.length || 0;
 
-  const lat = visitor.geo?.latitude;
-  const lon = visitor.geo?.longitude;
+  const isGpsPinpoint = Boolean(visitor.pinpointGeo?.latitude);
+  const lat = visitor.pinpointGeo?.latitude ?? visitor.geo?.latitude;
+  const lon = visitor.pinpointGeo?.longitude ?? visitor.geo?.longitude;
   const mapsUrl = lat && lon ? `https://www.google.com/maps?q=${lat},${lon}` : null;
 
   return (
@@ -433,7 +442,14 @@ export function VisitorProfileDialog({
                   </div>
 
                   <div>
-                    <span className="text-muted-foreground block text-[11px]">Coordinates</span>
+                    <span className="text-muted-foreground block text-[11px] flex items-center gap-1.5">
+                      Coordinates
+                      {isGpsPinpoint && (
+                        <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.2 rounded">
+                          GPS (±{Math.round(visitor.pinpointGeo?.accuracyMeters || 0)}m)
+                        </span>
+                      )}
+                    </span>
                     {mapsUrl ? (
                       <Link
                         href={mapsUrl}
@@ -441,13 +457,22 @@ export function VisitorProfileDialog({
                         rel="noreferrer"
                         className="font-mono text-primary font-medium flex items-center gap-1 hover:underline mt-0.5"
                       >
-                        {lat?.toFixed(4)}, {lon?.toFixed(4)}
+                        {lat?.toFixed(5)}, {lon?.toFixed(5)}
                         <ExternalLink className="w-3 h-3" />
                       </Link>
                     ) : (
                       <span className="text-muted-foreground mt-0.5 inline-block">Unavailable</span>
                     )}
                   </div>
+
+                  {visitor.pinpointGeo?.streetAddress && (
+                    <div className="col-span-full pt-2 border-t">
+                      <span className="text-muted-foreground block text-[11px]">Pinpoint Street Address (GPS)</span>
+                      <span className="font-medium text-xs text-foreground mt-0.5 block">
+                        {visitor.pinpointGeo.streetAddress}
+                      </span>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 

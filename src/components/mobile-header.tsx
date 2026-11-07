@@ -20,6 +20,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { useCategory } from "@/context/category-context";
+import { DeliveryLocationPill } from "./delivery-location-dialog";
 
 
 type MobileHeaderProps = {
@@ -161,6 +162,9 @@ export const MobileHeader = ({ showCart = true, title, rightAction }: MobileHead
                         </div>
                     </SheetContent>
                 </Sheet>
+            </div>
+            <div className="flex items-center justify-between">
+                <DeliveryLocationPill className="w-full justify-between" />
             </div>
         </header>
     );

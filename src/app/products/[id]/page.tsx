@@ -31,7 +31,8 @@ import {
   Zap,
   Smartphone,
   QrCode,
-  ArrowRight
+  ArrowRight,
+  MapPin
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -584,10 +585,20 @@ export default function ProductDetailPage() {
                   )}
                 </div>
 
-                {/* Delivery Guarantee Badge */}
-                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 pt-1">
-                  <Truck className="h-4 w-4 shrink-0" />
-                  <span>Get it by <strong className="underline decoration-emerald-500/40">{deliveryDate}</strong></span>
+                {/* Delivery Guarantee Badge & Area Checker */}
+                <div className="flex items-center justify-between gap-2 text-xs font-semibold pt-1 flex-wrap">
+                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                    <Truck className="h-4 w-4 shrink-0" />
+                    <span>Get it by <strong className="underline decoration-emerald-500/40">{deliveryDate}</strong></span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new CustomEvent('okto-open-delivery-modal'))}
+                    className="text-[11px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 hover:underline cursor-pointer"
+                  >
+                    <MapPin className="w-3 h-3 text-primary" />
+                    Check Delivery Location
+                  </button>
                 </div>
               </div>
 
