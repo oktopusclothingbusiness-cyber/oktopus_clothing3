@@ -49,6 +49,9 @@ export interface VisitorRecord {
   _id: string;
   visitorId: string;
   fingerprintId: string;
+  hardwareFingerprint?: string;
+  knownVisitorIds?: string[];
+  knownFingerprintIds?: string[];
   ip: string;
   geo?: {
     country?: string;
@@ -215,6 +218,12 @@ export function VisitorProfileDialog({
                   {isRepeatVisitor && (
                     <Badge variant="secondary" className="bg-primary/20 text-primary font-bold">
                       {totalVisits} Total Visits
+                    </Badge>
+                  )}
+                  {visitor.knownVisitorIds && visitor.knownVisitorIds.length > 1 && (
+                    <Badge variant="outline" className="bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30 gap-1 font-semibold text-xs">
+                      <Fingerprint className="w-3 h-3" />
+                      {visitor.knownVisitorIds.length} Linked Sessions
                     </Badge>
                   )}
                 </div>
@@ -598,6 +607,38 @@ export function VisitorProfileDialog({
                       {visitor.capabilities?.storageQuotaMB ? `Quota: ~${visitor.capabilities.storageQuotaMB} MB` : 'Active'}
                     </span>
                   </div>
+
+                  <div>
+                    <span className="text-muted-foreground block text-[11px]">Hardware Invariant Hash</span>
+                    <span className="font-mono font-medium mt-0.5 block bg-muted/30 px-2 py-0.5 rounded text-[11px] truncate" title={visitor.hardwareFingerprint}>
+                      {visitor.hardwareFingerprint || 'Pending sync'}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-muted-foreground block text-[11px]">Canvas 2D Hash</span>
+                    <span className="font-mono font-medium mt-0.5 block bg-muted/30 px-2 py-0.5 rounded text-[11px]">
+                      {visitor.hardware?.canvas2dHash || 'N/A'}
+                    </span>
+                  </div>
+
+                  {visitor.knownVisitorIds && visitor.knownVisitorIds.length > 1 && (
+                    <div className="col-span-full pt-2 border-t">
+                      <span className="text-muted-foreground block text-[11px] font-semibold">
+                        Linked Session Tokens ({visitor.knownVisitorIds.length})
+                      </span>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {visitor.knownVisitorIds.map((vid, idx) => (
+                          <span
+                            key={idx}
+                            className="font-mono text-[10px] bg-muted/50 border px-2 py-0.5 rounded text-muted-foreground"
+                          >
+                            {vid}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

@@ -101,6 +101,7 @@ function VisitorTrackerContent() {
       try {
         const vid = getOrCreatePersistentVisitorId();
         const fpid = cachedFingerprintRef.current?.fingerprintId;
+        const hwid = cachedFingerprintRef.current?.hardwareFingerprint;
 
         await fetch('/api/fingerprint/track-product', {
           method: 'POST',
@@ -108,6 +109,7 @@ function VisitorTrackerContent() {
           body: JSON.stringify({
             visitorId: vid,
             fingerprintId: fpid,
+            hardwareFingerprint: hwid,
             product,
           }),
         });

@@ -28,22 +28,72 @@ export async function POST(request: NextRequest) {
     const db = client.db();
     const collection = db.collection('visitor_fingerprints');
 
-    // Find existing visitor by visitorId or fingerprintId
-    const existing = await collection.findOne({
-      $or: [{ visitorId: fpData.visitorId }, { fingerprintId: fpData.fingerprintId }],
+    // Multi-tier visitor resolution
+    // Tier 1: Stored visitor ID match (current or known alias)
+    let existing = await collection.findOne({
+      $or: [
+        { visitorId: fpData.visitorId },
+        { knownVisitorIds: fpData.visitorId },
+      ],
     });
+
+    // Tier 2: Composite fingerprint hash match (current or known alias)
+    if (!existing && fpData.fingerprintId) {
+      existing = await collection.findOne({
+        $or: [
+          { fingerprintId: fpData.fingerprintId },
+          { knownFingerprintIds: fpData.fingerprintId },
+        ],
+      });
+    }
+
+    // Tier 3: Invariant Hardware + IP Network Match
+    // Bridges Safari Private Browsing (localStorage wiped) and Apple canvas/audio noise injection
+    if (!existing && clientIp && clientIp !== '127.0.0.1' && clientIp !== '::1') {
+      const hwOrConditions: any[] = [];
+      if (fpData.hardwareFingerprint) {
+        hwOrConditions.push({ hardwareFingerprint: fpData.hardwareFingerprint });
+        hwOrConditions.push({ knownHardwareFingerprints: fpData.hardwareFingerprint });
+      }
+      if (fpData.gpuRenderer && fpData.hardwareConcurrency) {
+        hwOrConditions.push({
+          'device.os': fpData.deviceOs,
+          'device.browser': fpData.browserType,
+          'hardware.gpuRenderer': fpData.gpuRenderer,
+          'hardware.cpuCores': fpData.hardwareConcurrency,
+          'locale.timezone': fpData.timezone,
+        });
+      }
+
+      if (hwOrConditions.length > 0) {
+        existing = await collection.findOne({
+          ip: clientIp,
+          $or: hwOrConditions,
+        });
+      }
+    } else if (!existing && (clientIp === '127.0.0.1' || clientIp === '::1' || !clientIp)) {
+      // Local development fallback: match on stable hardware fingerprint
+      if (fpData.hardwareFingerprint) {
+        existing = await collection.findOne({
+          $or: [
+            { hardwareFingerprint: fpData.hardwareFingerprint },
+            { knownHardwareFingerprints: fpData.hardwareFingerprint },
+          ],
+        });
+      }
+    }
 
     let visitCount = 1;
     let sessionCount = 1;
-    const firstSeenAt = existing ? existing.firstSeenAt || existing.createdAt || now : now;
-    let visitDates: string[] = existing?.visitDates || [];
+    const firstSeenAt = existing ? existing.analytics?.firstSeenAt || existing.firstSeenAt || existing.createdAt || now : now;
+    let visitDates: string[] = existing?.analytics?.visitDates || existing?.visitDates || [];
 
     if (existing) {
-      const lastSeen = new Date(existing.lastSeenAt || existing.updatedAt || 0).getTime();
+      const lastSeen = new Date(existing.analytics?.lastSeenAt || existing.lastSeenAt || existing.updatedAt || 0).getTime();
       const isNewSession = now.getTime() - lastSeen > SESSION_GAP_MS;
 
-      sessionCount = (existing.sessionCount || 1) + (isNewSession ? 1 : 0);
-      visitCount = (existing.visitCount || 1) + (isNewSession ? 1 : 0);
+      sessionCount = (existing.analytics?.sessionCount || existing.sessionCount || 1) + (isNewSession ? 1 : 0);
+      visitCount = (existing.analytics?.visitCount || existing.visitCount || 1) + (isNewSession ? 1 : 0);
 
       if (!visitDates.includes(todayStr)) {
         visitDates.push(todayStr);
@@ -79,17 +129,18 @@ export async function POST(request: NextRequest) {
       $set: {
         visitorId: fpData.visitorId,
         fingerprintId: fpData.fingerprintId,
+        ...(fpData.hardwareFingerprint ? { hardwareFingerprint: fpData.hardwareFingerprint } : {}),
         ip: clientIp,
         geo: {
-          country: geo.country || 'Unknown',
-          countryCode: geo.countryCode || '',
-          city: geo.city || 'Unknown',
-          region: geo.region || '',
-          postalCode: geo.postalCode || '',
-          latitude: geo.latitude,
-          longitude: geo.longitude,
-          isp: geo.isp || 'Standard Network',
-          carrier: geo.carrier || 'Broadband / Cellular',
+          country: geo.country || existing?.geo?.country || 'Unknown',
+          countryCode: geo.countryCode || existing?.geo?.countryCode || '',
+          city: geo.city || existing?.geo?.city || 'Unknown',
+          region: geo.region || existing?.geo?.region || '',
+          postalCode: geo.postalCode || existing?.geo?.postalCode || '',
+          latitude: geo.latitude ?? existing?.geo?.latitude,
+          longitude: geo.longitude ?? existing?.geo?.longitude,
+          isp: geo.isp || existing?.geo?.isp || 'Standard Network',
+          carrier: geo.carrier || existing?.geo?.carrier || 'Broadband / Cellular',
           timezone: geo.timezone || fpData.timezone,
         },
         device: {
@@ -150,15 +201,16 @@ export async function POST(request: NextRequest) {
           sessionCount,
           firstSeenAt,
           lastSeenAt: now,
-          lastPath: pageMeta.path || '/',
+          lastPath: pageMeta.path || existing?.analytics?.lastPath || '/',
           visitDates,
         },
         customer: customerInfo,
         updatedAt: now,
       },
-      $setOnInsert: {
-        createdAt: now,
-        viewedProducts: [],
+      $addToSet: {
+        knownVisitorIds: fpData.visitorId,
+        knownFingerprintIds: fpData.fingerprintId,
+        ...(fpData.hardwareFingerprint ? { knownHardwareFingerprints: fpData.hardwareFingerprint } : {}),
       },
     };
 
@@ -172,11 +224,22 @@ export async function POST(request: NextRequest) {
       };
     }
 
-    await collection.updateOne(
-      { $or: [{ visitorId: fpData.visitorId }, { fingerprintId: fpData.fingerprintId }] },
-      updateDoc,
-      { upsert: true }
-    );
+    if (existing) {
+      await collection.updateOne(
+        { _id: existing._id },
+        updateDoc
+      );
+    } else {
+      updateDoc.$setOnInsert = {
+        createdAt: now,
+        viewedProducts: [],
+      };
+      await collection.updateOne(
+        { visitorId: fpData.visitorId },
+        updateDoc,
+        { upsert: true }
+      );
+    }
 
     return NextResponse.json({
       success: true,

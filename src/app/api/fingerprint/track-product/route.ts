@@ -5,9 +5,9 @@ import { getClientIp } from '@/lib/rateLimit';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { visitorId, fingerprintId, product } = body;
+    const { visitorId, fingerprintId, hardwareFingerprint, product } = body;
 
-    if ((!visitorId && !fingerprintId) || !product?.productId) {
+    if ((!visitorId && !fingerprintId && !hardwareFingerprint) || !product?.productId) {
       return NextResponse.json({ message: 'Missing visitor or product details' }, { status: 400 });
     }
 
@@ -16,10 +16,11 @@ export async function POST(request: NextRequest) {
     const collection = db.collection('visitor_fingerprints');
     const now = new Date();
 
-    const query = {
+    const query: any = {
       $or: [
-        ...(visitorId ? [{ visitorId }] : []),
-        ...(fingerprintId ? [{ fingerprintId }] : []),
+        ...(visitorId ? [{ visitorId }, { knownVisitorIds: visitorId }] : []),
+        ...(fingerprintId ? [{ fingerprintId }, { knownFingerprintIds: fingerprintId }] : []),
+        ...(hardwareFingerprint ? [{ hardwareFingerprint }, { knownHardwareFingerprints: hardwareFingerprint }] : []),
       ],
     };
 
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
     if (prodIndex > -1) {
       // Product already in list - increment count and update last viewed time
       await collection.updateOne(
-        { ...query, 'viewedProducts.productId': product.productId },
+        { _id: visitor._id, 'viewedProducts.productId': product.productId },
         {
           $inc: { 'viewedProducts.$.viewCount': 1 },
           $set: {
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
         viewCount: 1,
       };
 
-      await collection.updateOne(query, {
+      await collection.updateOne({ _id: visitor._id }, {
         $push: { viewedProducts: newProductItem as any } as any,
         $set: {
           'analytics.lastSeenAt': now,

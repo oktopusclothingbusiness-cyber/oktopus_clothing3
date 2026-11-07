@@ -25,6 +25,8 @@ export async function GET(
       $or: [
         { visitorId: id },
         { fingerprintId: id },
+        { knownVisitorIds: id },
+        { knownFingerprintIds: id },
       ],
     };
 
@@ -63,6 +65,8 @@ export async function DELETE(
       $or: [
         { visitorId: id },
         { fingerprintId: id },
+        { knownVisitorIds: id },
+        { knownFingerprintIds: id },
       ],
     };
 

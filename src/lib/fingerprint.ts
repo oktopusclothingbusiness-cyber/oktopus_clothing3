@@ -8,6 +8,7 @@ export interface VisitorFingerprintData {
   // 1. Identification
   visitorId: string;
   fingerprintId: string;
+  hardwareFingerprint?: string;
 
   // 2. Network & Connection
   networkType: string; // '4g', 'wifi', 'ethernet', etc.
@@ -525,9 +526,28 @@ export async function collectVisitorFingerprint(): Promise<VisitorFingerprintDat
   const fpHashRaw = await sha256(compositeTrait);
   const fingerprintId = `fp_${fpHashRaw.substring(0, 24)}`;
 
+  // Invariant hardware trait: survives Incognito / Private Browsing, canvas noise injection, and display scaling
+  const stableHardwareTrait = [
+    deviceOs,
+    platform,
+    deviceType,
+    browserType,
+    webglInfo.renderer,
+    webglInfo.vendor,
+    hardwareConcurrency,
+    deviceMemory || 'na',
+    timezone,
+    languages.slice(0, 2).join(','),
+    hasTouch ? `touch_${touchPoints}` : 'no_touch',
+  ].join(':::');
+
+  const hwHashRaw = await sha256(stableHardwareTrait);
+  const hardwareFingerprint = `hw_${hwHashRaw.substring(0, 24)}`;
+
   return {
     visitorId,
     fingerprintId,
+    hardwareFingerprint,
     networkType,
     downlink,
     rtt,

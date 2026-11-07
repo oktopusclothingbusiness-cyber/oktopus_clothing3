@@ -17,8 +17,8 @@ export async function GET(request: NextRequest) {
 
     const visitor = await db.collection('visitor_fingerprints').findOne({
       $or: [
-        ...(visitorId ? [{ visitorId }] : []),
-        ...(fingerprintId ? [{ fingerprintId }] : []),
+        ...(visitorId ? [{ visitorId }, { knownVisitorIds: visitorId }] : []),
+        ...(fingerprintId ? [{ fingerprintId }, { knownFingerprintIds: fingerprintId }] : []),
       ],
     });
 
