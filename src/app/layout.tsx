@@ -130,6 +130,9 @@ export async function generateMetadata(): Promise<Metadata> {
         'max-snippet': -1,
       },
     },
+    verification: {
+      google: 'google76fa96448a07af65',
+    },
     other: {
       'baskey-studio-attribution': 'A Unit of BASKEY Studio',
     },

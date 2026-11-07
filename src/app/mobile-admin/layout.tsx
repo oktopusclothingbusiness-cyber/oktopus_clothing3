@@ -23,6 +23,7 @@ import {
   Loader2
 } from "lucide-react";
 import { AdminViewSwitcherButton, AdminViewSwitcherSidebar } from "@/components/admin/admin-view-switcher";
+import { isAlphaAdmin, isStaffRole } from "@/lib/rbac";
 
 const NAV_ITEMS = [
   { name: "Dashboard", href: "/mobile-admin", icon: LayoutDashboard },
@@ -72,8 +73,9 @@ export default function MobileAdminLayout({
     );
   }
 
-  // Strictly enforce Admin Role
-  if (user?.role !== 'admin') {
+  // Strictly enforce Admin / Alpha Admin Role
+  const isAuthorized = isAlphaAdmin(user) || user?.role === 'admin' || user?.role === 'alpha_admin' || isStaffRole(user?.role);
+  if (!isAuthorized) {
     return (
       <div className="min-h-screen bg-[#0E0E0E] text-white flex items-center justify-center p-4">
         <div className="bg-[#161616] border border-zinc-800 rounded-2xl p-8 max-w-md w-full text-center space-y-4">

@@ -29,7 +29,8 @@ export async function GET(
     }
 
     // Access control: Ensure user can only view their own order invoice or admin
-    if (auth.user?.role !== 'admin' && auth.user?.userId !== 'mobile-app' && auth.user?.userId !== order.userId) {
+    const isStaffOrAdmin = auth.user?.role === 'admin' || auth.user?.role === 'alpha_admin' || auth.user?.userId === 'mobile-app';
+    if (!isStaffOrAdmin && auth.user?.userId !== order.userId) {
       return NextResponse.json({ message: 'Access denied: You can only view your own order invoices.' }, { status: 403 });
     }
 
