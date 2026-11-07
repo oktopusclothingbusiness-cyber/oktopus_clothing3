@@ -2,11 +2,12 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Bar, BarChart, CartesianGrid, XAxis, Tooltip, Legend, YAxis } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { IndianRupee, Users, CreditCard, Activity, ShoppingBag, Eye, Download, Printer } from 'lucide-react';
+import { IndianRupee, Users, CreditCard, Activity, ShoppingBag, Eye, Download, Printer, Fingerprint } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/context/user-context';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -181,16 +182,22 @@ export default function AdminDashboardPage() {
             <p className="text-[10px] sm:text-xs text-muted-foreground">From all sales</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Today's Visitors</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-             {loading ? <Skeleton className="h-7 w-1/2" /> : <div className="text-xl sm:text-2xl font-bold">{todaysVisitors}</div>}
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Unique visits today</p>
-          </CardContent>
-        </Card>
+        <Link href="/admin/visitors" className="block group">
+          <Card className="transition-all hover:border-primary/50 cursor-pointer h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium group-hover:text-primary transition-colors">
+                Today&apos;s Visitors
+              </CardTitle>
+              <Eye className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            </CardHeader>
+            <CardContent>
+              {loading ? <Skeleton className="h-7 w-1/2" /> : <div className="text-xl sm:text-2xl font-bold">{todaysVisitors}</div>}
+              <p className="text-[10px] sm:text-xs text-muted-foreground group-hover:text-primary transition-colors mt-0.5">
+                View visitor fingerprints →
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium">Sales</CardTitle>

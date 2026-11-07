@@ -31,6 +31,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { RewardProvider } from "@/context/reward-context";
 import { PosterProvider } from "@/context/poster-context";
 import { StorefrontPosterPopup } from "@/components/storefront-poster-popup";
+import { VisitorTracker } from "@/components/visitor-tracker";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const archivo = Archivo({ 
@@ -72,22 +73,6 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-const VisitorTracker = () => {
-  return (
-    <Script id="visitor-tracker" strategy="afterInteractive">
-      {`
-        (function() {
-          const hasVisitedToday = sessionStorage.getItem('hasVisitedToday');
-          if (!hasVisitedToday) {
-            fetch('/api/visitors', { method: 'POST' });
-            sessionStorage.setItem('hasVisitedToday', 'true');
-          }
-        })();
-      `}
-    </Script>
-  )
-}
-
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -122,6 +107,7 @@ export default async function RootLayout({
                                             <PageLoader faviconUrl={settings.faviconUrl} />
                                             <FloatingCartButton />
                                             <StorefrontPosterPopup />
+                                            <VisitorTracker />
                                         </PageTransitionProvider>
                                         </CartProvider>
                                     </TrendProvider>
@@ -140,7 +126,6 @@ export default async function RootLayout({
             id="razorpay-checkout-js"
             src="https://checkout.razorpay.com/v1/checkout.js"
           />
-          <VisitorTracker />
           <Analytics />
         </ThemeProvider>
       </body>

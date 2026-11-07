@@ -469,6 +469,7 @@ export const ROUTE_PERMISSION_MAP: Record<string, Permission> = {
   '/admin/orders': 'manage_orders',
   '/admin/invoices': 'manage_invoices',
   '/admin/users': 'view_customers',
+  '/admin/visitors': 'view_customers',
   '/admin/custom-designs': 'manage_support',
   '/admin/shipping': 'manage_orders',
   '/admin/promotions': 'manage_marketing',

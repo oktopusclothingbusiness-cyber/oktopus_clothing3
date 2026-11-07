@@ -46,6 +46,7 @@ import {
   Package,
   Crown,
   Lock,
+  Fingerprint,
 } from 'lucide-react';
 import { IssueInvoiceDialog } from '@/components/admin/issue-invoice-dialog';
 import { ROLE_METADATA, isAlphaAdmin, getRoleMetadata } from '@/lib/rbac';
@@ -955,6 +956,24 @@ export function CustomerProfileDialog({
                     )}
                     <span>{isIpBlocked ? 'Unblock IP' : 'Block IP'}</span>
                   </Button>
+                </div>
+
+                <div className="pt-3 border-t flex items-center justify-between gap-3">
+                  <div className="text-xs">
+                    <p className="font-medium text-foreground flex items-center gap-1.5">
+                      <Fingerprint className="w-3.5 h-3.5 text-muted-foreground" />
+                      Visitor Fingerprint
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      View hardware details and product browsing history.
+                    </p>
+                  </div>
+                  <Link href={`/admin/visitors?search=${encodeURIComponent(user.email || userIp)}`}>
+                    <Button size="sm" variant="outline" className="h-8 text-xs shrink-0 gap-1.5">
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      View Details
+                    </Button>
+                  </Link>
                 </div>
               </div>
 

@@ -35,6 +35,7 @@ import {
   ExternalLink,
   Smartphone,
   Sparkles,
+  Fingerprint,
 } from 'lucide-react';
 
 export function AdminCommandPalette() {
@@ -114,6 +115,10 @@ export function AdminCommandPalette() {
             <CommandItem onSelect={() => runCommand(() => router.push('/admin/users'))}>
               <Users className="mr-2 h-4 w-4" />
               <span>User Management</span>
+            </CommandItem>
+            <CommandItem onSelect={() => runCommand(() => router.push('/admin/visitors'))}>
+              <Fingerprint className="mr-2 h-4 w-4 text-primary" />
+              <span>Visitor Fingerprints</span>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => router.push('/admin/categories'))}>
               <Shapes className="mr-2 h-4 w-4" />

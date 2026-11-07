@@ -36,6 +36,7 @@ import {
   X,
   Sparkles,
   Crown,
+  Fingerprint,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -87,6 +88,7 @@ const RAW_NAV_GROUPS: NavGroup[] = [
       { href: '/admin/orders', label: 'Orders', icon: Package },
       { href: '/admin/invoices', label: 'Invoices', icon: Receipt },
       { href: '/admin/users', label: 'Team & Access Control', icon: ShieldCheck },
+      { href: '/admin/visitors', label: 'Visitor Fingerprints', icon: Fingerprint },
       { href: '/admin/custom-designs', label: 'Custom Designs', icon: Palette },
       { href: '/admin/shipping', label: 'Shipping', icon: Truck },
     ],

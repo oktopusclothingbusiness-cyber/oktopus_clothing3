@@ -37,6 +37,7 @@ import { DesktopEditorialMarquee } from "@/components/storefront/desktop-editori
 import { DesktopSecondaryCampaign } from "@/components/storefront/desktop-secondary-campaign";
 import { DesktopFaqAccordion } from "@/components/storefront/desktop-faq-accordion";
 import { DesktopShoppingPerks } from "@/components/storefront/desktop-shopping-perks";
+import { VisitorRecommendations } from "@/components/visitor-recommendations";
 
 // Doodle SVG components
 const Doodle1 = () => (
@@ -402,6 +403,11 @@ export default function StreetifyStorePage() {
             loading={productsLoading}
           />
 
+          {/* Module 6.5: Personalized Recommendations Based on Anonymous / User Fingerprint */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <VisitorRecommendations />
+          </div>
+
           {/* Module 7: Product-Quality Story (3 Authentic Benefit Modules) */}
           <DesktopQualityStory />
 
@@ -577,6 +583,9 @@ export default function StreetifyStorePage() {
               )}
             </div>
           </section>
+
+          {/* PERSONALIZED RECOMMENDATIONS FOR VISITOR */}
+          <VisitorRecommendations className="px-4" />
 
           {/* FEATURED DROPS SECTION */}
           <section className="space-y-3">

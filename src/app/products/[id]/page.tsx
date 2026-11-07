@@ -94,6 +94,22 @@ export default function ProductDetailPage() {
     }
   }, [params.id, products, loading]);
 
+  // Track product view for customer fingerprinting & visitor intelligence
+  React.useEffect(() => {
+    if (product && typeof window !== 'undefined' && window.__oktoTrackProductView) {
+      const cat = Array.isArray(product.category) ? product.category[0] || '' : String(product.category || '');
+      const img = product.imageUrls?.[0] || (product as any).images?.[0] || '';
+      window.__oktoTrackProductView({
+        productId: product.id || (product as any)._id,
+        title: product.name,
+        slug: (product as any).slug || product.id,
+        price: product.price,
+        imageUrl: img,
+        category: cat,
+      });
+    }
+  }, [product]);
+
   // When selected color changes, update available fabric categories and images
   const currentColorVariant = React.useMemo(() => {
     if (!product?.colorVariants || product.colorVariants.length === 0) return null;
