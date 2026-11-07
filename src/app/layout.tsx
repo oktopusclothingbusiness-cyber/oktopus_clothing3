@@ -47,29 +47,92 @@ async function getSettings() {
     const settings = await db.collection('settings').findOne({ _id: 'global' as any });
     return {
       faviconUrl: settings?.faviconUrl || '/favicon.ico',
+      logoUrl: settings?.logoUrl || 'https://www.oktopusclothing.in/logo2b.png',
     };
   } catch (error) {
     console.error('Failed to fetch settings for layout:', error);
     return {
       faviconUrl: '/favicon.ico',
+      logoUrl: 'https://www.oktopusclothing.in/logo2b.png',
     };
   }
 }
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.oktopusclothing.in';
+
   return {
-    title: "OKTOPUS CLOTHING",
-    description: "A modern fashion e-commerce website.",
+    metadataBase: new URL(siteUrl),
+    title: {
+      default: 'Oktopus Clothing | Premium Streetwear & Oversized Fashion',
+      template: '%s | Oktopus Clothing',
+    },
+    description:
+      'Individuality over conformity. Discover premium oversized graphic t-shirts, heavyweight drop-shoulder streetwear, custom design apparel, and limited edition drops with fast delivery across India.',
+    keywords: [
+      'Oktopus Clothing',
+      'Oktopus streetwear',
+      'oversized t-shirts',
+      'graphic t-shirts India',
+      'heavyweight cotton t-shirt',
+      'drop shoulder t-shirts',
+      'streetwear brand India',
+      'custom t-shirt design',
+      'anime streetwear',
+      'bengali graphic t-shirts',
+      'unisex oversized t-shirts',
+      'premium streetwear',
+    ],
     icons: {
       icon: settings.faviconUrl,
+      shortcut: settings.faviconUrl,
+      apple: settings.faviconUrl,
     },
-    authors: [{ name: "BASKEY Studio", url: "https://github.com/iam-rbaskey" }],
-    creator: "BASKEY Studio",
-    publisher: "BASKEY Studio",
+    authors: [{ name: 'BASKEY Studio', url: 'https://github.com/iam-rbaskey' }],
+    creator: 'BASKEY Studio',
+    publisher: 'Oktopus Clothing',
+    alternates: {
+      canonical: siteUrl,
+    },
+    openGraph: {
+      type: 'website',
+      locale: 'en_IN',
+      url: siteUrl,
+      siteName: 'Oktopus Clothing',
+      title: 'Oktopus Clothing | Premium Streetwear & Oversized Fashion',
+      description:
+        'Individuality over conformity. Discover premium oversized graphic t-shirts, heavyweight streetwear, and custom-designed apparel with fast delivery across India.',
+      images: [
+        {
+          url: settings.logoUrl || '/logo1w.png',
+          width: 1200,
+          height: 630,
+          alt: 'Oktopus Clothing - Premium Streetwear Brand',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Oktopus Clothing | Premium Streetwear & Oversized Fashion',
+      description:
+        'Individuality over conformity. Discover premium oversized graphic t-shirts and streetwear apparel.',
+      images: [settings.logoUrl || '/logo1w.png'],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
     other: {
-      "baskey-studio-attribution": "A Unit of BASKEY Studio"
-    }
+      'baskey-studio-attribution': 'A Unit of BASKEY Studio',
+    },
   };
 }
 
@@ -79,8 +142,53 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const settings = await getSettings();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.oktopusclothing.in';
+
+  // Schema.org Structured Data
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Oktopus Clothing',
+    url: siteUrl,
+    logo: settings.logoUrl || 'https://www.oktopusclothing.in/logo2b.png',
+    contactPoint: {
+      '@type': 'ContactPoint',
+      telephone: '+91-6291337506',
+      contactType: 'customer service',
+      email: 'care@oktopusclothing.in',
+      areaServed: 'IN',
+      availableLanguage: ['English', 'Hindi', 'Bengali'],
+    },
+    sameAs: [
+      'https://www.instagram.com/oktopusclothing',
+      'https://www.facebook.com/oktopusclothing',
+    ],
+  };
+
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Oktopus Clothing',
+    url: siteUrl,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${siteUrl}/products?q={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+      </head>
       <body className={`${inter.variable} ${archivo.variable} font-sans`}>
         <ThemeProvider
           attribute="class"
