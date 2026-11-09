@@ -18,8 +18,7 @@ export function DoomProductCard({ product }: DoomProductCardProps) {
   const { addToCart } = useCart();
   const { toast } = useToast();
 
-  const availableSizes = product.sizes && product.sizes.length > 0 ? product.sizes : ['S', 'M', 'L', 'XL'];
-  const [selectedSize, setSelectedSize] = React.useState<string>(availableSizes[0] || 'L');
+  const defaultSize = product.sizes && product.sizes.length > 0 ? product.sizes[0] : 'L';
   const [isAdding, setIsAdding] = React.useState(false);
 
   const defaultColor = product.colors && product.colors.length > 0 ? product.colors[0] : 'Black';
@@ -35,11 +34,11 @@ export function DoomProductCard({ product }: DoomProductCardProps) {
     e.stopPropagation();
 
     setIsAdding(true);
-    addToCart(product, selectedSize, defaultColor);
+    addToCart(product, defaultSize, defaultColor);
 
     toast({
       title: 'Added to Bag',
-      description: `${product.name} (Size: ${selectedSize}) has been added to your cart.`,
+      description: `${product.name} (Size: ${defaultSize}) has been added to your cart.`,
     });
 
     setTimeout(() => {
@@ -101,29 +100,6 @@ export function DoomProductCard({ product }: DoomProductCardProps) {
                 ₹{formattedOriginalPrice}
               </span>
             )}
-          </div>
-        </div>
-
-        {/* Size Selection */}
-        <div className="space-y-1">
-          <span className="block text-[9px] font-mono text-[#7B8F7C] uppercase tracking-wider">
-            Size:
-          </span>
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
-            {availableSizes.map((size) => (
-              <button
-                key={size}
-                type="button"
-                onClick={() => setSelectedSize(size)}
-                className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold transition-all ${
-                  selectedSize === size
-                    ? 'bg-[#394F3F] text-[#F2F1DD] border border-[#C1B188]'
-                    : 'bg-[#161E17] text-[#A1AAA3] border border-[#2D382D] hover:border-[#8E815A]'
-                }`}
-              >
-                {size}
-              </button>
-            ))}
           </div>
         </div>
 

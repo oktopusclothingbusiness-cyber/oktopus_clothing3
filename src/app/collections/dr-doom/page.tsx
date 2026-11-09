@@ -42,11 +42,11 @@ export default function DoomCollectionPage() {
         {/* Hero Section with Prominent Pattern & Clear Foreground Focus */}
         <DoomHero />
 
+        {/* The Sovereign Edition — "Pieces" Section just below the Hero Section */}
+        <DoomProductGrid />
+
         {/* Minimal Philosophical Section on Dr. Doom with Cipher Runes & Technical Corner Angles */}
         <DoomPhilosophySection />
-
-        {/* The Sovereign Edition — Filtered Dr. Doom Category Products */}
-        <DoomProductGrid />
 
         {/* Closing Campaign Section (The Crown is Forged) */}
         <DoomOutro />

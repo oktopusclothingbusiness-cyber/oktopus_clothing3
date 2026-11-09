@@ -39,6 +39,7 @@ import { DesktopFaqAccordion } from "@/components/storefront/desktop-faq-accordi
 import { DesktopShoppingPerks } from "@/components/storefront/desktop-shopping-perks";
 import { VisitorRecommendations } from "@/components/visitor-recommendations";
 import { DoomShowcaseCard } from "@/components/doom-collection/doom-showcase-card";
+import { filterOutDoomProducts } from "@/lib/doom-campaign-config";
 
 // Doodle SVG components
 const Doodle1 = () => (
@@ -280,17 +281,25 @@ export default function StreetifyStorePage() {
     (coupons || []).filter(c => c && c.isActive && c.offerType === 'public'),
     [coupons]);
 
-  const saleProducts = React.useMemo(() =>
-    (products || []).filter(p => p && p.originalPrice && p.originalPrice > p.price),
+  const safeProducts = React.useMemo(() =>
+    filterOutDoomProducts(products || []),
     [products]);
+
+  const visibleCategories = React.useMemo(() =>
+    (categories || []).filter(c => !(c.name || '').toLowerCase().includes('doom')),
+    [categories]);
+
+  const saleProducts = React.useMemo(() =>
+    safeProducts.filter(p => p && p.originalPrice && p.originalPrice > p.price),
+    [safeProducts]);
 
   const featuredProducts = React.useMemo(() =>
-    (products || []).filter(p => p && p.featured),
-    [products]);
+    safeProducts.filter(p => p && p.featured),
+    [safeProducts]);
 
   const newArrivals = React.useMemo(() =>
-    [...(products || [])].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 4),
-    [products]);
+    [...safeProducts].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 4),
+    [safeProducts]);
 
   const autoplayPlugin = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: true })
@@ -350,7 +359,6 @@ export default function StreetifyStorePage() {
       .catch((err) => console.error('Failed to load hero settings:', err));
   }, []);
 
-  const safeProducts = products || [];
   const heroProduct =
     (heroSettings.heroLook1Id && safeProducts.find((p) => p && p.id === heroSettings.heroLook1Id)) ||
     safeProducts.find((p) => p && p.isHero) ||
@@ -385,13 +393,13 @@ export default function StreetifyStorePage() {
             heroProduct={heroProduct}
             secondaryProduct={collection1Product}
             thirdProduct={collection2Product}
-            products={products}
+            products={safeProducts}
             bannerImageUrl={activePromotions[0]?.imageUrl}
           />
 
           {/* Module 4: Category Discovery (6 Real Apparel Tiles) */}
           <DesktopCategoryGrid
-            categories={categories}
+            categories={visibleCategories}
             loading={categoriesLoading}
           />
 
@@ -400,7 +408,7 @@ export default function StreetifyStorePage() {
 
           {/* Module 6: Featured Products Grid (4-Column Merchandising) */}
           <DesktopFeaturedProducts
-            products={products}
+            products={safeProducts}
             loading={productsLoading}
           />
 
@@ -413,14 +421,14 @@ export default function StreetifyStorePage() {
           <DesktopQualityStory />
 
           {/* Module 8: Compact Direct-Purchase Row (3 Quick-Add Verified Essentials) */}
-          <DesktopQuickPicks products={products} />
+          <DesktopQuickPicks products={safeProducts} />
 
           {/* Module 9: Text-Led Interstitial Marquee Strip */}
           <DesktopEditorialMarquee />
 
           {/* Module 10: Secondary Campaign + Curated Drops */}
           <DesktopSecondaryCampaign
-            products={products}
+            products={safeProducts}
             bannerUrl={activePromotions[1]?.imageUrl}
             ctaLink={activePromotions[1]?.ctaLink || '/collections/dr-doom'}
             ctaText={activePromotions[1]?.ctaText || 'EXPLORE DR. DOOM COLLECTION'}
@@ -530,8 +538,8 @@ export default function StreetifyStorePage() {
                   <Skeleton className="w-16 h-16 rounded-full" />
                   <Skeleton className="h-3 w-12 mt-2 mx-auto" />
                 </div>
-              )) : categories.length > 0 ? (
-                categories.map(category => (
+              )) : visibleCategories.length > 0 ? (
+                visibleCategories.map(category => (
                   <Link href={category?.id ? `/products?category=${category.id}` : '/products'} key={category?.id || category?._id} className="flex-shrink-0 w-16 text-center block group">
                     <motion.div
                       whileTap={{ scale: 0.92 }}

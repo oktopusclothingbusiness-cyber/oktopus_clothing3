@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DoomCampaignBanner } from '@/components/doom-collection/doom-campaign-banner';
+import { filterOutDoomProducts } from '@/lib/doom-campaign-config';
 
 function ProductListComponent() {
   const { products, loading: productsLoading } = useProduct();
@@ -72,14 +73,18 @@ function ProductListComponent() {
     }
   };
 
+  const visibleCategories = React.useMemo(() => {
+    return categories.filter((c) => !(c.name || '').toLowerCase().includes('doom'));
+  }, [categories]);
+
   const activeCategoryName = React.useMemo(() => {
     if (!selectedCategory) return null;
     return categories.find((c) => c.id === selectedCategory)?.name || null;
   }, [selectedCategory, categories]);
 
-  // FILTERED & SORTED PRODUCTS
+  // FILTERED & SORTED PRODUCTS (Dr. Doom products strictly excluded — exclusive to /collections/dr-doom)
   const filteredProducts = React.useMemo(() => {
-    let result = products.filter((p) => typeof p.stock === 'number' && p.stock > 0);
+    let result = filterOutDoomProducts(products).filter((p) => typeof p.stock === 'number' && p.stock > 0);
 
     // Search Query (local search input or URL parameter)
     const effectiveSearch = localSearch.trim();
@@ -116,9 +121,9 @@ function ProductListComponent() {
     });
   }, [products, localSearch, searchQuery, selectedCategory, priceFilter, sortOption]);
 
-  // FEATURED HIGHLIGHTS (Top 4 products for spotlight section)
+  // FEATURED HIGHLIGHTS (Top 4 products for spotlight section — Doom excluded)
   const featuredProducts = React.useMemo(() => {
-    return products.filter((p) => p.featured || p.isHero).slice(0, 4);
+    return filterOutDoomProducts(products).filter((p) => p.featured || p.isHero).slice(0, 4);
   }, [products]);
 
   const getPageTitle = () => {
@@ -207,7 +212,7 @@ function ProductListComponent() {
               >
                 All Items
               </button>
-              {categories.map((cat) => (
+              {visibleCategories.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}

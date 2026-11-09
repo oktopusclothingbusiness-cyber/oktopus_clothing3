@@ -31,12 +31,14 @@
 }
 
 /* Custom Doom Cursor on Desktop View Only */
-@media (min-width: 768px) and (pointer: fine) {
+@media (min-width: 768px) {
   .doom-collection,
+  .doom-collection *,
   .doom-collection a,
   .doom-collection button,
   .doom-collection input,
-  .doom-collection [role="button"] {
+  .doom-collection [role="button"],
+  .doom-collection [data-doom-interactive="true"] {
     cursor: none !important;
   }
 }

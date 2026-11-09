@@ -2,8 +2,9 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Shield, Sparkles, Store, Palette, ShoppingBag } from 'lucide-react';
+import { Shield, Store, Palette, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
+import { DoomRune } from './doom-runes';
 
 export function DoomMobileNav() {
   const { cart } = useCart();
@@ -14,13 +15,19 @@ export function DoomMobileNav() {
     const target = document.getElementById('collection-grid');
     if (target) {
       target.scrollIntoView({ behavior: 'smooth' });
+    } else if (typeof window !== 'undefined') {
+      window.location.href = '/collections/dr-doom#collection-grid';
     }
   };
 
   const scrollToTop = (e: React.MouseEvent) => {
     e.preventDefault();
     if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (window.location.pathname !== '/collections/dr-doom') {
+        window.location.href = '/collections/dr-doom';
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   };
 
@@ -39,9 +46,9 @@ export function DoomMobileNav() {
         {/* Pieces Grid */}
         <button
           onClick={scrollToGrid}
-          className="flex flex-col items-center justify-center gap-1 w-14 h-11 rounded-full text-[#A1AAA3] hover:text-[#F2F1DD] transition-colors"
+          className="flex flex-col items-center justify-center gap-1 w-14 h-11 rounded-full text-[#A1AAA3] hover:text-[#F2F1DD] transition-colors group"
         >
-          <Sparkles className="w-4 h-4 text-[#8E815A]" />
+          <DoomRune char="D" size={16} color="#8E815A" className="transition-transform group-hover:scale-110" />
           <span className="text-[9px] font-mono tracking-wider uppercase">Pieces</span>
         </button>
 

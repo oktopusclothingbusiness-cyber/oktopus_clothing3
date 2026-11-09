@@ -1,34 +1,35 @@
 'use client';
 
 import * as React from 'react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
 
 export function DoomCursor() {
-  const [isVisible, setIsVisible] = React.useState(false);
+  const [pos, setPos] = React.useState<{ x: number; y: number } | null>(null);
   const [isHovered, setIsHovered] = React.useState(false);
   const [isClicking, setIsClicking] = React.useState(false);
+  const [isDesktop, setIsDesktop] = React.useState(false);
 
-  const mouseX = useMotionValue(-100);
-  const mouseY = useMotionValue(-100);
-
-  // Buttery-smooth spring physics for the trailing reticle
-  const springConfig = { damping: 28, stiffness: 350, mass: 0.5 };
-  const smoothX = useSpring(mouseX, springConfig);
-  const smoothY = useSpring(mouseY, springConfig);
+  // Position state with trailing spring physics for outer ring
+  const [trailPos, setTrailPos] = React.useState<{ x: number; y: number } | null>(null);
+  const posRef = React.useRef<{ x: number; y: number }>({ x: -100, y: -100 });
+  const trailRef = React.useRef<{ x: number; y: number }>({ x: -100, y: -100 });
+  const animFrameRef = React.useRef<number | null>(null);
 
   React.useEffect(() => {
-    // Only activate for desktop fine-pointer devices
     if (typeof window === 'undefined') return;
-    const isFinePointer = window.matchMedia('(pointer: fine)').matches;
-    if (!isFinePointer) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
+    // Check desktop screen width (768px+)
+    const checkIsDesktop = () => {
+      setIsDesktop(window.innerWidth >= 768);
+    };
 
-      if (!isVisible) setIsVisible(true);
+    checkIsDesktop();
+    window.addEventListener('resize', checkIsDesktop);
 
-      // Check if hovering an interactive element
+    const onMouseMove = (e: MouseEvent) => {
+      posRef.current = { x: e.clientX, y: e.clientY };
+      setPos({ x: e.clientX, y: e.clientY });
+
+      // Check if hovering interactive element
       const target = e.target as HTMLElement | null;
       if (target) {
         const interactive = Boolean(
@@ -38,79 +39,86 @@ export function DoomCursor() {
       }
     };
 
-    const handleMouseDown = () => setIsClicking(true);
-    const handleMouseUp = () => setIsClicking(false);
-    const handleMouseLeave = () => setIsVisible(false);
-    const handleMouseEnter = () => setIsVisible(true);
+    const onMouseDown = () => setIsClicking(true);
+    const onMouseUp = () => setIsClicking(false);
+    const onMouseLeave = () => {
+      setPos(null);
+      setTrailPos(null);
+    };
 
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    window.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('mouseleave', handleMouseLeave);
-    document.addEventListener('mouseenter', handleMouseEnter);
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
+    window.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('mouseleave', onMouseLeave);
+
+    // Smooth animation loop for the trailing reticle ring
+    const updateTrail = () => {
+      // Linear interpolation (lerp) for smooth trailing reticle
+      const targetX = posRef.current.x;
+      const targetY = posRef.current.y;
+      trailRef.current.x += (targetX - trailRef.current.x) * 0.22;
+      trailRef.current.y += (targetY - trailRef.current.y) * 0.22;
+
+      setTrailPos({ x: trailRef.current.x, y: trailRef.current.y });
+      animFrameRef.current = requestAnimationFrame(updateTrail);
+    };
+
+    animFrameRef.current = requestAnimationFrame(updateTrail);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mousedown', handleMouseDown);
-      window.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('mouseleave', handleMouseLeave);
-      document.removeEventListener('mouseenter', handleMouseEnter);
+      window.removeEventListener('resize', checkIsDesktop);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mouseup', onMouseUp);
+      document.removeEventListener('mouseleave', onMouseLeave);
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [mouseX, mouseY, isVisible]);
+  }, []);
 
-  if (!isVisible) return null;
+  // Only render on desktop when position is known
+  if (!isDesktop || !pos) return null;
+
+  const currentTrail = trailPos || pos;
 
   return (
     <div className="hidden md:block fixed inset-0 pointer-events-none z-[9999] overflow-hidden select-none">
       {/* 1. Trailing Latverian Crosshair Reticle Ring */}
-      <motion.div
+      <div
         style={{
-          x: smoothX,
-          y: smoothY,
-          translateX: '-50%',
-          translateY: '-50%',
+          transform: `translate3d(${currentTrail.x}px, ${currentTrail.y}px, 0) translate(-50%, -50%) scale(${
+            isClicking ? 0.75 : isHovered ? 1.45 : 1
+          }) rotate(${isHovered ? 45 : 0}deg)`,
+          transition: 'transform 0.15s ease-out',
         }}
-        animate={{
-          scale: isClicking ? 0.8 : isHovered ? 1.4 : 1,
-          rotate: isHovered ? 45 : 0,
-        }}
-        transition={{
-          scale: { duration: 0.18, ease: 'easeOut' },
-          rotate: { duration: 0.25, ease: 'easeOut' },
-        }}
-        className="absolute top-0 left-0 flex items-center justify-center will-change-transform"
+        className="absolute top-0 left-0 flex items-center justify-center will-change-transform pointer-events-none"
       >
         <div
           className={`relative flex items-center justify-center rounded-full transition-all duration-200 ${
             isHovered
-              ? 'w-10 h-10 border border-[#C1B188] bg-[#394F3F]/15 shadow-[0_0_15px_rgba(193,177,136,0.35)]'
-              : 'w-7 h-7 border border-[#8E815A]/60 bg-transparent'
+              ? 'w-10 h-10 border border-[#C1B188] bg-[#394F3F]/25 shadow-[0_0_16px_rgba(193,177,136,0.4)]'
+              : 'w-7 h-7 border border-[#8E815A]/75 bg-transparent'
           }`}
         >
-          {/* 4 Latverian Crosshair Corner Reticles */}
-          <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-0.5 h-1.5 bg-[#C1B188]/80 pointer-events-none" />
-          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0.5 h-1.5 bg-[#C1B188]/80 pointer-events-none" />
-          <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1.5 h-0.5 bg-[#C1B188]/80 pointer-events-none" />
-          <span className="absolute -right-1 top-1/2 -translate-y-1/2 w-1.5 h-0.5 bg-[#C1B188]/80 pointer-events-none" />
+          {/* 4 Latverian Crosshair Corner Indicators */}
+          <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-0.5 h-1.5 bg-[#C1B188] pointer-events-none" />
+          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0.5 h-1.5 bg-[#C1B188] pointer-events-none" />
+          <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1.5 h-0.5 bg-[#C1B188] pointer-events-none" />
+          <span className="absolute -right-1 top-1/2 -translate-y-1/2 w-1.5 h-0.5 bg-[#C1B188] pointer-events-none" />
 
           {/* Micro Latverian Diamond Rune on Hover */}
           {isHovered && (
-            <div className="w-2 h-2 rotate-45 border border-[#C1B188] opacity-75" />
+            <div className="w-2.5 h-2.5 rotate-45 border border-[#C1B188] bg-[#C1B188]/30" />
           )}
         </div>
-      </motion.div>
+      </div>
 
       {/* 2. Direct-Tracking Precision Center Dot (0 lag) */}
-      <motion.div
+      <div
         style={{
-          x: mouseX,
-          y: mouseY,
-          translateX: '-50%',
-          translateY: '-50%',
+          transform: `translate3d(${pos.x}px, ${pos.y}px, 0) translate(-50%, -50%)`,
         }}
-        className="absolute top-0 left-0 w-2 h-2 rounded-full bg-[#C1B188] shadow-[0_0_8px_#C1B188] will-change-transform"
+        className="absolute top-0 left-0 w-2 h-2 rounded-full bg-[#C1B188] shadow-[0_0_8px_#C1B188] will-change-transform pointer-events-none"
       />
     </div>
   );
 }
-

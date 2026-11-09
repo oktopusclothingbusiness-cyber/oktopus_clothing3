@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, ArrowRight, ShoppingBag } from 'lucide-react';
 import { getOrCreatePersistentVisitorId } from '@/lib/fingerprint';
+import { isDoomProduct } from '@/lib/doom-campaign-config';
 
 interface RecommendedProduct {
   id: string;
@@ -41,8 +42,8 @@ export function VisitorRecommendations({ title = 'Recently Viewed', className = 
         if (res.ok) {
           const data = await res.json();
           setHasHistory(Boolean(data.hasHistory));
-          setRecentlyViewed(data.recentlyViewed || []);
-          setRecommended(data.recommended || []);
+          setRecentlyViewed((data.recentlyViewed || []).filter((p: any) => !isDoomProduct(p)));
+          setRecommended((data.recommended || []).filter((p: any) => !isDoomProduct(p)));
         }
       } catch {
         // fail silently

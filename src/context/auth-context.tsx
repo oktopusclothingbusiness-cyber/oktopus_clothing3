@@ -314,28 +314,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       router.push('/login');
       return;
     }
-    setUser(currentUser => {
-      if (!currentUser) return null;
-      const newWishlist = [...(currentUser.wishlist || []), productId];
-      const updatedUser = { ...currentUser, wishlist: newWishlist };
+    const currentWishlist = user.wishlist || [];
+    if (currentWishlist.includes(productId)) return;
+
+    const newWishlist = [...currentWishlist, productId];
+    const updatedUser = { ...user, wishlist: newWishlist };
+    setUser(updatedUser);
+    try {
       localStorage.setItem('user', JSON.stringify(updatedUser));
-      updateWishlistOnServer(newWishlist);
-      toast({ title: "Added to Wishlist", description: "Item has been added to your wishlist." });
-      return updatedUser;
-    });
+    } catch (e) {
+      console.error("Failed to save wishlist to localStorage", e);
+    }
+    updateWishlistOnServer(newWishlist);
+    toast({ title: "Added to Wishlist", description: "Item has been added to your wishlist." });
   };
 
   const removeFromWishlist = (productId: string) => {
     if (!user) return;
-    setUser(currentUser => {
-      if (!currentUser) return null;
-      const newWishlist = (currentUser.wishlist || []).filter(id => id !== productId);
-      const updatedUser = { ...currentUser, wishlist: newWishlist };
+    const currentWishlist = user.wishlist || [];
+    const newWishlist = currentWishlist.filter(id => id !== productId);
+    const updatedUser = { ...user, wishlist: newWishlist };
+    setUser(updatedUser);
+    try {
       localStorage.setItem('user', JSON.stringify(updatedUser));
-      updateWishlistOnServer(newWishlist);
-      toast({ title: "Removed from Wishlist", description: "Item has been removed from your wishlist." });
-      return updatedUser;
-    });
+    } catch (e) {
+      console.error("Failed to update wishlist in localStorage", e);
+    }
+    updateWishlistOnServer(newWishlist);
+    toast({ title: "Removed from Wishlist", description: "Item has been removed from your wishlist." });
   };
 
   const isInWishlist = (productId: string) => {

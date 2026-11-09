@@ -61,28 +61,47 @@ export const DOOM_CAMPAIGN_CONFIG = {
 } as const;
 
 /**
+ * Check whether a product belongs to the Dr. Doom category.
+ */
+export function isDoomProduct(
+  p?: { category?: any } | null,
+  categoryId?: string | string[]
+): boolean {
+  if (!p || !p.category) return false;
+  const ids: string[] = [DOOM_CAMPAIGN_CONFIG.categoryId];
+  if (Array.isArray(categoryId)) {
+    ids.push(...categoryId.filter(Boolean));
+  } else if (typeof categoryId === 'string' && categoryId) {
+    ids.push(categoryId);
+  }
+
+  const pCats = Array.isArray(p.category) ? p.category : [p.category];
+  return pCats.some((c) => {
+    if (!c) return false;
+    const s = String(c).toLowerCase();
+    if (s.includes('doom')) return true;
+    return ids.some((id) => id.toLowerCase() === s);
+  });
+}
+
+/**
  * Filter products to strictly show ONLY products added to the Dr. Doom category.
  */
 export function filterDoomCollectionProducts<T extends { category?: any }>(
   allProducts: T[],
-  categoryId: string = DOOM_CAMPAIGN_CONFIG.categoryId
+  categoryId?: string | string[]
 ): T[] {
   if (!allProducts || allProducts.length === 0) return [];
+  return allProducts.filter((p) => isDoomProduct(p, categoryId));
+}
 
-  return allProducts.filter((p) => {
-    if (!p.category) return false;
-    if (Array.isArray(p.category)) {
-      return (
-        p.category.includes(categoryId) ||
-        p.category.some((c) => typeof c === 'string' && c.toLowerCase().includes('doom'))
-      );
-    }
-    if (typeof p.category === 'string') {
-      return (
-        p.category === categoryId ||
-        p.category.toLowerCase().includes('doom')
-      );
-    }
-    return false;
-  });
+/**
+ * Filter out Dr. Doom products from standard storefront pages (ensures strict exclusivity).
+ */
+export function filterOutDoomProducts<T extends { category?: any }>(
+  allProducts: T[],
+  categoryId?: string | string[]
+): T[] {
+  if (!allProducts || allProducts.length === 0) return [];
+  return allProducts.filter((p) => !isDoomProduct(p, categoryId));
 }

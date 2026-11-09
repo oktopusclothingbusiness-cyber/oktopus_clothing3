@@ -32,7 +32,8 @@ import {
   Smartphone,
   QrCode,
   ArrowRight,
-  MapPin
+  MapPin,
+  ShoppingBag
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -43,6 +44,17 @@ import { useCategory } from "@/context/category-context";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { 
+  isDoomProduct, 
+  filterDoomCollectionProducts, 
+  filterOutDoomProducts, 
+  DOOM_CAMPAIGN_CONFIG 
+} from "@/lib/doom-campaign-config";
+import { DoomHeader } from "@/components/doom-collection/doom-header";
+import { DoomFooter } from "@/components/doom-collection/doom-footer";
+import { DoomCursor } from "@/components/doom-collection/doom-cursor";
+import { DoomRune, DoomCornerBrackets } from "@/components/doom-collection/doom-runes";
+import { DoomProductCard } from "@/components/doom-collection/doom-product-card";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -192,19 +204,39 @@ export default function ProductDetailPage() {
   // 10 days ahead delivery estimate hook
   const deliveryDate = React.useMemo(() => format(addDays(new Date(), 10), 'EEEE, MMM dd'), []);
 
-  // Related products hook
+  // Dr. Doom Category & Product Matchers
+  const doomCategoryId = React.useMemo(() => {
+    const matched = (categories || []).find((c) => (c.name || '').toLowerCase().includes('doom'));
+    return matched?.id || matched?._id || DOOM_CAMPAIGN_CONFIG.categoryId;
+  }, [categories]);
+
+  const isDoom = React.useMemo(() => {
+    return isDoomProduct(product, doomCategoryId);
+  }, [product, doomCategoryId]);
+
+  // Related products hook (excludes Dr. Doom products for regular storefront PDP)
   const relatedProducts = React.useMemo(() => {
-    if (!product) return [];
+    if (!product || isDoom) return [];
     const currentCategories = Array.isArray(product.category) 
       ? product.category 
       : product.category ? [product.category] : [];
 
-    return (products || []).filter(p => {
-      if (!p || p.id === product.id) return false;
-      const pCats = Array.isArray(p.category) ? p.category : p.category ? [p.category] : [];
-      return pCats.some(cat => currentCategories.includes(cat));
-    }).slice(0, 4);
-  }, [products, product]);
+    return (products || [])
+      .filter(p => !isDoomProduct(p, doomCategoryId))
+      .filter(p => {
+        if (!p || p.id === product.id) return false;
+        const pCats = Array.isArray(p.category) ? p.category : p.category ? [p.category] : [];
+        return pCats.some(cat => currentCategories.includes(cat));
+      }).slice(0, 4);
+  }, [products, product, isDoom, doomCategoryId]);
+
+  // Related Dr. Doom pieces hook (strictly Dr. Doom collection pieces)
+  const doomRelatedProducts = React.useMemo(() => {
+    if (!product || !isDoom) return [];
+    return filterDoomCollectionProducts(products, doomCategoryId)
+      .filter(p => (p.id || (p as any)._id) !== (product.id || (product as any)._id))
+      .slice(0, 4);
+  }, [products, product, isDoom, doomCategoryId]);
 
   // Dynamic pricing based on selected fabric quality / variant
   const currentPrice = React.useMemo(() => {
@@ -354,10 +386,8 @@ export default function ProductDetailPage() {
     if (!product) return;
     if (isInWishlist(product.id)) {
       removeFromWishlist(product.id);
-      toast({ title: "Removed from Wishlist" });
     } else {
       addToWishlist(product.id);
-      toast({ title: "Added to Wishlist" });
     }
   };
 
@@ -381,6 +411,622 @@ export default function ProductDetailPage() {
   }
 
   const activeImage = productImages[activeImageIndex] || productImages[0];
+
+  // =========================================================================
+  // DR. DOOM EXCLUSIVE PDP THEME (APPLIED EXCLUSIVELY TO DR. DOOM CATEGORY)
+  // =========================================================================
+  if (isDoom) {
+    return (
+      <div className="doom-collection relative min-h-screen bg-[#050705] text-[#F2F1DD] selection:bg-[#394F3F] selection:text-[#F2F1DD] overflow-x-hidden font-sans">
+        {/* Desktop Custom Doom Mouse Pointer */}
+        <DoomCursor />
+
+        {/* Unified Continuous Background Texture Across Entire Page */}
+        <div
+          className="fixed inset-0 pointer-events-none opacity-45 bg-repeat bg-[length:900px_900px] mix-blend-luminosity z-0"
+          style={{
+            backgroundImage: "url('/doom/doom-texture.jpg')",
+          }}
+        />
+
+        {/* Atmospheric Vignette Shroud */}
+        <div
+          className="fixed inset-0 pointer-events-none z-0"
+          style={{
+            background:
+              'radial-gradient(ellipse 90% 80% at 50% 25%, rgba(5,7,5,0.45) 0%, rgba(5,7,5,0.85) 65%, #050705 100%)',
+          }}
+        />
+
+        {/* Customized Dr. Doom Header & Navbar */}
+        <DoomHeader />
+
+        <main className="relative z-10 flex-grow pb-28 md:pb-20">
+          {/* LATVERIAN BREADCRUMB & METADATA BAR */}
+          <div className="border-b border-[#2D382D] bg-[#070A07]/85 backdrop-blur-sm py-3 px-4">
+            <div className="container mx-auto max-w-7xl flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2 text-xs font-mono text-[#7B8F7C] overflow-x-auto scrollbar-none">
+                <Link href="/store" className="hover:text-[#F2F1DD] transition-colors">
+                  STORE
+                </Link>
+                <span className="text-[#494333]">/</span>
+                <Link
+                  href="/collections/dr-doom"
+                  className="hover:text-[#C1B188] transition-colors flex items-center gap-1.5 text-[#C1B188]"
+                >
+                  <DoomRune char="D" size={11} color="#C1B188" />
+                  <span>DR. DOOM COLLECTION</span>
+                </Link>
+                <span className="text-[#494333]">/</span>
+                <span className="text-[#F2F1DD] font-semibold truncate max-w-[200px] sm:max-w-[340px]">
+                  {product.name}
+                </span>
+              </div>
+
+              <div className="hidden sm:flex items-center gap-2 shrink-0">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#101611] border border-[#8E815A]/60 text-[10px] font-mono tracking-wider text-[#C1B188] uppercase">
+                  <DoomRune char="D" size={10} color="#C1B188" />
+                  <span>SOVEREIGN FORGE EDITION</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* MAIN PRODUCT SHOWCASE GRID */}
+          <div className="container mx-auto px-4 py-8 md:py-12 max-w-7xl">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+              
+              {/* LEFT COLUMN: INTERACTIVE GALLERY & TECHNICAL FRAMING (COL-SPAN-7) */}
+              <div className="lg:col-span-7 space-y-4">
+                {/* Main Showcase Image Frame */}
+                <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden bg-[#0E130F] border border-[#494333] shadow-[0_15px_45px_rgba(0,0,0,0.85)] group">
+                  <DoomCornerBrackets color="#8E815A" size={12} className="opacity-70 group-hover:opacity-100 transition-opacity z-20" />
+                  
+                  <Image
+                    src={getOptimizedImageUrl(activeImage, 1200)}
+                    alt={product.name}
+                    fill
+                    priority
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  />
+
+                  {/* Dark Vignette Gradient for Depth */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#050705]/80 via-transparent to-[#050705]/40 pointer-events-none" />
+
+                  {/* Floating Badges */}
+                  <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#050705]/90 backdrop-blur-md border border-[#8E815A] text-[10px] font-mono tracking-wider text-[#C1B188] uppercase shadow-lg">
+                      <DoomRune char="D" size={11} color="#C1B188" />
+                      <span>LIMITED SOVEREIGN EDITION</span>
+                    </span>
+
+                    {discountPercent > 0 && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#1B231C]/90 backdrop-blur-md border border-[#394F3F] text-[10px] font-mono font-bold text-[#F2F1DD]">
+                        <Tag className="h-3 w-3 text-[#C1B188]" />
+                        <span>{discountPercent}% ADVANTAGE</span>
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Wishlist Button */}
+                  <button
+                    type="button"
+                    onClick={handleWishlistToggle}
+                    className="absolute top-4 right-4 z-10 w-10 h-10 rounded-xl bg-[#0E130F]/90 backdrop-blur-md border border-[#494333] hover:border-[#8E815A] flex items-center justify-center text-[#F2F1DD] transition-all duration-200 shadow-lg"
+                    aria-label="Wishlist"
+                  >
+                    <Heart className={cn("h-4 w-4 transition-colors", isWishlisted ? "fill-[#C1B188] text-[#C1B188]" : "text-[#A1AAA3] hover:text-[#F2F1DD]")} />
+                  </button>
+                </div>
+
+                {/* Thumbnails */}
+                {productImages.length > 1 && (
+                  <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
+                    {productImages.map((imgUrl, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setActiveImageIndex(idx)}
+                        className={cn(
+                          "relative w-20 h-24 rounded-xl overflow-hidden shrink-0 border-2 transition-all duration-200 bg-[#0E130F]",
+                          activeImageIndex === idx
+                            ? "border-[#8E815A] ring-2 ring-[#C1B188]/30 scale-105 shadow-md"
+                            : "border-[#2D382D] opacity-60 hover:opacity-100 hover:border-[#4B5E4A]"
+                        )}
+                      >
+                        <Image
+                          src={getOptimizedImageUrl(imgUrl, 200)}
+                          alt={`${product.name} thumbnail ${idx + 1}`}
+                          fill
+                          className="object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* RIGHT COLUMN: SPECS, PRICING & ARMOR PURCHASING (COL-SPAN-5) */}
+              <div className="lg:col-span-5 space-y-6">
+                
+                {/* Title & Brand Header */}
+                <div className="space-y-3 pb-4 border-b border-[#2D382D]">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#101611] border border-[#2D382D] text-[10px] font-mono tracking-[0.2em] uppercase text-[#C1B188]">
+                      <DoomRune char="D" size={12} color="#C1B188" />
+                      <span>OKTOPUS // DR. DOOM COLLECTION</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleShare}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#101611] border border-[#2D382D] hover:border-[#8E815A] text-[10px] font-mono tracking-wider uppercase text-[#A1AAA3] hover:text-[#F2F1DD] transition-all"
+                    >
+                      <Share2 className="h-3 w-3 text-[#8E815A]" />
+                      <span>Share</span>
+                    </button>
+                  </div>
+
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight font-serif text-[#F2F1DD] leading-[1.12]">
+                    {product.name}
+                  </h1>
+
+                  {/* Rating & Authenticity */}
+                  <div className="flex items-center gap-4 text-xs font-mono text-[#A1AAA3] pt-1">
+                    <div className="flex items-center gap-1 bg-[#101611] px-2.5 py-1 rounded-md border border-[#2D382D]">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className={cn(
+                            "h-3 w-3",
+                            i < Math.round(product.rating || 5)
+                              ? "text-[#C1B188] fill-[#C1B188]"
+                              : "text-[#494333]"
+                          )}
+                        />
+                      ))}
+                      <span className="text-[11px] font-bold text-[#C1B188] ml-1">
+                        {product.rating ? product.rating.toFixed(1) : '5.0'}
+                      </span>
+                    </div>
+
+                    <span className="text-[11px] text-[#7B8F7C] flex items-center gap-1">
+                      <ShieldCheck className="h-3.5 w-3.5 text-[#8E815A]" />
+                      <span>Sovereign Standard</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Price & Delivery Card */}
+                <div className="p-4 sm:p-5 rounded-xl bg-[#0E130F] border border-[#494333] space-y-3 shadow-md relative overflow-hidden">
+                  <DoomCornerBrackets color="#8E815A" size={7} className="opacity-40" />
+                  
+                  <div className="flex items-baseline gap-3 flex-wrap">
+                    <span className="text-3xl sm:text-4xl font-mono font-bold tracking-tight text-[#C1B188]">
+                      ₹{currentPrice.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                    </span>
+                    {currentOriginalPrice && currentOriginalPrice > currentPrice && (
+                      <span className="text-base font-mono text-[#7B8F7C] line-through">
+                        ₹{currentOriginalPrice.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      </span>
+                    )}
+                    {discountPercent > 0 && (
+                      <span className="text-[10px] font-mono font-bold text-[#F2F1DD] bg-[#1B231C] border border-[#394F3F] px-2.5 py-1 rounded-md">
+                        SAVE ₹{(currentOriginalPrice! - currentPrice).toFixed(0)} ({discountPercent}%)
+                      </span>
+                    )}
+                    {selectedFabric && (
+                      <span className="text-[10px] font-mono tracking-wider text-[#A1AAA3] bg-[#162017] border border-[#2D382D] px-2 py-0.5 rounded ml-auto">
+                        {selectedFabric.name}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 text-xs font-mono text-[#A1AAA3] pt-2 border-t border-[#2D382D]/70 flex-wrap">
+                    <div className="flex items-center gap-2 text-[#7B8F7C]">
+                      <Truck className="h-3.5 w-3.5 text-[#8E815A] shrink-0" />
+                      <span>Dispatch estimate: <strong className="text-[#F2F1DD]">{deliveryDate}</strong></span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => window.dispatchEvent(new CustomEvent('okto-open-delivery-modal'))}
+                      className="text-[11px] text-[#A1AAA3] hover:text-[#C1B188] transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                      <MapPin className="w-3 h-3 text-[#8E815A]" />
+                      <span>Check Location</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Step 1: Colorway Selector (if present) */}
+                {((product.colorVariants && product.colorVariants.length > 0) || (product.colors && product.colors.length > 0)) && (
+                  <div className="space-y-2.5">
+                    <div className="flex justify-between items-center text-xs font-mono">
+                      <span className="text-[#A1AAA3] uppercase tracking-wider">
+                        Colorway: <span className="text-[#F2F1DD] font-bold">{selectedColor || 'Standard'}</span>
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {(product.colorVariants && product.colorVariants.length > 0
+                        ? product.colorVariants.map(cv => cv.color)
+                        : product.colors || []
+                      ).map(color => {
+                        const cv = product.colorVariants?.find(c => c.color === color);
+                        const isSelected = selectedColor === color;
+                        return (
+                          <button
+                            key={color}
+                            type="button"
+                            onClick={() => setSelectedColor(color)}
+                            className={cn(
+                              "px-3.5 py-2 rounded-lg text-xs font-mono font-semibold transition-all border flex items-center gap-2",
+                              isSelected
+                                ? "bg-[#394F3F] text-[#F2F1DD] border-[#C1B188] shadow-[0_0_12px_rgba(75,94,74,0.4)] scale-102"
+                                : "bg-[#0E130F] text-[#A1AAA3] hover:text-[#F2F1DD] hover:border-[#4B5E4A] border-[#2D382D]"
+                            )}
+                          >
+                            {cv?.colorHex && (
+                              <span 
+                                className="h-3 w-3 rounded-full border border-[#8E815A]/60 shrink-0" 
+                                style={{ backgroundColor: cv.colorHex }}
+                              />
+                            )}
+                            {isSelected && <Check className="h-3.5 w-3.5 text-[#C1B188]" />}
+                            {color}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 2: Fabric Quality / Garment Fit (if present) */}
+                {availableFabrics.length > 0 && (
+                  <div className="space-y-2.5 pt-1">
+                    <div className="flex justify-between items-center text-xs font-mono">
+                      <span className="text-[#A1AAA3] uppercase tracking-wider">
+                        Fabric Quality / Grade: <span className="text-[#F2F1DD] font-bold">{selectedFabric?.name || 'Select'}</span>
+                      </span>
+                      <span className="text-[10px] text-[#7B8F7C]">Calibrated Fit</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {availableFabrics.map((fabric) => {
+                        const isSelected = selectedFabric?.id === fabric.id || selectedFabric?.name === fabric.name;
+                        const gsmBadge = fabric.gsm || (
+                          fabric.name.toLowerCase().includes('terry') ? '320 GSM French Terry' :
+                          fabric.name.toLowerCase().includes('oversized') ? '240 GSM Boxy Heavyweight' :
+                          fabric.name.toLowerCase().includes('sweat') ? '320 GSM Fleece' :
+                          '240 GSM Sovereign Cotton'
+                        );
+
+                        return (
+                          <button
+                            key={fabric.id || fabric.name}
+                            type="button"
+                            onClick={() => {
+                              setSelectedFabric(fabric);
+                              if (fabric.sizes && fabric.sizes.length > 0 && !fabric.sizes.includes(selectedSize)) {
+                                setSelectedSize(fabric.sizes[0]);
+                              }
+                            }}
+                            className={cn(
+                              "p-3 rounded-xl border text-left transition-all duration-200 relative flex flex-col justify-between gap-1",
+                              isSelected
+                                ? "border-[#C1B188] bg-[#1B231C] ring-1 ring-[#C1B188]/30 shadow-sm"
+                                : "border-[#2D382D] bg-[#0E130F] hover:bg-[#162017] hover:border-[#4B5E4A]"
+                            )}
+                          >
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="font-mono font-bold text-xs text-[#F2F1DD] truncate">{fabric.name}</span>
+                              <span className="font-mono text-xs font-bold text-[#C1B188]">₹{fabric.price}</span>
+                            </div>
+                            <span className="text-[10px] font-mono text-[#7B8F7C] line-clamp-1">{gsmBadge}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Size Selection */}
+                {availableSizes.length > 0 && (
+                  <div className="space-y-2.5 pt-1">
+                    <div className="flex justify-between items-center text-xs font-mono">
+                      <span className="text-[#A1AAA3] uppercase tracking-wider">
+                        Select Size: <span className="text-[#C1B188] font-bold">{selectedSize || 'Select'}</span>
+                      </span>
+
+                      {sizeChart && (
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <button type="button" className="inline-flex items-center gap-1 text-[11px] font-mono text-[#C1B188] hover:text-[#F2F1DD] transition-colors">
+                              <Ruler className="h-3 w-3 text-[#8E815A]" />
+                              <span>Size Guide</span>
+                            </button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-xl bg-[#0E130F] border border-[#494333] text-[#F2F1DD]">
+                            <DialogHeader>
+                              <DialogTitle className="font-serif text-[#F2F1DD]">{sizeChart.name}</DialogTitle>
+                              <DialogDescription className="font-mono text-xs text-[#A1AAA3]">
+                                All measurements in {sizeChart.unit}.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <Table className="mt-2 font-mono text-xs">
+                              <TableHeader>
+                                <TableRow className="border-[#2D382D]">
+                                  <TableHead className="text-[#C1B188] font-bold">Size</TableHead>
+                                  <TableHead className="text-[#A1AAA3]">Chest</TableHead>
+                                  <TableHead className="text-[#A1AAA3]">Length</TableHead>
+                                  <TableHead className="text-[#A1AAA3]">Sleeve</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {sizeChart.sizes.map((s, i) => (
+                                  <TableRow key={i} className="border-[#2D382D]/60">
+                                    <TableCell className="font-bold text-[#F2F1DD]">{s.size}</TableCell>
+                                    <TableCell className="text-[#A1AAA3]">{s.chest}"</TableCell>
+                                    <TableCell className="text-[#A1AAA3]">{s.length}"</TableCell>
+                                    <TableCell className="text-[#A1AAA3]">{s.sleeve}"</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                      {availableSizes.map(size => {
+                        const isSelected = selectedSize === size;
+                        return (
+                          <button
+                            key={size}
+                            type="button"
+                            onClick={() => setSelectedSize(size)}
+                            className={cn(
+                              "py-3 rounded-lg text-xs font-mono font-bold transition-all border flex items-center justify-center",
+                              isSelected
+                                ? "bg-[#394F3F] text-[#F2F1DD] border-[#C1B188] shadow-[0_0_10px_rgba(75,94,74,0.5)] scale-102"
+                                : "bg-[#0E130F] text-[#A1AAA3] hover:text-[#F2F1DD] hover:border-[#4B5E4A] border-[#2D382D]"
+                            )}
+                          >
+                            {size}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Primary Action Buttons OR Mobile App Exclusive Showcase */}
+                {product.isMobileExclusive ? (
+                  <div className="p-5 sm:p-6 rounded-2xl bg-[#0E130F] border border-[#8E815A]/40 space-y-4 shadow-lg relative overflow-hidden">
+                    <DoomCornerBrackets color="#8E815A" size={8} className="opacity-40" />
+
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-[#101611] border border-[#8E815A] text-[10px] font-mono tracking-wider text-[#C1B188] uppercase">
+                          <Smartphone className="h-3 w-3 text-[#C1B188]" />
+                          <span>Mobile Showcase Piece</span>
+                        </span>
+                      </div>
+                      <h3 className="text-base sm:text-lg font-bold tracking-tight text-[#F2F1DD] font-serif">
+                        Exclusive to the OKTOPUS Mobile App
+                      </h3>
+                      <p className="text-xs text-[#A1AAA3] font-mono leading-relaxed">
+                        This limited sovereign drop is accessible exclusively through our mobile app. You can preview all gallery cuts, plate details, and craftsmanship here on the web. To choose sizing, customize fabric fits, and place your order, open the drop directly in our mobile app.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
+                      <button
+                        type="button"
+                        onClick={handleOpenInApp}
+                        className="flex-1 h-14 text-xs sm:text-sm font-mono font-bold uppercase tracking-widest rounded-xl transition-all duration-300 active:scale-95 bg-[#394F3F] hover:bg-[#4B5E4A] active:bg-[#2D382D] text-[#F2F1DD] border border-[#8E815A] hover:border-[#C1B188] px-4 flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(57,79,63,0.35)]"
+                      >
+                        <Smartphone className="h-4 w-4 text-[#C1B188] shrink-0" />
+                        <span>Open in OKTOPUS App</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleWishlistToggle}
+                        className="h-14 px-4 rounded-xl border border-[#494333] hover:border-[#8E815A] bg-[#0E130F] hover:bg-[#1B231C] font-mono text-xs font-bold text-[#F2F1DD] flex items-center justify-center gap-2 transition-colors shrink-0"
+                      >
+                        <Heart className={cn("h-4 w-4", isWishlisted ? "fill-[#C1B188] text-[#C1B188]" : "text-[#A1AAA3]")} />
+                        <span>{isWishlisted ? "Wishlisted" : "Wishlist"}</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="pt-2 flex flex-row items-center gap-3 w-full">
+                    {isOutOfStock ? (
+                      <Button disabled className="w-full h-14 text-xs font-mono uppercase tracking-wider rounded-xl bg-[#1B231C] text-[#7B8F7C] border border-[#2D382D]">
+                        <XCircle className="mr-2 h-4 w-4" /> Piece Depleted
+                      </Button>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={handleBuyNow}
+                          className="flex-1 h-14 text-xs sm:text-sm font-mono font-bold uppercase tracking-widest rounded-xl transition-all duration-300 active:scale-95 bg-[#394F3F] hover:bg-[#4B5E4A] active:bg-[#2D382D] text-[#F2F1DD] border border-[#8E815A] hover:border-[#C1B188] px-4 flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(57,79,63,0.35)]"
+                        >
+                          <Zap className="h-4 w-4 text-[#C1B188] fill-[#C1B188] shrink-0" />
+                          <span>Acquire Piece</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleAddToCart}
+                          className="flex-1 h-14 text-xs sm:text-sm font-mono font-bold uppercase tracking-widest rounded-xl transition-all duration-300 active:scale-95 bg-[#1B231C] hover:bg-[#2D382D] active:bg-[#141A15] text-[#F2F1DD] border border-[#8E815A] hover:border-[#C1B188] px-4 flex items-center justify-center gap-2"
+                        >
+                          <ShoppingCart className="h-4 w-4 text-[#C1B188] shrink-0" />
+                          <span>Add to Bag</span>
+                        </button>
+                      </>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleWishlistToggle}
+                      className="h-14 w-14 rounded-xl border border-[#494333] hover:border-[#8E815A] bg-[#0E130F] hover:bg-[#1B231C] flex items-center justify-center shrink-0 transition-colors"
+                      aria-label="Wishlist"
+                    >
+                      <Heart className={cn("h-5 w-5 transition-colors", isWishlisted ? "fill-[#C1B188] text-[#C1B188]" : "text-[#A1AAA3]")} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Sovereign Trust Badges Grid */}
+                <div className="grid grid-cols-2 gap-2.5 pt-4 border-t border-[#2D382D]">
+                  <div className="flex items-center gap-2.5 p-3 rounded-lg bg-[#0E130F] border border-[#2D382D]">
+                    <Truck className="h-4 w-4 text-[#8E815A] shrink-0" />
+                    <div className="text-[11px] font-mono leading-tight">
+                      <p className="font-bold text-[#F2F1DD]">Express Delivery</p>
+                      <p className="text-[#7B8F7C]">Complimentary &gt; ₹999</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 p-3 rounded-lg bg-[#0E130F] border border-[#2D382D]">
+                    <ShieldCheck className="h-4 w-4 text-[#8E815A] shrink-0" />
+                    <div className="text-[11px] font-mono leading-tight">
+                      <p className="font-bold text-[#F2F1DD]">Heavyweight Cotton</p>
+                      <p className="text-[#7B8F7C]">240+ GSM Sovereign Cut</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 p-3 rounded-lg bg-[#0E130F] border border-[#2D382D]">
+                    <Sparkles className="h-4 w-4 text-[#C1B188] shrink-0" />
+                    <div className="text-[11px] font-mono leading-tight">
+                      <p className="font-bold text-[#F2F1DD]">Authentic Drop</p>
+                      <p className="text-[#7B8F7C]">Strictly Limited Piece</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 p-3 rounded-lg bg-[#0E130F] border border-[#2D382D]">
+                    <DoomRune char="D" size={14} color="#8E815A" className="shrink-0" />
+                    <div className="text-[11px] font-mono leading-tight">
+                      <p className="font-bold text-[#F2F1DD]">Latverian Standard</p>
+                      <p className="text-[#7B8F7C]">Absolute Quality Craft</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Product Description */}
+                {product.description && (
+                  <div className="p-4 rounded-xl bg-[#0E130F] border border-[#2D382D] space-y-2">
+                    <h4 className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[#C1B188] flex items-center gap-1.5">
+                      <DoomRune char="D" size={10} color="#C1B188" />
+                      <span>Piece Specifications</span>
+                    </h4>
+                    <p className="text-xs font-sans text-[#A1AAA3] leading-relaxed whitespace-pre-line">
+                      {product.description}
+                    </p>
+                  </div>
+                )}
+
+              </div>
+            </div>
+
+            {/* RELATED DR. DOOM PIECES SECTION (STRICT EXCLUSIVITY) */}
+            {doomRelatedProducts.length > 0 && (
+              <div className="mt-16 sm:mt-24 pt-12 border-t border-[#2D382D] space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <DoomRune char="D" size={11} color="#C1B188" />
+                      <span className="text-[10px] font-mono tracking-widest text-[#C1B188] uppercase">
+                        DR. DOOM ARCHIVE
+                      </span>
+                    </div>
+                    <h2 className="text-2xl sm:text-3xl font-serif font-black tracking-tight text-[#F2F1DD] uppercase">
+                      THE SOVEREIGN ARSENAL
+                    </h2>
+                    <p className="text-xs font-mono text-[#7B8F7C]">
+                      Complementary pieces forged from the same uncompromising standard
+                    </p>
+                  </div>
+                  <Link
+                    href="/collections/dr-doom"
+                    className="text-xs font-mono font-bold tracking-wider text-[#C1B188] hover:text-[#F2F1DD] transition-colors inline-flex items-center gap-1.5"
+                  >
+                    <span>View All Pieces</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
+                  {doomRelatedProducts.map(relProduct => (
+                    <DoomProductCard key={relProduct.id || (relProduct as any)._id} product={relProduct} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </div>
+        </main>
+
+        {/* MOBILE STICKY BOTTOM ACTION BAR FOR DOOM PDP */}
+        {!isOutOfStock && (
+          <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#050705]/95 backdrop-blur-md border-t border-[#394F3F] p-3 flex items-center gap-2.5 shadow-2xl">
+            {product.isMobileExclusive ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleOpenInApp}
+                  className="flex-1 h-12 text-xs font-mono font-bold uppercase tracking-wider rounded-lg bg-[#394F3F] hover:bg-[#4B5E4A] active:bg-[#2D382D] text-[#F2F1DD] border border-[#8E815A] shadow-md flex items-center justify-center gap-1.5"
+                >
+                  <Smartphone className="h-3.5 w-3.5 text-[#C1B188]" />
+                  <span>Open in App</span>
+                  <ArrowRight className="h-3 w-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleWishlistToggle}
+                  className="h-12 w-12 rounded-lg border border-[#494333] bg-[#0E130F] flex items-center justify-center text-[#F2F1DD] shrink-0"
+                  aria-label="Wishlist"
+                >
+                  <Heart className={cn("h-4 w-4", isWishlisted ? "fill-[#C1B188] text-[#C1B188]" : "text-[#A1AAA3]")} />
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleBuyNow}
+                  className="flex-1 h-12 text-xs font-mono font-bold uppercase tracking-wider rounded-lg bg-[#394F3F] hover:bg-[#4B5E4A] active:bg-[#2D382D] text-[#F2F1DD] border border-[#8E815A] shadow-md flex items-center justify-center gap-1.5"
+                >
+                  <Zap className="h-3.5 w-3.5 text-[#C1B188] fill-[#C1B188]" />
+                  <span>Acquire</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  className="flex-1 h-12 text-xs font-mono font-bold uppercase tracking-wider rounded-lg bg-[#1B231C] active:bg-[#141A15] text-[#F2F1DD] border border-[#8E815A] flex items-center justify-center gap-1.5"
+                >
+                  <ShoppingCart className="h-3.5 w-3.5 text-[#C1B188]" />
+                  <span>Add to Bag</span>
+                </button>
+                <Link
+                  href="/cart"
+                  className="h-12 w-12 rounded-lg border border-[#494333] bg-[#0E130F] flex items-center justify-center text-[#F2F1DD] shrink-0"
+                  aria-label="View Bag"
+                >
+                  <ShoppingBag className="h-4 w-4 text-[#C1B188]" />
+                </Link>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Dr. Doom Customized Footer */}
+        <DoomFooter />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground font-sans">

@@ -33,6 +33,8 @@ export function DoomHeader() {
     const target = document.getElementById(id);
     if (target) {
       target.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      router.push(`/collections/dr-doom#${id}`);
     }
   };
 
