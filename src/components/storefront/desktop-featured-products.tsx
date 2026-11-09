@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { ProductCard } from '@/components/product-card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DoomShowcaseCard } from '@/components/doom-collection/doom-showcase-card';
 import type { Product } from '@/context/product-context';
 
 interface DesktopFeaturedProductsProps {
@@ -48,15 +49,20 @@ export function DesktopFeaturedProducts({ products, loading }: DesktopFeaturedPr
 
         {/* 4-Column Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+          {/* Dr. Doom Exclusive Campaign Feature Card */}
+          <div className="transition-all duration-300">
+            <DoomShowcaseCard isMobile={false} />
+          </div>
+
           {loading
-            ? Array.from({ length: 8 }).map((_, i) => (
+            ? Array.from({ length: 7 }).map((_, i) => (
                 <div key={i} className="space-y-3">
                   <Skeleton className="aspect-[3/4] w-full rounded-2xl" />
                   <Skeleton className="h-5 w-3/4 rounded" />
                   <Skeleton className="h-4 w-1/3 rounded" />
                 </div>
               ))
-            : displayProducts.map((product) => (
+            : displayProducts.slice(0, 7).map((product) => (
                 <div key={product.id} className="transition-all duration-300">
                   <ProductCard product={product} isMobile={false} />
                 </div>

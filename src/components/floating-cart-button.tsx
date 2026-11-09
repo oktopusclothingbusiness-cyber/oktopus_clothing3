@@ -30,6 +30,7 @@ export function FloatingCartButton() {
     '/invoice', // also covers /invoice/*
     '/products', // PDP & Catalog
     '/checkout',
+    '/collections', // Exclusive campaign pages (e.g., Dr. Doom)
   ];
 
   if (!mounted || !pathname) return null;

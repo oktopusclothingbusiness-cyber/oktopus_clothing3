@@ -12,15 +12,25 @@ import type { Product } from '@/context/product-context';
 interface DesktopSecondaryCampaignProps {
   products: Product[];
   bannerUrl?: string;
+  ctaLink?: string;
+  ctaText?: string;
+  title?: string;
+  description?: string;
 }
 
 export function DesktopSecondaryCampaign({
   products,
   bannerUrl,
+  ctaLink = '/collections/dr-doom',
+  ctaText = 'EXPLORE EXCLUSIVE DROP',
+  title = 'EXCLUSIVE LIMITED EDITIONS',
+  description = 'Strict batch limits. Once a colorway sells out, it will not be restocked in the same graphic configuration.',
 }: DesktopSecondaryCampaignProps) {
   const campaignBanner =
     bannerUrl ||
     'https://res.cloudinary.com/de1ypcjx9/image/upload/v1790432973/homepage_new_banner1.webp';
+
+  const targetLink = ctaLink || '/collections/dr-doom';
 
   const curatedDropProducts = React.useMemo(() => {
     // Show up to 4 products from reverse or sale items for variety
@@ -50,11 +60,11 @@ export function DesktopSecondaryCampaign({
               </p>
 
               <h2 className="text-4xl lg:text-7xl font-black font-bebas tracking-tight uppercase leading-none">
-                EXCLUSIVE LIMITED EDITIONS
+                {title}
               </h2>
 
               <p className="text-xs lg:text-sm text-zinc-300 leading-relaxed font-normal max-w-md">
-                Strict batch limits. Once a colorway sells out, it will not be restocked in the same graphic configuration.
+                {description}
               </p>
 
               <div className="pt-2">
@@ -63,8 +73,8 @@ export function DesktopSecondaryCampaign({
                   size="lg"
                   className="rounded-none h-12 px-8 text-xs font-bold font-mono tracking-wider bg-white text-black hover:bg-zinc-200 transition-all shadow-xl"
                 >
-                  <Link href="/products" className="flex items-center gap-2">
-                    SHOP ARCHIVE DROPS <ArrowRight className="w-3.5 h-3.5" />
+                  <Link href={targetLink} className="flex items-center gap-2">
+                    {ctaText} <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </Button>
               </div>

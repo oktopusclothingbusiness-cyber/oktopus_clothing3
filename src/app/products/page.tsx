@@ -31,6 +31,7 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DoomCampaignBanner } from '@/components/doom-collection/doom-campaign-banner';
 
 function ProductListComponent() {
   const { products, loading: productsLoading } = useProduct();
@@ -124,7 +125,7 @@ function ProductListComponent() {
     const effectiveSearch = localSearch.trim();
     if (effectiveSearch) return `Search results for "${effectiveSearch}"`;
     if (activeCategoryName) return `${activeCategoryName} Collection`;
-    return 'Premium Collections';
+    return 'Explore Collections';
   };
 
   const productsPagePromotion = React.useMemo(() => {
@@ -168,6 +169,7 @@ function ProductListComponent() {
             </p>
           </div>
 
+          {/* Promotion Banner */}
           {productsPagePromotion && (
             <Link
               href={productsPagePromotion.ctaLink || '/products'}
@@ -182,6 +184,9 @@ function ProductListComponent() {
               />
             </Link>
           )}
+
+          {/* Dr. Doom Exclusive Dedicated Campaign Section (Placed BELOW banner) */}
+          <DoomCampaignBanner className="mt-3" />
         </div>
       </section>
 

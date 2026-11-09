@@ -1,0 +1,127 @@
+/* ==========================================================================
+   DR. DOOM COLLECTION — REFINED LUXURY DESIGN SYSTEM
+   ========================================================================== */
+
+:root,
+.doom-collection,
+[data-campaign="dr-doom"] {
+  --doom-black: #050705;
+  --doom-forest: #394F3F;
+  --doom-emerald: #4B5E4A;
+  --doom-ivory: #F2F1DD;
+  --doom-antique-gold: #8E815A;
+  --doom-champagne-gold: #C1B188;
+  --doom-armour-silver: #A1AAA3;
+  --doom-shadow-green: #2D382D;
+  --doom-sage: #7B8F7C;
+  --doom-dark-bronze: #494333;
+
+  --doom-page-bg: #050705;
+  --doom-surface: #0E130F;
+  --doom-surface-elevated: #161E17;
+  --doom-text-primary: #F2F1DD;
+  --doom-text-secondary: #A1AAA3;
+  --doom-border: #494333;
+}
+
+.doom-collection {
+  background-color: var(--doom-page-bg);
+  color: var(--doom-text-primary);
+  color-scheme: dark;
+}
+
+/* Custom Doom Cursor on Desktop View Only */
+@media (min-width: 768px) and (pointer: fine) {
+  .doom-collection,
+  .doom-collection a,
+  .doom-collection button,
+  .doom-collection input,
+  .doom-collection [role="button"] {
+    cursor: none !important;
+  }
+}
+
+/* Background Texture with Dark Overlay */
+.doom-bg-texture {
+  background-image: 
+    linear-gradient(180deg, rgba(5, 7, 5, 0.82) 0%, rgba(5, 7, 5, 0.94) 100%),
+    url('/doom/doom-texture.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+.doom-hero-texture {
+  background-image: 
+    radial-gradient(circle at 50% 35%, rgba(75, 94, 74, 0.28) 0%, rgba(5, 7, 5, 0.92) 80%),
+    linear-gradient(180deg, rgba(5, 7, 5, 0.75) 0%, #050705 100%),
+    url('/doom/doom-texture.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+.doom-card-bg {
+  background: linear-gradient(
+    180deg,
+    rgba(14, 19, 15, 0.95) 0%,
+    rgba(10, 14, 11, 0.98) 100%
+  );
+}
+
+/* Subtle Gold Text Treatment */
+.doom-gold-text {
+  color: var(--doom-champagne-gold);
+}
+
+/* Seamless Header & Footer Dark Integration for .doom-collection */
+.doom-collection header {
+  background-color: rgba(5, 7, 5, 0.95) !important;
+  border-bottom-color: var(--doom-border) !important;
+  color: var(--doom-text-primary) !important;
+}
+
+.doom-collection header a,
+.doom-collection header button,
+.doom-collection header span {
+  color: var(--doom-text-primary);
+}
+
+.doom-collection header .dark\:block {
+  display: block !important;
+}
+
+.doom-collection header .dark\:hidden {
+  display: none !important;
+}
+
+.doom-collection footer {
+  background-color: #050705 !important;
+  border-top-color: var(--doom-border) !important;
+  color: var(--doom-text-secondary) !important;
+}
+
+.doom-collection footer a {
+  color: var(--doom-text-secondary) !important;
+}
+
+.doom-collection footer a:hover {
+  color: var(--doom-champagne-gold) !important;
+}
+
+.doom-collection footer h3 {
+  color: var(--doom-text-primary) !important;
+}
+
+.doom-collection .mobile-footer {
+  background-color: rgba(5, 7, 5, 0.95) !important;
+  border-top-color: var(--doom-border) !important;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .doom-collection * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

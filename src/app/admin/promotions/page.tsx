@@ -119,8 +119,34 @@ export default function AdminPromotionsPage() {
                   <Input id="ctaText" name="ctaText" value={formData.ctaText} onChange={handleInputChange} placeholder="e.g., Check this out" disabled={isSubmitting} />
                 </div>
                  <div className="space-y-2">
-                  <Label htmlFor="ctaLink">CTA Button Link</Label>
-                  <Input id="ctaLink" name="ctaLink" value={formData.ctaLink} onChange={handleInputChange} placeholder="e.g., /products" disabled={isSubmitting} />
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="ctaLink">CTA Button Link</Label>
+                    <span className="text-[10px] text-muted-foreground font-mono">Quick Presets:</span>
+                  </div>
+                  <Input id="ctaLink" name="ctaLink" value={formData.ctaLink} onChange={handleInputChange} placeholder="e.g., /collections/dr-doom or /products" disabled={isSubmitting} />
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, ctaLink: '/collections/dr-doom', ctaText: prev.ctaText || 'Explore Dr. Doom' }))}
+                      className="text-[10px] font-mono px-2 py-0.5 rounded bg-muted hover:bg-primary/20 text-foreground transition-colors border"
+                    >
+                      + Dr. Doom (/collections/dr-doom)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, ctaLink: '/products', ctaText: prev.ctaText || 'Shop Now' }))}
+                      className="text-[10px] font-mono px-2 py-0.5 rounded bg-muted hover:bg-primary/20 text-foreground transition-colors border"
+                    >
+                      + All Products (/products)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, ctaLink: '/custom-design', ctaText: prev.ctaText || 'Custom Atelier' }))}
+                      className="text-[10px] font-mono px-2 py-0.5 rounded bg-muted hover:bg-primary/20 text-foreground transition-colors border"
+                    >
+                      + Custom Atelier (/custom-design)
+                    </button>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="placement">API Placement Slot</Label>

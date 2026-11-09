@@ -38,6 +38,7 @@ import { DesktopSecondaryCampaign } from "@/components/storefront/desktop-second
 import { DesktopFaqAccordion } from "@/components/storefront/desktop-faq-accordion";
 import { DesktopShoppingPerks } from "@/components/storefront/desktop-shopping-perks";
 import { VisitorRecommendations } from "@/components/visitor-recommendations";
+import { DoomShowcaseCard } from "@/components/doom-collection/doom-showcase-card";
 
 // Doodle SVG components
 const Doodle1 = () => (
@@ -421,6 +422,10 @@ export default function StreetifyStorePage() {
           <DesktopSecondaryCampaign
             products={products}
             bannerUrl={activePromotions[1]?.imageUrl}
+            ctaLink={activePromotions[1]?.ctaLink || '/collections/dr-doom'}
+            ctaText={activePromotions[1]?.ctaText || 'EXPLORE DR. DOOM COLLECTION'}
+            title={activePromotions[1]?.title || 'EXCLUSIVE LIMITED EDITIONS'}
+            description={activePromotions[1]?.description}
           />
 
           {/* Module 11: Customer FAQ Accordion */}
@@ -575,11 +580,18 @@ export default function StreetifyStorePage() {
                   </div>
                 ))
               ) : (
-                newArrivals.map(product => (
-                  <div key={product.id} className="flex-shrink-0 w-40">
-                    <ProductCard product={product} isMobile={true} />
+                <>
+                  {/* Dr. Doom Exclusive Showcase Card */}
+                  <div className="flex-shrink-0 w-40">
+                    <DoomShowcaseCard isMobile={true} />
                   </div>
-                ))
+
+                  {newArrivals.map(product => (
+                    <div key={product.id} className="flex-shrink-0 w-40">
+                      <ProductCard product={product} isMobile={true} />
+                    </div>
+                  ))}
+                </>
               )}
             </div>
           </section>

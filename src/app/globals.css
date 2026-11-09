@@ -1,5 +1,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+@import '../styles/doom-collection.css';
 
 @tailwind base;
 @tailwind components;
